@@ -13,10 +13,11 @@
  * from the use of this software.
  */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
+#include <getopt.h>
 #include "libifupdown/libifupdown.h"
-
 
 void
 print_interface(struct lif_interface *iface)
@@ -56,16 +57,58 @@ print_interface(struct lif_interface *iface)
 	}
 }
 
+void
+usage()
+{
+	printf("usage: ifquery [options] <interfaces>\n");
+	printf("       ifquery [options] --list\n");
+
+	printf("\nOptions:\n");
+	printf("  -i, --interfaces FILE        use FILE for interface definitions\n");
+
+	exit(1);
+}
 
 int
 main(int argc, char *argv[])
 {
 	struct lif_dict collection;
+	struct option long_options[] = {
+		{"interfaces", required_argument, 0, 'i'},
+		{NULL, 0, 0, 0}
+	};
+	char *interfaces_file = INTERFACES_FILE;
+
+	for (;;)
+	{
+		int c = getopt_long(argc, argv, "i:", long_options, NULL);
+		if (c == -1)
+			break;
+
+		switch (c) {
+		case 'i':
+			interfaces_file = optarg;
+			break;
+		}
+	}
 
 	lif_interface_collection_init(&collection);
 
-	struct lif_interface *if_lo = lif_interface_collection_find(&collection, "lo");
-	print_interface(if_lo);
+	if (optind >= argc)
+		usage();
+
+	int idx = optind;
+	for (; idx < argc; idx++)
+	{
+		struct lif_dict_entry *entry = lif_dict_find(&collection, argv[idx]);
+		if (entry == NULL)
+		{
+			printf("ifquery: unknown interface %s\n", argv[idx]);
+			return EXIT_FAILURE;
+		}
+
+		print_interface(entry->data);
+	}
 
 	return EXIT_SUCCESS;
 }

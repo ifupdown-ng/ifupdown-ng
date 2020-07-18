@@ -1,4 +1,5 @@
-CFLAGS := -ggdb3 -O2 -Wall -I.
+INTERFACES_FILE := /etc/network/interfaces
+CFLAGS := -ggdb3 -O2 -Wall -I. -DINTERFACES_FILE=\"${INTERFACES_FILE}\"
 
 
 LIBIFUPDOWN_SRC = \
