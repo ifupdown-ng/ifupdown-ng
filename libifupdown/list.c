@@ -16,26 +16,6 @@
 #include <stdint.h>
 #include "libifupdown/list.h"
 
-#if 0
-
-struct lif_node {
-	struct lif_node *prev, *next;
-	void *data;
-};
-
-struct lif_list {
-	struct lif_node *head, *tail;
-	size_t length;
-};
-
-#define LIF_LIST_FOREACH(iter, head) \
-	for ((iter) = (head); (iter) != NULL; (iter) = (iter)->next)
-
-#define LIF_LIST_FOREACH_SAFE(iter, iter_next, head) \
-	for ((iter) = (head); (iter) != NULL; (iter) = (iter_next), (iter_next) = (iter) != NULL ? (iter)->next : NULL)
-
-#endif
-
 void
 lif_node_insert(struct lif_node *node, void *data, struct lif_list *list)
 {
