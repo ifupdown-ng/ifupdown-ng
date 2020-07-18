@@ -18,5 +18,6 @@
 
 #include "libifupdown/list.h"
 #include "libifupdown/dict.h"
+#include "libifupdown/interface.h"
 
 #endif
