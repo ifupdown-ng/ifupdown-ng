@@ -17,5 +17,6 @@
 #define LIBIFUPDOWN_LIBIFUPDOWN_H__GUARD
 
 #include "libifupdown/list.h"
+#include "libifupdown/dict.h"
 
 #endif
