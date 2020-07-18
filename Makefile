@@ -3,7 +3,8 @@ CFLAGS := -ggdb3 -O2 -Wall -I.
 
 LIBIFUPDOWN_SRC = \
 	libifupdown/list.c \
-	libifupdown/dict.c
+	libifupdown/dict.c \
+	libifupdown/interface.c
 
 LIBIFUPDOWN_OBJ = ${LIBIFUPDOWN_SRC:.c=.o}
 
