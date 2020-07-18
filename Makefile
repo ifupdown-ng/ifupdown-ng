@@ -22,7 +22,7 @@ ifquery: ${LIBS} ${IFQUERY_OBJ}
 	${CC} -o $@ ${IFQUERY_OBJ} ${LIBS}
 
 libifupdown.a: ${LIBIFUPDOWN_OBJ}
-	ar -rcs $@ ${LIBIFUPDOWN_OBJ}
+	${AR} -rcs $@ ${LIBIFUPDOWN_OBJ}
 
 all: libifupdown.a ${CMDS}
 
