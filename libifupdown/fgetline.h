@@ -1,6 +1,6 @@
 /*
- * libifupdown/libifupdown.h
- * Purpose: main header file for libifupdown
+ * libifupdown/fgetline.h
+ * Purpose: portable fgetline(3)
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
  *
@@ -13,13 +13,13 @@
  * from the use of this software.
  */
 
-#ifndef LIBIFUPDOWN_LIBIFUPDOWN_H__GUARD
-#define LIBIFUPDOWN_LIBIFUPDOWN_H__GUARD
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 
-#include "libifupdown/list.h"
-#include "libifupdown/dict.h"
-#include "libifupdown/interface.h"
-#include "libifupdown/interface-file.h"
-#include "libifupdown/fgetline.h"
+#ifndef LIBIFUPDOWN_FGETLINE_H__GUARD
+#define LIBIFUPDOWN_FGETLINE_H__GUARD
+
+extern char *lif_fgetline(char *line, size_t size, FILE *stream);
 
 #endif

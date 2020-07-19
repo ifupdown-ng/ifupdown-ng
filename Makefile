@@ -6,7 +6,8 @@ LIBIFUPDOWN_SRC = \
 	libifupdown/list.c \
 	libifupdown/dict.c \
 	libifupdown/interface.c \
-	libifupdown/interface-file.c
+	libifupdown/interface-file.c \
+	libifupdown/fgetline.c
 
 LIBIFUPDOWN_OBJ = ${LIBIFUPDOWN_SRC:.c=.o}
 LIBIFUPDOWN_LIB = libifupdown.a
