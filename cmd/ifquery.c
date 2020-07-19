@@ -56,6 +56,8 @@ print_interface(struct lif_interface *iface)
 		else
 			printf("  %s %s\n", entry->key, (const char *) entry->data);
 	}
+
+	printf("\n");
 }
 
 void
@@ -72,6 +74,7 @@ usage()
 	printf("  -a, --auto                   only match against interfaces hinted as 'auto'\n");
 	printf("  -I, --include PATTERN        only match against interfaces matching PATTERN\n");
 	printf("  -X, --exclude PATTERN        never match against interfaces matching PATTERN\n");
+	printf("  -P, --pretty-print           pretty print the interfaces instead of just listing\n");
 
 	exit(1);
 }
@@ -80,6 +83,7 @@ struct match_options {
 	bool is_auto;
 	char *exclude_pattern;
 	char *include_pattern;
+	bool pretty_print;
 };
 
 void
@@ -103,7 +107,10 @@ list_interfaces(struct lif_dict *collection, struct match_options *opts)
 		    fnmatch(opts->include_pattern, iface->ifname, 0))
 			continue;
 
-		printf("%s\n", iface->ifname);
+		if (opts->pretty_print)
+			print_interface(iface);
+		else
+			printf("%s\n", iface->ifname);
 	}
 }
 
@@ -119,6 +126,7 @@ main(int argc, char *argv[])
 		{"auto", no_argument, 0, 'a'},
 		{"include", required_argument, 0, 'I'},
 		{"exclude", required_argument, 0, 'X'},
+		{"pretty-print", no_argument, 0, 'P'},
 		{NULL, 0, 0, 0}
 	};
 	struct match_options match_opts = {};
@@ -127,7 +135,7 @@ main(int argc, char *argv[])
 
 	for (;;)
 	{
-		int c = getopt_long(argc, argv, "hVi:LaI:X:", long_options, NULL);
+		int c = getopt_long(argc, argv, "hVi:LaI:X:P", long_options, NULL);
 		if (c == -1)
 			break;
 
@@ -152,6 +160,9 @@ main(int argc, char *argv[])
 			break;
 		case 'X':
 			match_opts.exclude_pattern = optarg;
+			break;
+		case 'P':
+			match_opts.pretty_print = true;
 			break;
 		}
 	}
