@@ -13,13 +13,129 @@
  * from the use of this software.
  */
 
+#include <ctype.h>
 #include <stdio.h>
+#include <string.h>
 #include "libifupdown/interface-file.h"
+#include "libifupdown/fgetline.h"
+
+static char *
+next_token(char **buf)
+{
+	char *out = *buf;
+
+	while (*out && isspace(*out))
+		out++;
+
+	char *end = out;
+	while (*end && !isspace(*end))
+		end++;
+
+	*end++ = '\0';
+	*buf = end;
+
+	return out;
+}
 
 bool
 lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 {
 	lif_interface_collection_init(collection);
+	struct lif_interface *cur_iface = NULL;
 
+	FILE *f = fopen(filename, "r");
+	if (f == NULL)
+		return false;
+
+	char linebuf[4096];
+	while (lif_fgetline(linebuf, sizeof linebuf, f) != NULL)
+	{
+		char *bufp = linebuf;
+		char *token = next_token(&bufp);
+
+		if (!*token || !isalpha(*token))
+			continue;
+
+		if (!strcmp(token, "source"))
+		{
+			char *source_filename = next_token(&bufp);
+			if (!*source_filename)
+				goto parse_error;
+
+			if (!strcmp(filename, source_filename))
+			{
+				fprintf(stderr, "%s: attempt to source %s would create infinite loop\n",
+					filename, source_filename);
+				goto parse_error;
+			}
+
+			lif_interface_file_parse(collection, source_filename);
+		}
+		else if (!strcmp(token, "auto"))
+		{
+			char *ifname = next_token(&bufp);
+			if (!*ifname && cur_iface == NULL)
+				goto parse_error;
+			else
+			{
+				cur_iface = lif_interface_collection_find(collection, ifname);
+				if (cur_iface == NULL)
+					goto parse_error;
+			}
+
+			cur_iface->is_auto = true;
+		}
+		else if (!strcmp(token, "iface"))
+		{
+			char *ifname = next_token(&bufp);
+			if (!*ifname)
+				goto parse_error;
+
+			cur_iface = lif_interface_collection_find(collection, ifname);
+			if (cur_iface == NULL)
+				goto parse_error;
+
+			/* in original ifupdown config, we can have "inet loopback"
+			 * or "inet dhcp" or such to designate hints.  lets pick up
+			 * those hints here.
+			 */
+			char *inet_type = next_token(&bufp);
+			if (!*inet_type)
+				continue;
+
+			char *hint = next_token(&bufp);
+			if (!*hint)
+				continue;
+
+			if (!strcmp(hint, "dhcp"))
+				cur_iface->is_dhcp = true;
+			else if (!strcmp(hint, "loopback"))
+				cur_iface->is_loopback = true;
+		}
+		else if (!strcmp(token, "address"))
+		{
+			char *addr = next_token(&bufp);
+
+			if (cur_iface == NULL)
+			{
+				fprintf(stderr, "%s: address '%s' without interface\n", filename, addr);
+				goto parse_error;
+			}
+
+			lif_interface_address_add(cur_iface, addr);
+		}
+		else if (cur_iface != NULL)
+		{
+			lif_dict_add(&cur_iface->vars, token, strdup(bufp));
+		}
+	}
+
+	fclose(f);
 	return true;
+
+parse_error:
+	fprintf(stderr, "libifupdown: %s: failed to parse line \"%s\"\n",
+		filename, linebuf);
+	fclose(f);
+	return false;
 }

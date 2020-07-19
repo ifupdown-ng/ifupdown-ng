@@ -44,7 +44,7 @@ lif_dict_add(struct lif_dict *dict, const char *key, void *data)
 	entry->key = strdup(key);
 	entry->data = data;
 
-	lif_node_insert(&entry->node, entry, &dict->list);
+	lif_node_insert_tail(&entry->node, entry, &dict->list);
 
 	return entry;
 }
