@@ -14,6 +14,7 @@
  */
 
 #define _GNU_SOURCE
+#include <fnmatch.h>
 #include <stdio.h>
 #include <string.h>
 #include <getopt.h>
@@ -69,6 +70,8 @@ usage()
 	printf("  -i, --interfaces FILE        use FILE for interface definitions\n");
 	printf("  -L, --list                   list matching interfaces\n");
 	printf("  -a, --auto                   only match against interfaces hinted as 'auto'\n");
+	printf("  -I, --include PATTERN        only match against interfaces matching PATTERN\n");
+	printf("  -X, --exclude PATTERN        never match against interfaces matching PATTERN\n");
 
 	exit(1);
 }
@@ -92,6 +95,14 @@ list_interfaces(struct lif_dict *collection, struct match_options *opts)
 		if (opts->is_auto && !iface->is_auto)
 			continue;
 
+		if (opts->exclude_pattern != NULL &&
+		    !fnmatch(opts->exclude_pattern, iface->ifname, 0))
+			continue;
+
+		if (opts->include_pattern != NULL &&
+		    fnmatch(opts->include_pattern, iface->ifname, 0))
+			continue;
+
 		printf("%s\n", iface->ifname);
 	}
 }
@@ -106,6 +117,8 @@ main(int argc, char *argv[])
 		{"interfaces", required_argument, 0, 'i'},
 		{"list", no_argument, 0, 'L'},
 		{"auto", no_argument, 0, 'a'},
+		{"include", required_argument, 0, 'I'},
+		{"exclude", required_argument, 0, 'X'},
 		{NULL, 0, 0, 0}
 	};
 	struct match_options match_opts = {};
@@ -114,7 +127,7 @@ main(int argc, char *argv[])
 
 	for (;;)
 	{
-		int c = getopt_long(argc, argv, "hVi:La", long_options, NULL);
+		int c = getopt_long(argc, argv, "hVi:LaI:X:", long_options, NULL);
 		if (c == -1)
 			break;
 
@@ -133,6 +146,12 @@ main(int argc, char *argv[])
 			break;
 		case 'a':
 			match_opts.is_auto = true;
+			break;
+		case 'I':
+			match_opts.include_pattern = optarg;
+			break;
+		case 'X':
+			match_opts.exclude_pattern = optarg;
 			break;
 		}
 	}
