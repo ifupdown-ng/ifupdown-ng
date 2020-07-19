@@ -92,7 +92,11 @@ main(int argc, char *argv[])
 		}
 	}
 
-	lif_interface_collection_init(&collection);
+	if (!lif_interface_file_parse(&collection, interfaces_file))
+	{
+		fprintf(stderr, "ifquery: could not parse %s\n", interfaces_file);
+		return EXIT_FAILURE;
+	}
 
 	if (optind >= argc)
 		usage();
@@ -103,7 +107,7 @@ main(int argc, char *argv[])
 		struct lif_dict_entry *entry = lif_dict_find(&collection, argv[idx]);
 		if (entry == NULL)
 		{
-			printf("ifquery: unknown interface %s\n", argv[idx]);
+			fprintf(stderr, "ifquery: unknown interface %s\n", argv[idx]);
 			return EXIT_FAILURE;
 		}
 

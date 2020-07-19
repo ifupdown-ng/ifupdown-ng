@@ -1,6 +1,6 @@
 /*
- * libifupdown/libifupdown.h
- * Purpose: main header file for libifupdown
+ * libifupdown/interface-file.h
+ * Purpose: /etc/network/interfaces parser
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
  *
@@ -13,12 +13,13 @@
  * from the use of this software.
  */
 
-#ifndef LIBIFUPDOWN_LIBIFUPDOWN_H__GUARD
-#define LIBIFUPDOWN_LIBIFUPDOWN_H__GUARD
-
-#include "libifupdown/list.h"
-#include "libifupdown/dict.h"
-#include "libifupdown/interface.h"
+#include <stdio.h>
 #include "libifupdown/interface-file.h"
 
-#endif
+bool
+lif_interface_file_parse(struct lif_dict *collection, const char *filename)
+{
+	lif_interface_collection_init(collection);
+
+	return true;
+}

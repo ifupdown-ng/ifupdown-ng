@@ -5,7 +5,8 @@ CFLAGS := -ggdb3 -O2 -Wall -I. -DINTERFACES_FILE=\"${INTERFACES_FILE}\"
 LIBIFUPDOWN_SRC = \
 	libifupdown/list.c \
 	libifupdown/dict.c \
-	libifupdown/interface.c
+	libifupdown/interface.c \
+	libifupdown/interface-file.c
 
 LIBIFUPDOWN_OBJ = ${LIBIFUPDOWN_SRC:.c=.o}
 LIBIFUPDOWN_LIB = libifupdown.a
