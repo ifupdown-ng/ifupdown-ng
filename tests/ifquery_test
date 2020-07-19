@@ -3,8 +3,13 @@
 . $(atf_get_srcdir)/test_env.sh
 
 tests_init \
-	noargs
+	noargs \
+	loopback_always_configured
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery
+}
+
+loopback_always_configured_body() {
+	atf_check -s exit:0 -o match:"inet loopback" ifquery --pretty-print lo
 }
