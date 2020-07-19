@@ -63,18 +63,18 @@ print_interface(struct lif_interface *iface)
 void
 usage()
 {
-	printf("usage: ifquery [options] <interfaces>\n");
-	printf("       ifquery [options] --list\n");
+	fprintf(stderr, "usage: ifquery [options] <interfaces>\n");
+	fprintf(stderr, "       ifquery [options] --list\n");
 
-	printf("\nOptions:\n");
-	printf("  -h, --help                   this help\n");
-	printf("  -V, --version                show this program's version\n");
-	printf("  -i, --interfaces FILE        use FILE for interface definitions\n");
-	printf("  -L, --list                   list matching interfaces\n");
-	printf("  -a, --auto                   only match against interfaces hinted as 'auto'\n");
-	printf("  -I, --include PATTERN        only match against interfaces matching PATTERN\n");
-	printf("  -X, --exclude PATTERN        never match against interfaces matching PATTERN\n");
-	printf("  -P, --pretty-print           pretty print the interfaces instead of just listing\n");
+	fprintf(stderr, "\nOptions:\n");
+	fprintf(stderr, "  -h, --help                   this help\n");
+	fprintf(stderr, "  -V, --version                show this program's version\n");
+	fprintf(stderr, "  -i, --interfaces FILE        use FILE for interface definitions\n");
+	fprintf(stderr, "  -L, --list                   list matching interfaces\n");
+	fprintf(stderr, "  -a, --auto                   only match against interfaces hinted as 'auto'\n");
+	fprintf(stderr, "  -I, --include PATTERN        only match against interfaces matching PATTERN\n");
+	fprintf(stderr, "  -X, --exclude PATTERN        never match against interfaces matching PATTERN\n");
+	fprintf(stderr, "  -P, --pretty-print           pretty print the interfaces instead of just listing\n");
 
 	exit(1);
 }
