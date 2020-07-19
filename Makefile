@@ -36,3 +36,6 @@ all: libifupdown.a ${CMDS}
 
 clean:
 	rm -f ${LIBIFUPDOWN_OBJ}
+
+check:
+	kyua test
