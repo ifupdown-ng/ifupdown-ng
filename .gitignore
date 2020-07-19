@@ -1,2 +1,5 @@
 *.o
 *.a
+ifquery
+ifup
+ifdown
