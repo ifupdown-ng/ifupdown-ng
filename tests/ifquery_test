@@ -15,7 +15,8 @@ noargs_body() {
 }
 
 loopback_always_configured_body() {
-	atf_check -s exit:0 -o match:"inet loopback" ifquery --pretty-print lo
+	atf_check -s exit:0 -o match:"inet loopback" \
+		ifquery -i $FIXTURES/static-eth0.interfaces lo
 }
 
 static_dual_stack_body() {
