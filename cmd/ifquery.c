@@ -64,6 +64,8 @@ usage()
 	printf("       ifquery [options] --list\n");
 
 	printf("\nOptions:\n");
+	printf("  -h, --help                   this help\n");
+	printf("  -V, --version                show this program's version\n");
 	printf("  -i, --interfaces FILE        use FILE for interface definitions\n");
 
 	exit(1);
@@ -74,6 +76,8 @@ main(int argc, char *argv[])
 {
 	struct lif_dict collection;
 	struct option long_options[] = {
+		{"help", no_argument, 0, 'h'},
+		{"version", no_argument, 0, 'V'},
 		{"interfaces", required_argument, 0, 'i'},
 		{NULL, 0, 0, 0}
 	};
@@ -81,11 +85,17 @@ main(int argc, char *argv[])
 
 	for (;;)
 	{
-		int c = getopt_long(argc, argv, "i:", long_options, NULL);
+		int c = getopt_long(argc, argv, "hVi:", long_options, NULL);
 		if (c == -1)
 			break;
 
 		switch (c) {
+		case 'h':
+			usage();
+			break;
+		case 'V':
+			lif_common_version();
+			break;
 		case 'i':
 			interfaces_file = optarg;
 			break;

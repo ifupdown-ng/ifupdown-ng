@@ -1,6 +1,6 @@
 /*
- * libifupdown/libifupdown.h
- * Purpose: main header file for libifupdown
+ * libifupdown/version.h
+ * Purpose: lif_common_version() header
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
  *
@@ -13,14 +13,9 @@
  * from the use of this software.
  */
 
-#ifndef LIBIFUPDOWN_LIBIFUPDOWN_H__GUARD
-#define LIBIFUPDOWN_LIBIFUPDOWN_H__GUARD
+#ifndef LIBIFUPDOWN_VERSION_H__GUARD
+#define LIBIFUPDOWN_VERSION_H__GUARD
 
-#include "libifupdown/list.h"
-#include "libifupdown/dict.h"
-#include "libifupdown/interface.h"
-#include "libifupdown/interface-file.h"
-#include "libifupdown/fgetline.h"
-#include "libifupdown/version.h"
+extern void lif_common_version(void);
 
 #endif

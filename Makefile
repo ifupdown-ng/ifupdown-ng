@@ -1,5 +1,10 @@
+PACKAGE_NAME := ifupdown-ng
+PACKAGE_VERSION := 0.0.1
+PACKAGE_BUGREPORT := https://github.com/kaniini/ifupdown-ng/issues/new
+
+
 INTERFACES_FILE := /etc/network/interfaces
-CFLAGS := -ggdb3 -O2 -Wall -I. -DINTERFACES_FILE=\"${INTERFACES_FILE}\"
+CFLAGS := -ggdb3 -O2 -Wall -I. -DINTERFACES_FILE=\"${INTERFACES_FILE}\" -DPACKAGE_NAME=\"${PACKAGE_NAME}\" -DPACKAGE_VERSION=\"${PACKAGE_VERSION}\" -DPACKAGE_BUGREPORT=\"${PACKAGE_BUGREPORT}\"
 
 
 LIBIFUPDOWN_SRC = \
@@ -7,7 +12,8 @@ LIBIFUPDOWN_SRC = \
 	libifupdown/dict.c \
 	libifupdown/interface.c \
 	libifupdown/interface-file.c \
-	libifupdown/fgetline.c
+	libifupdown/fgetline.c \
+	libifupdown/version.c
 
 LIBIFUPDOWN_OBJ = ${LIBIFUPDOWN_SRC:.c=.o}
 LIBIFUPDOWN_LIB = libifupdown.a
