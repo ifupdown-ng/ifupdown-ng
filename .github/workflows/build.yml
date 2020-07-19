@@ -1,0 +1,19 @@
+name: build
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    steps:
+      - name: Update system and add dependencies
+        run: |
+          apk upgrade -Ua
+          apk add build-base git kyua atf
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build and run tests
+        run: make check
