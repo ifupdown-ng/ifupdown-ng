@@ -67,8 +67,33 @@ usage()
 	printf("  -h, --help                   this help\n");
 	printf("  -V, --version                show this program's version\n");
 	printf("  -i, --interfaces FILE        use FILE for interface definitions\n");
+	printf("  -L, --list                   list matching interfaces\n");
+	printf("  -a, --auto                   only match against interfaces hinted as 'auto'\n");
 
 	exit(1);
+}
+
+struct match_options {
+	bool is_auto;
+	char *exclude_pattern;
+	char *include_pattern;
+};
+
+void
+list_interfaces(struct lif_dict *collection, struct match_options *opts)
+{
+	struct lif_node *iter;
+
+	LIF_DICT_FOREACH(iter, collection)
+	{
+		struct lif_dict_entry *entry = iter->data;
+		struct lif_interface *iface = entry->data;
+
+		if (opts->is_auto && !iface->is_auto)
+			continue;
+
+		printf("%s\n", iface->ifname);
+	}
 }
 
 int
@@ -79,13 +104,17 @@ main(int argc, char *argv[])
 		{"help", no_argument, 0, 'h'},
 		{"version", no_argument, 0, 'V'},
 		{"interfaces", required_argument, 0, 'i'},
+		{"list", no_argument, 0, 'L'},
+		{"auto", no_argument, 0, 'a'},
 		{NULL, 0, 0, 0}
 	};
+	struct match_options match_opts = {};
+	bool listing = false;
 	char *interfaces_file = INTERFACES_FILE;
 
 	for (;;)
 	{
-		int c = getopt_long(argc, argv, "hVi:", long_options, NULL);
+		int c = getopt_long(argc, argv, "hVi:La", long_options, NULL);
 		if (c == -1)
 			break;
 
@@ -99,6 +128,12 @@ main(int argc, char *argv[])
 		case 'i':
 			interfaces_file = optarg;
 			break;
+		case 'L':
+			listing = true;
+			break;
+		case 'a':
+			match_opts.is_auto = true;
+			break;
 		}
 	}
 
@@ -106,6 +141,12 @@ main(int argc, char *argv[])
 	{
 		fprintf(stderr, "ifquery: could not parse %s\n", interfaces_file);
 		return EXIT_FAILURE;
+	}
+
+	if (listing)
+	{
+		list_interfaces(&collection, &match_opts);
+		return EXIT_SUCCESS;
 	}
 
 	if (optind >= argc)
