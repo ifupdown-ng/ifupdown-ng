@@ -1,3 +1,5 @@
+PATH="$(atf_get_srcdir)/..:$PATH"
+
 tests_init() {
 	TESTS="$@"
 	export TESTS
