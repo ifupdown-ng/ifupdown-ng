@@ -1,0 +1,4 @@
+auto eth0
+iface eth0
+	address 2001:db8:1000:2::2/64
+	gateway 2001:db8:1000:2::1

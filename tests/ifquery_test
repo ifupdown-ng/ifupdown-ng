@@ -4,7 +4,11 @@
 
 tests_init \
 	noargs \
-	loopback_always_configured
+	loopback_always_configured \
+	static_dual_stack \
+	static_ipv4 \
+	static_ipv6 \
+	dhcp_ipv4
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery
@@ -12,4 +16,29 @@ noargs_body() {
 
 loopback_always_configured_body() {
 	atf_check -s exit:0 -o match:"inet loopback" ifquery --pretty-print lo
+}
+
+static_dual_stack_body() {
+	atf_check -s exit:0 -o match:"address 203.0.113.2/24" \
+		  -o match:"address 2001:db8:1000:2::2/64" \
+		  -o match:"gateway 203.0.113.1" \
+		  -o match:"gateway 2001:db8:1000:2::1" \
+		  ifquery -i $FIXTURES/static-eth0.interfaces eth0
+}
+
+static_ipv4_body() {
+	atf_check -s exit:0 -o match:"address 203.0.113.2/24" \
+		  -o match:"gateway 203.0.113.1" \
+		  ifquery -i $FIXTURES/static-eth0-v4.interfaces eth0
+}
+
+static_ipv6_body() {
+	atf_check -s exit:0 -o match:"address 2001:db8:1000:2::2/64" \
+		  -o match:"gateway 2001:db8:1000:2::1" \
+		  ifquery -i $FIXTURES/static-eth0-v6.interfaces eth0
+}
+
+dhcp_ipv4_body() {
+	atf_check -s exit:0 -o match:"inet dhcp" \
+		  ifquery -i $FIXTURES/dhcp-eth0.interfaces eth0
 }
