@@ -8,7 +8,10 @@ tests_init \
 	static_dual_stack \
 	static_ipv4 \
 	static_ipv6 \
-	dhcp_ipv4
+	dhcp_ipv4 \
+	state_query_home \
+	state_query_work \
+	state_print
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -42,4 +45,21 @@ static_ipv6_body() {
 dhcp_ipv4_body() {
 	atf_check -s exit:0 -o match:"inet dhcp" \
 		  ifquery -S/dev/null -i $FIXTURES/dhcp-eth0.interfaces eth0
+}
+
+state_query_home_body() {
+	atf_check -s exit:0 -o match:"iface home" \
+		  ifquery -S $FIXTURES/alias-home.ifstate -i $FIXTURES/alias-home-work.interfaces wlan0
+}
+
+state_query_work_body() {
+	atf_check -s exit:0 -o match:"iface work" \
+		  ifquery -S $FIXTURES/alias-work.ifstate -i $FIXTURES/alias-home-work.interfaces wlan0
+}
+
+state_print_body() {
+	atf_check -s exit:0 -o match:"wlan0=home" \
+		  ifquery -S $FIXTURES/alias-home.ifstate -i $FIXTURES/alias-home-work.interfaces -s
+	atf_check -s exit:0 -o match:"wlan0=work" \
+		  ifquery -S $FIXTURES/alias-work.ifstate -i $FIXTURES/alias-home-work.interfaces -s
 }

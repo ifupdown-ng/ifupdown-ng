@@ -1,0 +1,7 @@
+iface home inet dhcp
+
+iface work
+	address 203.0.113.2/24
+	address 2001:db8:1000:2::2/64
+	gateway 203.0.113.1
+	gateway 2001:db8:1000:2::1
