@@ -234,6 +234,15 @@ main(int argc, char *argv[])
 	for (; idx < argc; idx++)
 	{
 		struct lif_interface *iface = lif_state_lookup(&state, &collection, argv[idx]);
+
+		if (iface == NULL)
+		{
+			struct lif_dict_entry *entry = lif_dict_find(&collection, argv[idx]);
+
+			if (entry != NULL)
+				iface = entry->data;
+		}
+
 		if (iface == NULL)
 		{
 			fprintf(stderr, "ifquery: unknown interface %s\n", argv[idx]);

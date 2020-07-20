@@ -11,12 +11,12 @@ tests_init \
 	dhcp_ipv4
 
 noargs_body() {
-	atf_check -s exit:1 -e ignore ifquery
+	atf_check -s exit:1 -e ignore ifquery -S/dev/null
 }
 
 loopback_always_configured_body() {
 	atf_check -s exit:0 -o match:"inet loopback" \
-		ifquery -i $FIXTURES/static-eth0.interfaces lo
+		ifquery -S/dev/null -i $FIXTURES/static-eth0.interfaces lo
 }
 
 static_dual_stack_body() {
@@ -24,22 +24,22 @@ static_dual_stack_body() {
 		  -o match:"address 2001:db8:1000:2::2/64" \
 		  -o match:"gateway 203.0.113.1" \
 		  -o match:"gateway 2001:db8:1000:2::1" \
-		  ifquery -i $FIXTURES/static-eth0.interfaces eth0
+		  ifquery -S/dev/null -i $FIXTURES/static-eth0.interfaces eth0
 }
 
 static_ipv4_body() {
 	atf_check -s exit:0 -o match:"address 203.0.113.2/24" \
 		  -o match:"gateway 203.0.113.1" \
-		  ifquery -i $FIXTURES/static-eth0-v4.interfaces eth0
+		  ifquery -S/dev/null -i $FIXTURES/static-eth0-v4.interfaces eth0
 }
 
 static_ipv6_body() {
 	atf_check -s exit:0 -o match:"address 2001:db8:1000:2::2/64" \
 		  -o match:"gateway 2001:db8:1000:2::1" \
-		  ifquery -i $FIXTURES/static-eth0-v6.interfaces eth0
+		  ifquery -S/dev/null -i $FIXTURES/static-eth0-v6.interfaces eth0
 }
 
 dhcp_ipv4_body() {
 	atf_check -s exit:0 -o match:"inet dhcp" \
-		  ifquery -i $FIXTURES/dhcp-eth0.interfaces eth0
+		  ifquery -S/dev/null -i $FIXTURES/dhcp-eth0.interfaces eth0
 }
