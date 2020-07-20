@@ -4,7 +4,8 @@ PACKAGE_BUGREPORT := https://github.com/kaniini/ifupdown-ng/issues/new
 
 
 INTERFACES_FILE := /etc/network/interfaces
-CFLAGS := -ggdb3 -O2 -Wall -I. -DINTERFACES_FILE=\"${INTERFACES_FILE}\" -DPACKAGE_NAME=\"${PACKAGE_NAME}\" -DPACKAGE_VERSION=\"${PACKAGE_VERSION}\" -DPACKAGE_BUGREPORT=\"${PACKAGE_BUGREPORT}\"
+STATE_FILE := /run/ifstate
+CFLAGS := -ggdb3 -O2 -Wall -I. -DINTERFACES_FILE=\"${INTERFACES_FILE}\" -DSTATE_FILE=\"${STATE_FILE}\" -DPACKAGE_NAME=\"${PACKAGE_NAME}\" -DPACKAGE_VERSION=\"${PACKAGE_VERSION}\" -DPACKAGE_BUGREPORT=\"${PACKAGE_BUGREPORT}\"
 
 
 LIBIFUPDOWN_SRC = \
@@ -13,7 +14,8 @@ LIBIFUPDOWN_SRC = \
 	libifupdown/interface.c \
 	libifupdown/interface-file.c \
 	libifupdown/fgetline.c \
-	libifupdown/version.c
+	libifupdown/version.c \
+	libifupdown/state.c
 
 LIBIFUPDOWN_OBJ = ${LIBIFUPDOWN_SRC:.c=.o}
 LIBIFUPDOWN_LIB = libifupdown.a
