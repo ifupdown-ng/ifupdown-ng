@@ -75,6 +75,8 @@ usage()
 	fprintf(stderr, "  -I, --include PATTERN        only match against interfaces matching PATTERN\n");
 	fprintf(stderr, "  -X, --exclude PATTERN        never match against interfaces matching PATTERN\n");
 	fprintf(stderr, "  -P, --pretty-print           pretty print the interfaces instead of just listing\n");
+	fprintf(stderr, "  -S, --state-file FILE        use FILE for state\n");
+	fprintf(stderr, "  -s, --state                  show configured state\n");
 
 	exit(1);
 }
@@ -114,10 +116,32 @@ list_interfaces(struct lif_dict *collection, struct match_options *opts)
 	}
 }
 
+void
+list_state(struct lif_dict *state, struct match_options *opts)
+{
+	struct lif_node *iter;
+
+	LIF_DICT_FOREACH(iter, state)
+	{
+		struct lif_dict_entry *entry = iter->data;
+
+		if (opts->exclude_pattern != NULL &&
+		    !fnmatch(opts->exclude_pattern, entry->key, 0))
+			continue;
+
+		if (opts->include_pattern != NULL &&
+		    fnmatch(opts->include_pattern, entry->key, 0))
+			continue;
+
+		printf("%s=%s\n", entry->key, (const char *) entry->data);
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
-	struct lif_dict collection;
+	struct lif_dict state = {};
+	struct lif_dict collection = {};
 	struct option long_options[] = {
 		{"help", no_argument, 0, 'h'},
 		{"version", no_argument, 0, 'V'},
@@ -127,15 +151,18 @@ main(int argc, char *argv[])
 		{"include", required_argument, 0, 'I'},
 		{"exclude", required_argument, 0, 'X'},
 		{"pretty-print", no_argument, 0, 'P'},
+		{"state-file", required_argument, 0, 'S'},
+		{"state", no_argument, 0, 's'},
 		{NULL, 0, 0, 0}
 	};
 	struct match_options match_opts = {};
-	bool listing = false;
+	bool listing = false, listing_stat = false;
 	char *interfaces_file = INTERFACES_FILE;
+	char *state_file = STATE_FILE;
 
 	for (;;)
 	{
-		int c = getopt_long(argc, argv, "hVi:LaI:X:P", long_options, NULL);
+		int c = getopt_long(argc, argv, "hVi:LaI:X:PS:s", long_options, NULL);
 		if (c == -1)
 			break;
 
@@ -164,7 +191,19 @@ main(int argc, char *argv[])
 		case 'P':
 			match_opts.pretty_print = true;
 			break;
+		case 'S':
+			state_file = optarg;
+			break;
+		case 's':
+			listing_stat = true;
+			break;
 		}
+	}
+
+	if (!lif_state_read_path(&state, state_file))
+	{
+		fprintf(stderr, "ifquery: could not parse %s\n", state_file);
+		return EXIT_FAILURE;
 	}
 
 	if (!lif_interface_file_parse(&collection, interfaces_file))
@@ -173,9 +212,18 @@ main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	/* --list --state is not allowed */
+	if (listing && listing_stat)
+		usage();
+
 	if (listing)
 	{
 		list_interfaces(&collection, &match_opts);
+		return EXIT_SUCCESS;
+	}
+	else if (listing_stat)
+	{
+		list_state(&state, &match_opts);
 		return EXIT_SUCCESS;
 	}
 
@@ -185,14 +233,14 @@ main(int argc, char *argv[])
 	int idx = optind;
 	for (; idx < argc; idx++)
 	{
-		struct lif_dict_entry *entry = lif_dict_find(&collection, argv[idx]);
-		if (entry == NULL)
+		struct lif_interface *iface = lif_state_lookup(&state, &collection, argv[idx]);
+		if (iface == NULL)
 		{
 			fprintf(stderr, "ifquery: unknown interface %s\n", argv[idx]);
 			return EXIT_FAILURE;
 		}
 
-		print_interface(entry->data);
+		print_interface(iface);
 	}
 
 	return EXIT_SUCCESS;

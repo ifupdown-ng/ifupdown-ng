@@ -19,9 +19,12 @@
 #include <stdio.h>
 #include "libifupdown/interface.h"
 
+extern bool lif_state_read(struct lif_dict *state, FILE *f);
+extern bool lif_state_read_path(struct lif_dict *state, const char *path);
 extern void lif_state_upsert(struct lif_dict *state, const char *ifname, struct lif_interface *iface);
 extern void lif_state_delete(struct lif_dict *state, const char *ifname);
 extern void lif_state_write(const struct lif_dict *state, FILE *f);
+extern bool lif_state_write_path(const struct lif_dict *state, const char *path);
 extern struct lif_interface *lif_state_lookup(struct lif_dict *state, struct lif_dict *if_collection, const char *ifname);
 
 #endif

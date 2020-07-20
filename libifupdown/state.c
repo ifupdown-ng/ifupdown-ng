@@ -1,5 +1,5 @@
 /*
- * libifupdown/state.h
+ * libifupdown/state.c
  * Purpose: state management
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
@@ -15,6 +15,44 @@
 
 #include <string.h>
 #include "libifupdown/state.h"
+#include "libifupdown/fgetline.h"
+
+bool
+lif_state_read(struct lif_dict *state, FILE *fd)
+{
+	char linebuf[4096];
+	while (lif_fgetline(linebuf, sizeof linebuf, fd))
+	{
+		char *ifname = linebuf;
+		char *equals_p = strchr(linebuf, '=');
+
+		if (equals_p == NULL)
+		{
+			lif_state_upsert(state, ifname, &(struct lif_interface){ .ifname = ifname });
+			continue;
+		}
+
+		*equals_p++ = '\0';
+		lif_state_upsert(state, ifname, &(struct lif_interface){ .ifname = equals_p });
+	}
+
+	return true;
+}
+
+bool
+lif_state_read_path(struct lif_dict *state, const char *path)
+{
+	FILE *fd = fopen(path, "r");
+	bool ret;
+
+	if (fd == NULL)
+		return false;
+
+	ret = lif_state_read(state, fd);
+	fclose(fd);
+
+	return ret;
+}
 
 void
 lif_state_upsert(struct lif_dict *state, const char *ifname, struct lif_interface *iface)
@@ -45,6 +83,20 @@ lif_state_write(const struct lif_dict *state, FILE *f)
 
 		fprintf(f, "%s=%s\n", entry->key, (const char *) entry->data);
 	}
+}
+
+bool
+lif_state_write_path(const struct lif_dict *state, const char *path)
+{
+	FILE *fd = fopen(path, "w");
+
+	if (fd == NULL)
+		return false;
+
+	lif_state_write(state, fd);
+	fclose(fd);
+
+	return true;
 }
 
 struct lif_interface *

@@ -22,5 +22,6 @@
 #include "libifupdown/interface-file.h"
 #include "libifupdown/fgetline.h"
 #include "libifupdown/version.h"
+#include "libifupdown/state.h"
 
 #endif
