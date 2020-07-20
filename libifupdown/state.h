@@ -22,5 +22,6 @@
 extern void lif_state_upsert(struct lif_dict *state, const char *ifname, struct lif_interface *iface);
 extern void lif_state_delete(struct lif_dict *state, const char *ifname);
 extern void lif_state_write(const struct lif_dict *state, FILE *f);
+extern struct lif_interface *lif_state_lookup(struct lif_dict *state, struct lif_dict *if_collection, const char *ifname);
 
 #endif

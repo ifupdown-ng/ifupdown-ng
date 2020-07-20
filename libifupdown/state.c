@@ -46,3 +46,19 @@ lif_state_write(const struct lif_dict *state, FILE *f)
 		fprintf(f, "%s=%s\n", entry->key, (const char *) entry->data);
 	}
 }
+
+struct lif_interface *
+lif_state_lookup(struct lif_dict *state, struct lif_dict *if_collection, const char *ifname)
+{
+	struct lif_dict_entry *entry = lif_dict_find(state, ifname);
+
+	if (entry == NULL)
+		return NULL;
+
+	struct lif_dict_entry *if_entry = lif_dict_find(if_collection, (const char *) entry->data);
+
+	if (if_entry == NULL)
+		return NULL;
+
+	return if_entry->data;
+}
