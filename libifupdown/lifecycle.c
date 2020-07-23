@@ -186,6 +186,8 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 	if (lifname == NULL)
 		lifname = iface->ifname;
 
+	/* XXX: actually handle dependents here */
+
 	if (up)
 	{
 		/* XXX: we should try to recover (take the iface down) if bringing it up fails.
