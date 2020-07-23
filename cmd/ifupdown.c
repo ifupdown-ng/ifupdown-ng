@@ -218,7 +218,11 @@ main(int argc, char *argv[])
 			return EXIT_FAILURE;
 	}
 
-	/* XXX: update state file */
+	if (!exec_opts.mock && !lif_state_write_path(&state, state_file))
+	{
+		fprintf(stderr, "%s: could not update %s\n", argv0, state_file);
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
 }
