@@ -19,6 +19,11 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-extern bool lif_execute_fmt(char *const envp[], const char *fmt, ...);
+struct lif_execute_opts {
+	bool verbose;
+	bool mock;
+};
+
+extern bool lif_execute_fmt(const struct lif_execute_opts *opts, char *const envp[], const char *fmt, ...);
 
 #endif

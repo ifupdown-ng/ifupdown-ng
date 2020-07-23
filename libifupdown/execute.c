@@ -29,7 +29,7 @@
 #define SHELL	"/bin/sh"
 
 bool
-lif_execute_fmt(char *const envp[], const char *fmt, ...)
+lif_execute_fmt(const struct lif_execute_opts *opts, char *const envp[], const char *fmt, ...)
 {
 	char cmdbuf[4096];
 	va_list va;
@@ -40,6 +40,12 @@ lif_execute_fmt(char *const envp[], const char *fmt, ...)
 
 	pid_t child;
 	char *argv[] = { SHELL, "-c", cmdbuf, NULL };
+
+	if (opts->verbose)
+		puts(cmdbuf);
+
+	if (opts->mock)
+		return true;
 
 	if (posix_spawn(&child, SHELL, NULL, NULL, argv, envp) != 0)
 	{
