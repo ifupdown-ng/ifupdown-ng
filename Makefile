@@ -1,5 +1,5 @@
 PACKAGE_NAME := ifupdown-ng
-PACKAGE_VERSION := 0.0.1
+PACKAGE_VERSION := 0.1
 PACKAGE_BUGREPORT := https://github.com/kaniini/ifupdown-ng/issues/new
 
 
