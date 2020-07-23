@@ -177,7 +177,7 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 	handle_commands_for_phase(opts, envp, iface, lifname, phase);
 
 	/* we should do error handling here, but ifupdown1 doesn't */
-	lif_execute_fmt(opts, envp, "run-parts /etc/network/if-%s.d", phase);
+	lif_execute_fmt(opts, envp, "/bin/run-parts /etc/network/if-%s.d", phase);
 
 	lif_environment_free(&envp);
 	return true;
