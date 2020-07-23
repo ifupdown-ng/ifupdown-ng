@@ -53,4 +53,7 @@ clean:
 check: libifupdown.a ${CMDS}
 	kyua test
 
-default: all
+install: all
+	install -D -m755 ./ifquery ${DESTDIR}/sbin/ifquery
+	install -D -m755 ./ifup ${DESTDIR}/sbin/ifup
+	ln -s /sbin/ifup ${DESTDIR}/sbin/ifdown
