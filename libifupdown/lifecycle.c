@@ -13,6 +13,7 @@
  * from the use of this software.
  */
 
+#include <ctype.h>
 #include <string.h>
 
 #include "libifupdown/environment.h"
@@ -182,6 +183,49 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 		lif_environment_push(&envp, "MODE", "start");
 	else
 		lif_environment_push(&envp, "MODE", "stop");
+
+	struct lif_node *iter;
+	bool did_address = false, did_gateway = false;
+
+	LIF_DICT_FOREACH(iter, &iface->vars)
+	{
+		struct lif_dict_entry *entry = iter->data;
+
+		if (!strcmp(entry->key, "address"))
+		{
+			if (did_address)
+				continue;
+
+			struct lif_address *addr = entry->data;
+			char addrbuf[4096];
+
+			if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
+				continue;
+
+			lif_environment_push(&envp, "IF_ADDRESS", addrbuf);
+			did_address = true;
+
+			continue;
+		}
+		else if (!strcmp(entry->key, "gateway"))
+		{
+			if (did_gateway)
+				continue;
+
+			did_gateway = true;
+		}
+
+		char envkey[4096] = "IF_";
+		strlcat(envkey, entry->key, sizeof envkey);
+		char *ep = envkey + 2;
+
+		while (*ep++)
+		{
+			*ep = toupper(*ep);
+		}
+
+		lif_environment_push(&envp, envkey, (const char *) entry->data);
+	}
 
 	if (!strcmp(phase, "pre-up"))
 	{
