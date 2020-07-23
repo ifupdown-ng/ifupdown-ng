@@ -28,21 +28,23 @@ lif_environment_push(char **env[], const char *name, const char *val)
 	/* create an initial envp: {"foo=bar", NULL} */
 	if (*env == NULL)
 	{
-		*env = calloc(1, sizeof (**env));
-		**env = strdup(buf);
+		*env = calloc(2, sizeof (char *));
+		(*env)[0] = strdup(buf);
+		(*env)[1] = NULL;
 
 		return true;
 	}
 
 	size_t nelems;
-	for (nelems = 0; *env[nelems] != NULL; nelems++)
+	for (nelems = 0; (*env)[nelems] != NULL; nelems++)
 		;
 
-	nelems += 1;
-	*env = realloc(*env, (nelems * sizeof (**env)));
+	/* NULL at end, plus next env var */
+	size_t allocelems = nelems + 2;
+	*env = realloc(*env, ((allocelems + 2) * sizeof (char *)));
 
-	*env[nelems] = strdup(buf);
-	*env[nelems + 1] = NULL;
+	(*env)[nelems] = strdup(buf);
+	(*env)[nelems + 1] = NULL;
 
 	return true;
 }
@@ -52,6 +54,8 @@ lif_environment_free(char **env[])
 {
 	size_t nelems;
 
-	for (nelems = 0; *env[nelems] != NULL; nelems++)
-		free(*env[nelems]);
+	for (nelems = 0; (*env)[nelems] != NULL; nelems++)
+		free((*env)[nelems]);
+
+	free(*env);
 }
