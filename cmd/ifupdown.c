@@ -61,11 +61,45 @@ is_ifdown()
 bool
 change_interface(struct lif_interface *iface, struct lif_dict *state, const char *ifname)
 {
+	if (exec_opts.verbose)
+	{
+		fprintf(stderr, "%s: changing interface %s state to '%s'\n",
+			argv0, ifname, up ? "up" : "down");
+	}
+
 	if (!lif_lifecycle_run(&exec_opts, iface, state, ifname, up))
 	{
-		fprintf(stderr, "%s: failed to bring interface %s %s\n",
+		fprintf(stderr, "%s: failed to change interface %s state to '%s'\n",
 			argv0, ifname, up ? "up" : "down");
 		return false;
+	}
+
+	return true;
+}
+
+bool
+change_auto_interfaces(struct lif_dict *collection, struct lif_dict *state, struct match_options *opts)
+{
+	struct lif_node *iter;
+
+	LIF_DICT_FOREACH(iter, collection)
+	{
+		struct lif_dict_entry *entry = iter->data;
+		struct lif_interface *iface = entry->data;
+
+		if (opts->is_auto && !iface->is_auto)
+			continue;
+
+		if (opts->exclude_pattern != NULL &&
+		    !fnmatch(opts->exclude_pattern, iface->ifname, 0))
+			continue;
+
+		if (opts->include_pattern != NULL &&
+		    fnmatch(opts->include_pattern, iface->ifname, 0))
+			continue;
+
+		if (!change_interface(iface, state, iface->ifname))
+			return false;
 	}
 
 	return true;
@@ -74,7 +108,7 @@ change_interface(struct lif_interface *iface, struct lif_dict *state, const char
 int
 main(int argc, char *argv[])
 {
-	argv0 = argv[0];
+	argv0 = basename(argv[0]);
 	up = !is_ifdown();
 
 	struct lif_dict state = {};
@@ -145,7 +179,14 @@ main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (optind >= argc)
+	if (match_opts.is_auto)
+	{
+		if (!change_auto_interfaces(&collection, &state, &match_opts))
+			return EXIT_FAILURE;
+
+		return EXIT_SUCCESS;
+	}
+	else if (optind >= argc)
 		usage();
 
 	int idx = optind;
