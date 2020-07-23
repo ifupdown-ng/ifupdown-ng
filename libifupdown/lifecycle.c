@@ -44,6 +44,17 @@ handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[
 }
 
 static bool
+handle_address(const struct lif_execute_opts *opts, struct lif_address *addr, const char *cmd, const char *lifname)
+{
+	char addrbuf[4096];
+
+	if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
+		return false;
+
+	return lif_execute_fmt(opts, NULL, "/sbin/ip addr %s %s dev %s", cmd, addrbuf, lifname);
+}
+
+static bool
 handle_pre_up(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname)
 {
 	(void) opts;
@@ -68,17 +79,12 @@ handle_up(const struct lif_execute_opts *opts, struct lif_interface *iface, cons
 	{
 		struct lif_dict_entry *entry = iter->data;
 
-		if (strcmp(entry->key, "address"))
-			continue;
+		if (!strcmp(entry->key, "address"))
+		{
+			struct lif_address *addr = entry->data;
 
-		struct lif_address *addr = entry->data;
-		char addrbuf[4096];
-
-		if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
-			return false;
-
-		if (!lif_execute_fmt(opts, NULL, "/sbin/ip addr add %s dev %s", addrbuf, lifname))
-			return false;
+			handle_address(opts, addr, "add", lifname);
+		}
 	}
 
 	if (iface->is_dhcp)
@@ -103,17 +109,12 @@ handle_down(const struct lif_execute_opts *opts, struct lif_interface *iface, co
 	{
 		struct lif_dict_entry *entry = iter->data;
 
-		if (strcmp(entry->key, "address"))
-			continue;
+		if (!strcmp(entry->key, "address"))
+		{
+			struct lif_address *addr = entry->data;
 
-		struct lif_address *addr = entry->data;
-		char addrbuf[4096];
-
-		if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
-			return false;
-
-		if (!lif_execute_fmt(opts, NULL, "/sbin/ip addr del %s dev %s", addrbuf, lifname))
-			return false;
+			handle_address(opts, addr, "del", lifname);
+		}
 	}
 
 	if (iface->is_dhcp)
