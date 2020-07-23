@@ -51,7 +51,17 @@ handle_address(const struct lif_execute_opts *opts, struct lif_address *addr, co
 	if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
 		return false;
 
-	return lif_execute_fmt(opts, NULL, "/sbin/ip addr %s %s dev %s", cmd, addrbuf, lifname);
+	return lif_execute_fmt(opts, NULL, "/sbin/ip -%d addr %s %s dev %s",
+			       addr->domain == AF_INET ? 4 : 6, cmd, addrbuf, lifname);
+}
+
+static bool
+handle_gateway(const struct lif_execute_opts *opts, const char *gateway, const char *cmd)
+{
+	int ipver = strchr(gateway, ':') ? 6 : 4;
+
+	return lif_execute_fmt(opts, NULL, "/sbin/ip -%d route %s default via %s",
+			       ipver, cmd, gateway);
 }
 
 static bool
@@ -83,7 +93,13 @@ handle_up(const struct lif_execute_opts *opts, struct lif_interface *iface, cons
 		{
 			struct lif_address *addr = entry->data;
 
-			handle_address(opts, addr, "add", lifname);
+			if (!handle_address(opts, addr, "add", lifname))
+				return false;
+		}
+		else if (!strcmp(entry->key, "gateway"))
+		{
+			if (!handle_gateway(opts, entry->data, "add"))
+				return false;
 		}
 	}
 
@@ -113,7 +129,13 @@ handle_down(const struct lif_execute_opts *opts, struct lif_interface *iface, co
 		{
 			struct lif_address *addr = entry->data;
 
-			handle_address(opts, addr, "del", lifname);
+			if (!handle_address(opts, addr, "del", lifname))
+				return false;
+		}
+		else if (!strcmp(entry->key, "gateway"))
+		{
+			if (!handle_gateway(opts, entry->key, "del"))
+				return false;
 		}
 	}
 
