@@ -1,6 +1,6 @@
 /*
- * libifupdown/libifupdown.h
- * Purpose: main header file for libifupdown
+ * libifupdown/execute.h
+ * Purpose: execution of individual commands
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
  *
@@ -13,17 +13,12 @@
  * from the use of this software.
  */
 
-#ifndef LIBIFUPDOWN_LIBIFUPDOWN_H__GUARD
-#define LIBIFUPDOWN_LIBIFUPDOWN_H__GUARD
+#ifndef LIBIFUPDOWN_EXECUTE_H__GUARD
+#define LIBIFUPDOWN_EXECUTE_H__GUARD
 
-#include "libifupdown/list.h"
-#include "libifupdown/dict.h"
-#include "libifupdown/interface.h"
-#include "libifupdown/interface-file.h"
-#include "libifupdown/fgetline.h"
-#include "libifupdown/version.h"
-#include "libifupdown/state.h"
-#include "libifupdown/environment.h"
-#include "libifupdown/execute.h"
+#include <stdarg.h>
+#include <stdbool.h>
+
+extern bool lif_execute_fmt(char *const envp[], const char *fmt, ...);
 
 #endif
