@@ -116,6 +116,13 @@ handle_down(const struct lif_execute_opts *opts, struct lif_interface *iface, co
 			return false;
 	}
 
+	if (iface->is_dhcp)
+	{
+		/* XXX: determine which dhcp client we should use */
+		if (!lif_execute_fmt(opts, NULL, "/bin/kill $(cat /var/run/udhcpc.%s.pid)", lifname))
+			return false;
+	}
+
 skip_addresses:
 	if (!lif_execute_fmt(opts, NULL, "/sbin/ip link set down dev %s", lifname))
 		return false;
