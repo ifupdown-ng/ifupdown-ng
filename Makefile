@@ -24,23 +24,32 @@ LIBIFUPDOWN_OBJ = ${LIBIFUPDOWN_SRC:.c=.o}
 LIBIFUPDOWN_LIB = libifupdown.a
 
 
-CMDS = \
-	ifquery
+CMDS = ifquery ifup ifdown
 
 LIBS = ${LIBIFUPDOWN_LIB}
+
+all: libifupdown.a ${CMDS}
 
 IFQUERY_SRC = cmd/ifquery.c
 IFQUERY_OBJ = ${IFQUERY_SRC:.c=.o}
 ifquery: ${LIBS} ${IFQUERY_OBJ}
 	${CC} -o $@ ${IFQUERY_OBJ} ${LIBS}
 
+IFUPDOWN_SRC = cmd/ifupdown.c
+IFUPDOWN_OBJ = ${IFUPDOWN_SRC:.c=.o}
+ifup: ${LIBS} ${IFUPDOWN_OBJ}
+	${CC} -o $@ ${IFUPDOWN_OBJ} ${LIBS}
+
+ifdown: ifup
+	ln -s ifup $@
+
 libifupdown.a: ${LIBIFUPDOWN_OBJ}
 	${AR} -rcs $@ ${LIBIFUPDOWN_OBJ}
 
-all: libifupdown.a ${CMDS}
-
 clean:
-	rm -f ${LIBIFUPDOWN_OBJ} ${IFQUERY_OBJ}
+	rm -f ${LIBIFUPDOWN_OBJ} ${IFQUERY_OBJ} ${IFUPDOWN_OBJ}
 
 check: libifupdown.a ${CMDS}
 	kyua test
+
+default: all
