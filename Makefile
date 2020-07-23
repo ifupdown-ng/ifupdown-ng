@@ -48,6 +48,7 @@ libifupdown.a: ${LIBIFUPDOWN_OBJ}
 
 clean:
 	rm -f ${LIBIFUPDOWN_OBJ} ${IFQUERY_OBJ} ${IFUPDOWN_OBJ}
+	rm -f ${CMDS}
 
 check: libifupdown.a ${CMDS}
 	kyua test
