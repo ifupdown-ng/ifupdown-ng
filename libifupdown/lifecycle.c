@@ -214,10 +214,16 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 		if (!lif_lifecycle_run_phase(opts, iface, "up", lifname, up))
 			return false;
 
+		if (!lif_lifecycle_run_phase(opts, iface, "post-up", lifname, up))
+			return false;
+
 		lif_state_upsert(state, lifname, iface);
 	}
 	else
 	{
+		if (!lif_lifecycle_run_phase(opts, iface, "pre-down", lifname, up))
+			return false;
+
 		if (!lif_lifecycle_run_phase(opts, iface, "down", lifname, up))
 			return false;
 
