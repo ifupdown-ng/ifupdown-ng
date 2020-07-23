@@ -81,6 +81,13 @@ handle_up(const struct lif_execute_opts *opts, struct lif_interface *iface, cons
 			return false;
 	}
 
+	if (iface->is_dhcp)
+	{
+		/* XXX: determine which dhcp client we should use */
+		if (!lif_execute_fmt(opts, NULL, "/sbin/udhcpc -b -R -p /var/run/udhcpc.%s.pid -i %s", lifname, lifname))
+			return false;
+	}
+
 	return true;
 }
 
