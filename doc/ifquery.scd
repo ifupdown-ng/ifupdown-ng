@@ -59,7 +59,9 @@ configuration file to the current format.
 
 # SEE ALSO
 
-*ifup*(8), *ifdown*(8), *interfaces*(5)
+*ifup*(8)++
+*ifdown*(8)++
+*interfaces*(5)
 
 # AUTHORS
 
