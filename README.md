@@ -5,7 +5,7 @@ ifupdown, BusyBox ifupdown and Cumulus Networks' ifupdown2.
 
 ## Dependency Resolution
 
-![Dependency resolution example](doc/img/dependency-resolution.png)
+<img alt="Dependency resolution example" src="/ifupdown-ng/ifupdown-ng/raw/master/doc/img/dependency-resolution.png" style="float: left">
 
 ifupdown-ng uses a dependency resolver to determine interface bring-up order
 in a deterministic way.  To use this feature, you must declare relationships
@@ -15,6 +15,8 @@ as the `IF_REQUIRES` environment variable.
 
 For compatibility with some legacy ifupdown executors, we also provide the
 `requires` keyword under other environment variables in some cases.
+
+<div style="clear: both"></div>
 
 ## Caveats
 
