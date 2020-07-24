@@ -1,0 +1,16 @@
+iface bond0
+	use bond
+
+	requires eth0 eth1
+	bond-mode 802.3ad
+	bond-xmit-hash-policy layer2+3
+
+auto br0
+iface br0
+	use bridge
+
+	requires bond0
+	address 203.0.113.2/24
+	address 2001:db8:1000:2::2/64
+	gateway 203.0.113.1
+	gateway 2001:db8:1000:2::1
