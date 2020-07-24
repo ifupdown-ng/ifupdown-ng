@@ -9,6 +9,7 @@ tests_init \
 	static_ipv4 \
 	static_ipv6 \
 	inet_dhcp \
+	use_dhcp \
 	alias_eth0_home \
 	alias_eth0_work \
 	bonded_bridge
@@ -57,6 +58,14 @@ inet_dhcp_body() {
 		-o match:'ip link set down dev eth0' \
 		-o match:'dhc' \
 		ifdown -S/dev/null -i $FIXTURES/dhcp-eth0.interfaces -n -a
+}
+
+use_dhcp_body() {
+	atf_check -s exit:0 -e ignore \
+		-o match:'ip link set down dev lo' \
+		-o match:'ip link set down dev eth0' \
+		-o match:'dhc' \
+		ifdown -S/dev/null -i $FIXTURES/use-dhcp-eth0.interfaces -n -a
 }
 
 alias_eth0_home_body() {

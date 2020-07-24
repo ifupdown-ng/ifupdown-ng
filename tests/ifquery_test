@@ -9,6 +9,7 @@ tests_init \
 	static_ipv4 \
 	static_ipv6 \
 	dhcp_ipv4 \
+	use_dhcp \
 	state_query_home \
 	state_query_work \
 	state_print
@@ -45,6 +46,11 @@ static_ipv6_body() {
 dhcp_ipv4_body() {
 	atf_check -s exit:0 -o match:"use dhcp" \
 		  ifquery -S/dev/null -i $FIXTURES/dhcp-eth0.interfaces eth0
+}
+
+use_dhcp_body() {
+	atf_check -s exit:0 -o match:"use dhcp" \
+		  ifquery -S/dev/null -i $FIXTURES/use-dhcp-eth0.interfaces eth0
 }
 
 state_query_home_body() {
