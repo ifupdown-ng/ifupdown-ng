@@ -21,6 +21,7 @@
 #include "libifupdown/interface.h"
 #include "libifupdown/lifecycle.h"
 #include "libifupdown/state.h"
+#include "libifupdown/tokenize.h"
 
 static bool
 handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface, const char *lifname, const char *phase)
@@ -264,24 +265,6 @@ on_error:
 	return false;
 }
 
-static char *
-next_token(char **buf)
-{
-	char *out = *buf;
-
-	while (*out && isspace(*out))
-		out++;
-
-	char *end = out;
-	while (*end && !isspace(*end))
-		end++;
-
-	*end++ = '\0';
-	*buf = end;
-
-	return out;
-}
-
 static bool
 handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *parent, struct lif_dict *collection, struct lif_dict *state, bool up)
 {
@@ -295,7 +278,7 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 	strlcpy(require_ifs, requires->data, sizeof require_ifs);
 	char *bufp = require_ifs;
 
-	for (char *tokenp = next_token(&bufp); *tokenp; tokenp = next_token(&bufp))
+	for (char *tokenp = lif_next_token(&bufp); *tokenp; tokenp = lif_next_token(&bufp))
 	{
 		struct lif_interface *iface = lif_interface_collection_find(collection, tokenp);
 

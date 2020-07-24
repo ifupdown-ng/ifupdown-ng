@@ -26,5 +26,6 @@
 #include "libifupdown/environment.h"
 #include "libifupdown/execute.h"
 #include "libifupdown/lifecycle.h"
+#include "libifupdown/tokenize.h"
 
 #endif

@@ -18,24 +18,7 @@
 #include <string.h>
 #include "libifupdown/interface-file.h"
 #include "libifupdown/fgetline.h"
-
-static char *
-next_token(char **buf)
-{
-	char *out = *buf;
-
-	while (*out && isspace(*out))
-		out++;
-
-	char *end = out;
-	while (*end && !isspace(*end))
-		end++;
-
-	*end++ = '\0';
-	*buf = end;
-
-	return out;
-}
+#include "libifupdown/tokenize.h"
 
 bool
 lif_interface_file_parse(struct lif_dict *collection, const char *filename)
@@ -51,14 +34,14 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 	while (lif_fgetline(linebuf, sizeof linebuf, f) != NULL)
 	{
 		char *bufp = linebuf;
-		char *token = next_token(&bufp);
+		char *token = lif_next_token(&bufp);
 
 		if (!*token || !isalpha(*token))
 			continue;
 
 		if (!strcmp(token, "source"))
 		{
-			char *source_filename = next_token(&bufp);
+			char *source_filename = lif_next_token(&bufp);
 			if (!*source_filename)
 				goto parse_error;
 
@@ -73,7 +56,7 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 		}
 		else if (!strcmp(token, "auto"))
 		{
-			char *ifname = next_token(&bufp);
+			char *ifname = lif_next_token(&bufp);
 			if (!*ifname && cur_iface == NULL)
 				goto parse_error;
 			else
@@ -87,7 +70,7 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 		}
 		else if (!strcmp(token, "iface"))
 		{
-			char *ifname = next_token(&bufp);
+			char *ifname = lif_next_token(&bufp);
 			if (!*ifname)
 				goto parse_error;
 
@@ -99,11 +82,11 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 			 * or "inet dhcp" or such to designate hints.  lets pick up
 			 * those hints here.
 			 */
-			char *inet_type = next_token(&bufp);
+			char *inet_type = lif_next_token(&bufp);
 			if (!*inet_type)
 				continue;
 
-			char *hint = next_token(&bufp);
+			char *hint = lif_next_token(&bufp);
 			if (!*hint)
 				continue;
 
@@ -114,7 +97,7 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 		}
 		else if (!strcmp(token, "address"))
 		{
-			char *addr = next_token(&bufp);
+			char *addr = lif_next_token(&bufp);
 
 			if (cur_iface == NULL)
 			{
