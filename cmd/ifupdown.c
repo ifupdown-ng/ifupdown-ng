@@ -205,15 +205,20 @@ main(int argc, char *argv[])
 			lifname = p;
 		}
 
-		struct lif_dict_entry *entry = lif_dict_find(&collection, lifname);
-
-		if (entry == NULL)
+		struct lif_interface *iface = lif_state_lookup(&state, &collection, argv[idx]);
+		if (iface == NULL)
 		{
-			fprintf(stderr, "%s: unknown interface %s\n", argv0, argv[idx]);
-			return EXIT_FAILURE;
+			struct lif_dict_entry *entry = lif_dict_find(&collection, lifname);
+
+			if (entry == NULL)
+			{
+				fprintf(stderr, "%s: unknown interface %s\n", argv0, argv[idx]);
+				return EXIT_FAILURE;
+			}
+
+			iface = entry->data;
 		}
 
-		struct lif_interface *iface = entry->data;
 		if (!change_interface(iface, &state, ifname))
 			return EXIT_FAILURE;
 	}
