@@ -71,7 +71,10 @@ install: all
 	${SCDOC} < $< > $@
 
 MANPAGES = \
-	doc/ifquery.8
+	doc/ifquery.8 \
+	doc/ifup.8 \
+	doc/ifdown.8 \
+	doc/interfaces.5
 
 docs: ${MANPAGES}
 
