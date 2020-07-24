@@ -45,8 +45,9 @@ lif_state_read_path(struct lif_dict *state, const char *path)
 	FILE *fd = fopen(path, "r");
 	bool ret;
 
+	/* if file cannot be opened, assume an empty state */
 	if (fd == NULL)
-		return false;
+		return true;
 
 	ret = lif_state_read(state, fd);
 	fclose(fd);
