@@ -264,16 +264,66 @@ on_error:
 	return false;
 }
 
+static char *
+next_token(char **buf)
+{
+	char *out = *buf;
+
+	while (*out && isspace(*out))
+		out++;
+
+	char *end = out;
+	while (*end && !isspace(*end))
+		end++;
+
+	*end++ = '\0';
+	*buf = end;
+
+	return out;
+}
+
+static bool
+handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *parent, struct lif_dict *collection, struct lif_dict *state, bool up)
+{
+	struct lif_dict_entry *requires = lif_dict_find(&parent->vars, "requires");
+
+	/* no dependents, nothing to worry about */
+	if (requires == NULL)
+		return true;
+
+	char require_ifs[4096];
+	strlcpy(require_ifs, requires->data, sizeof require_ifs);
+	char *bufp = require_ifs;
+
+	for (char *tokenp = next_token(&bufp); *tokenp; tokenp = next_token(&bufp))
+	{
+		fprintf(stderr, "next iface: %s\n", tokenp);
+
+		struct lif_interface *iface = lif_interface_collection_find(collection, tokenp);
+
+		/* already up or down, skip */
+		if (up == iface->is_up)
+			continue;
+
+		if (!lif_lifecycle_run(opts, iface, collection, state, iface->ifname, up))
+			return false;
+	}
+
+	return true;
+}
+
 bool
-lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *iface, struct lif_dict *state, const char *lifname, bool up)
+lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *lifname, bool up)
 {
 	if (lifname == NULL)
 		lifname = iface->ifname;
 
-	/* XXX: actually handle dependents here */
-
 	if (up)
 	{
+		/* when going up, dependents go up first. */
+		if (!handle_dependents(opts, iface, collection, state, up))
+			return false;
+
 		/* XXX: we should try to recover (take the iface down) if bringing it up fails.
 		 * but, right now neither debian ifupdown or busybox ifupdown do any recovery,
 		 * so we wont right now.
@@ -288,6 +338,8 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 			return false;
 
 		lif_state_upsert(state, lifname, iface);
+
+		iface->is_up = true;
 	}
 	else
 	{
@@ -300,7 +352,13 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 		if (!lif_lifecycle_run_phase(opts, iface, "post-down", lifname, up))
 			return false;
 
+		/* when going up, dependents go down last. */
+		if (!handle_dependents(opts, iface, collection, state, up))
+			return false;
+
 		lif_state_delete(state, lifname);
+
+		iface->is_up = false;
 	}
 
 	return true;

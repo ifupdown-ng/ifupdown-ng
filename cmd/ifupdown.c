@@ -60,7 +60,7 @@ is_ifdown()
 }
 
 bool
-change_interface(struct lif_interface *iface, struct lif_dict *state, const char *ifname)
+change_interface(struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *ifname)
 {
 	if (exec_opts.verbose)
 	{
@@ -68,7 +68,7 @@ change_interface(struct lif_interface *iface, struct lif_dict *state, const char
 			argv0, ifname, up ? "up" : "down");
 	}
 
-	if (!lif_lifecycle_run(&exec_opts, iface, state, ifname, up))
+	if (!lif_lifecycle_run(&exec_opts, iface, collection, state, ifname, up))
 	{
 		fprintf(stderr, "%s: failed to change interface %s state to '%s'\n",
 			argv0, ifname, up ? "up" : "down");
@@ -99,7 +99,7 @@ change_auto_interfaces(struct lif_dict *collection, struct lif_dict *state, stru
 		    fnmatch(opts->include_pattern, iface->ifname, 0))
 			continue;
 
-		if (!change_interface(iface, state, iface->ifname))
+		if (!change_interface(iface, collection, state, iface->ifname))
 			return false;
 	}
 
@@ -220,7 +220,7 @@ ifupdown_main(int argc, char *argv[])
 			iface = entry->data;
 		}
 
-		if (!change_interface(iface, &state, ifname))
+		if (!change_interface(iface, &collection, &state, ifname))
 			return EXIT_FAILURE;
 	}
 

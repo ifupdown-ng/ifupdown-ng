@@ -52,6 +52,8 @@ struct lif_interface {
 	bool is_auto;
 
 	struct lif_dict vars;
+
+	bool is_up;
 };
 
 #define LIF_INTERFACE_COLLECTION_FOREACH(iter, collection) \
