@@ -70,12 +70,26 @@ install: all
 .scd.1 .scd.2 .scd.3 .scd.4 .scd.5 .scd.6 .scd.7 .scd.8:
 	${SCDOC} < $< > $@
 
-MANPAGES = \
+MANPAGES_8 = \
 	doc/ifquery.8 \
 	doc/ifup.8 \
-	doc/ifdown.8 \
+	doc/ifdown.8
+
+MANPAGES_5 = \
 	doc/interfaces.5
 
+MANPAGES = ${MANPAGES_5} ${MANPAGES_8}
+
 docs: ${MANPAGES}
+
+install_docs: docs
+	for i in ${MANPAGES_5}; do \
+		target=$$(basename $$i); \
+		install -D -m644 $$i ${DESTDIR}/usr/share/man/man5/$$target; \
+	done
+	for i in ${MANPAGES_8}; do \
+		target=$$(basename $$i); \
+		install -D -m644 $$i ${DESTDIR}/usr/share/man/man8/$$target; \
+	done
 
 .SUFFIXES: .scd .1 .2 .3 .4 .5 .6 .7 .8
