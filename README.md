@@ -24,5 +24,11 @@ For compatibility with some legacy ifupdown executors, we also provide the
 * ifupdown-ng retains compatibility with /etc/network/if-X.d scripts, but will
   prefer using executors in /usr/libexec/ifupdown-ng where appropriate.
 
-This package is planned to replace BusyBox ifupdown in Alpine at some point in
-the future.
+## Building
+
+Simply do `make` and `make install` to build and install.
+
+To run the tests, do `make check`.
+
+To build the documentation, do `make docs` and `make install_docs`.  Building
+the documentation requires scdoc (`apk add scdoc`).
