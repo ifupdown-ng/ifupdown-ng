@@ -27,14 +27,7 @@ print_interface(struct lif_interface *iface)
 	if (iface->is_auto)
 		printf("auto %s\n", iface->ifname);
 
-	printf("iface %s", iface->ifname);
-
-	if (iface->is_loopback)
-		printf(" inet loopback\n");
-	else if (iface->is_dhcp)
-		printf(" inet dhcp\n");
-	else
-		printf("\n");
+	printf("iface %s\n", iface->ifname);
 
 	struct lif_node *iter;
 	LIF_DICT_FOREACH(iter, &iface->vars)

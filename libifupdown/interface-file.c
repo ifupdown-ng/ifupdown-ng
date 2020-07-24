@@ -91,9 +91,10 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 				continue;
 
 			if (!strcmp(hint, "dhcp"))
+			{
 				cur_iface->is_dhcp = true;
-			else if (!strcmp(hint, "loopback"))
-				cur_iface->is_loopback = true;
+				lif_dict_add(&cur_iface->vars, "use", strdup("dhcp"));
+			}
 		}
 		else if (!strcmp(token, "use"))
 		{
