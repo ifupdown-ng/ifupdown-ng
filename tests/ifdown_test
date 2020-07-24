@@ -60,19 +60,19 @@ inet_dhcp_body() {
 
 alias_eth0_home_body() {
 	atf_check -s exit:0 -e ignore \
-		-o match:'ip link set down dev eth0' \
+		-o match:'ip link set down dev wlan0' \
 		-o match:'dhc' \
 		ifdown -S $FIXTURES/alias-home.ifstate \
-			-i $FIXTURES/alias-home-work.interfaces -n eth0
+			-i $FIXTURES/alias-home-work.interfaces -n wlan0
 }
 
 alias_eth0_work_body() {
 	atf_check -s exit:0 -e ignore \
-		-o match:'ip link set down dev eth0' \
-		-o match:'del 203.0.113.2/24 dev eth0' \
-		-o match:'del 2001:db8:1000:2::2/64 dev eth0' \
+		-o match:'ip link set down dev wlan0' \
+		-o match:'del 203.0.113.2/24 dev wlan0' \
+		-o match:'del 2001:db8:1000:2::2/64 dev wlan0' \
 		-o match:'default via 203.0.113.1' \
 		-o match:'default via 2001:db8:1000:2::1' \
 		ifdown -S $FIXTURES/alias-work.ifstate \
-			-i $FIXTURES/alias-home-work.interfaces -n eth0
+			-i $FIXTURES/alias-home-work.interfaces -n wlan0
 }
