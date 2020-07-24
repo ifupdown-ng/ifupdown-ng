@@ -10,7 +10,8 @@ tests_init \
 	static_ipv6 \
 	inet_dhcp \
 	alias_eth0_home \
-	alias_eth0_work
+	alias_eth0_work \
+	bonded_bridge
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifdown -S/dev/null
@@ -75,4 +76,18 @@ alias_eth0_work_body() {
 		-o match:'default via 2001:db8:1000:2::1' \
 		ifdown -S $FIXTURES/alias-work.ifstate \
 			-i $FIXTURES/alias-home-work.interfaces -n wlan0
+}
+
+bonded_bridge_body() {
+	atf_check -s exit:0 -e ignore \
+		-o match:'ip link set down dev eth0' \
+		-o match:'ip link set down dev eth1' \
+		-o match:'ip link set down dev bond0' \
+		-o match:'ip link set down dev br0' \
+		-o match:'del 203.0.113.2/24 dev br0' \
+		-o match:'del 2001:db8:1000:2::2/64 dev br0' \
+		-o match:'default via 203.0.113.1' \
+		-o match:'default via 2001:db8:1000:2::1' \
+		ifdown -S $FIXTURES/bonded-bridge.ifstate \
+			-i $FIXTURES/bonded-bridge.interfaces -n br0
 }
