@@ -50,6 +50,8 @@ struct lif_interface {
 	bool is_dhcp;
 	bool is_loopback;
 	bool is_auto;
+	bool is_bridge;
+	bool is_bond;
 
 	struct lif_dict vars;
 

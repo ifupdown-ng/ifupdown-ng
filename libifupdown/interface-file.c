@@ -95,6 +95,22 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 			else if (!strcmp(hint, "loopback"))
 				cur_iface->is_loopback = true;
 		}
+		else if (!strcmp(token, "use"))
+		{
+			char *executor = lif_next_token(&bufp);
+
+			/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
+			if (!strcmp(executor, "dhcp"))
+				cur_iface->is_dhcp = true;
+			else if (!strcmp(executor, "loopback"))
+				cur_iface->is_loopback = true;
+			else if (!strcmp(executor, "bridge"))
+				cur_iface->is_bridge = true;
+			else if (!strcmp(executor, "bond"))
+				cur_iface->is_bond = true;
+
+			lif_dict_add(&cur_iface->vars, token, strdup(executor));
+		}
 		else if (!strcmp(token, "address"))
 		{
 			char *addr = lif_next_token(&bufp);

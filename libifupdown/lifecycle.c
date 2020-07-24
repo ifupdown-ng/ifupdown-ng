@@ -215,6 +215,14 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 
 			did_gateway = true;
 		}
+		else if (!strcmp(entry->key, "requires"))
+		{
+			if (iface->is_bridge)
+				lif_environment_push(&envp, "IF_BRIDGE_PORTS", (const char *) entry->data);
+
+			if (iface->is_bond)
+				lif_environment_push(&envp, "IF_BOND_SLAVES", (const char *) entry->data);
+		}
 
 		char envkey[4096] = "IF_";
 		strlcat(envkey, entry->key, sizeof envkey);
