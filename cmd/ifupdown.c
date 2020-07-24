@@ -27,7 +27,6 @@ struct match_options {
 	char *include_pattern;
 };
 
-static const char *argv0;
 static bool up;
 static struct lif_execute_opts exec_opts = {};
 
@@ -109,7 +108,6 @@ change_auto_interfaces(struct lif_dict *collection, struct lif_dict *state, stru
 int
 ifupdown_main(int argc, char *argv[])
 {
-	argv0 = basename(argv[0]);
 	up = !is_ifdown();
 
 	struct lif_dict state = {};

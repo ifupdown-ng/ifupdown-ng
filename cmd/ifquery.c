@@ -252,13 +252,13 @@ ifquery_main(int argc, char *argv[])
 
 	if (!lif_state_read_path(&state, state_file))
 	{
-		fprintf(stderr, "ifquery: could not parse %s\n", state_file);
+		fprintf(stderr, "%s: could not parse %s\n", argv0, state_file);
 		return EXIT_FAILURE;
 	}
 
 	if (!lif_interface_file_parse(&collection, interfaces_file))
 	{
-		fprintf(stderr, "ifquery: could not parse %s\n", interfaces_file);
+		fprintf(stderr, "%s: could not parse %s\n", argv0, interfaces_file);
 		return EXIT_FAILURE;
 	}
 
@@ -295,7 +295,7 @@ ifquery_main(int argc, char *argv[])
 
 		if (iface == NULL)
 		{
-			fprintf(stderr, "ifquery: unknown interface %s\n", argv[idx]);
+			fprintf(stderr, "%s: unknown interface %s\n", argv0, argv[idx]);
 			return EXIT_FAILURE;
 		}
 

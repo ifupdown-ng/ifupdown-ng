@@ -24,4 +24,6 @@ struct if_applet {
 	void (*const usage)(void);
 };
 
+extern char *argv0;
+
 #endif

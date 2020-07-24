@@ -19,6 +19,8 @@
 #include <string.h>
 #include "cmd/multicall.h"
 
+char *argv0;
+
 extern struct if_applet ifquery_applet;
 extern struct if_applet ifup_applet;
 extern struct if_applet ifdown_applet;
@@ -47,7 +49,7 @@ void multicall_usage(void);
 int
 main(int argc, char *argv[])
 {
-	char *argv0 = basename(argv[0]);
+	argv0 = basename(argv[0]);
 	struct if_applet **app;
 
 	app = bsearch(argv0, applet_table,
