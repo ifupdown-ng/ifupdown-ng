@@ -135,7 +135,7 @@ handle_down(const struct lif_execute_opts *opts, struct lif_interface *iface, co
 		}
 		else if (!strcmp(entry->key, "gateway"))
 		{
-			if (!handle_gateway(opts, entry->key, "del"))
+			if (!handle_gateway(opts, entry->data, "del"))
 				return false;
 		}
 	}
