@@ -62,6 +62,37 @@ print_interface(struct lif_interface *iface)
 }
 
 void
+print_interface_dot(struct lif_dict *collection, struct lif_interface *iface, struct lif_interface *parent)
+{
+	if (iface->is_up)
+		return;
+
+	if (parent != NULL)
+		printf("\"%s\" -> ", parent->ifname);
+
+	printf("\"%s\"", iface->ifname);
+
+	printf("\n");
+
+	struct lif_dict_entry *entry = lif_dict_find(&iface->vars, "requires");
+
+	if (entry == NULL)
+		return;
+
+	char require_ifs[4096] = {};
+	strlcpy(require_ifs, entry->data, sizeof require_ifs);
+	char *reqp = require_ifs;
+
+	for (char *tokenp = lif_next_token(&reqp); *tokenp; tokenp = lif_next_token(&reqp))
+	{
+		struct lif_interface *child_if = lif_interface_collection_find(collection, tokenp);
+
+		print_interface_dot(collection, child_if, iface);
+		child_if->is_up = true;
+	}
+}
+
+void
 ifquery_usage(void)
 {
 	fprintf(stderr, "usage: ifquery [options] <interfaces>\n");
@@ -78,6 +109,7 @@ ifquery_usage(void)
 	fprintf(stderr, "  -P, --pretty-print           pretty print the interfaces instead of just listing\n");
 	fprintf(stderr, "  -S, --state-file FILE        use FILE for state\n");
 	fprintf(stderr, "  -s, --state                  show configured state\n");
+	fprintf(stderr, "  -D, --dot                    generate a dependency graph\n");
 
 	exit(1);
 }
@@ -87,12 +119,20 @@ struct match_options {
 	char *exclude_pattern;
 	char *include_pattern;
 	bool pretty_print;
+	bool dot;
 };
 
 void
 list_interfaces(struct lif_dict *collection, struct match_options *opts)
 {
 	struct lif_node *iter;
+
+	if (opts->dot)
+	{
+		printf("digraph interfaces {\n");
+		printf("edge [color=blue fontname=Sans fontsize=10]\n");
+		printf("node [fontname=Sans fontsize=10]\n");
+	}
 
 	LIF_DICT_FOREACH(iter, collection)
 	{
@@ -112,9 +152,14 @@ list_interfaces(struct lif_dict *collection, struct match_options *opts)
 
 		if (opts->pretty_print)
 			print_interface(iface);
+		else if (opts->dot)
+			print_interface_dot(collection, iface, NULL);
 		else
 			printf("%s\n", iface->ifname);
 	}
+
+	if (opts->dot)
+		printf("}\n");
 }
 
 void
@@ -154,6 +199,7 @@ ifquery_main(int argc, char *argv[])
 		{"pretty-print", no_argument, 0, 'P'},
 		{"state-file", required_argument, 0, 'S'},
 		{"state", no_argument, 0, 's'},
+		{"dot", no_argument, 0, 'D'},
 		{NULL, 0, 0, 0}
 	};
 	struct match_options match_opts = {};
@@ -163,7 +209,7 @@ ifquery_main(int argc, char *argv[])
 
 	for (;;)
 	{
-		int c = getopt_long(argc, argv, "hVi:LaI:X:PS:s", long_options, NULL);
+		int c = getopt_long(argc, argv, "hVi:LaI:X:PS:sD", long_options, NULL);
 		if (c == -1)
 			break;
 
@@ -197,6 +243,9 @@ ifquery_main(int argc, char *argv[])
 			break;
 		case 's':
 			listing_stat = true;
+			break;
+		case 'D':
+			match_opts.dot = true;
 			break;
 		}
 	}
