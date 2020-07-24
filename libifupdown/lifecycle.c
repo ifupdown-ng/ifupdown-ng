@@ -291,19 +291,21 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 	if (requires == NULL)
 		return true;
 
-	char require_ifs[4096];
+	char require_ifs[4096] = {};
 	strlcpy(require_ifs, requires->data, sizeof require_ifs);
 	char *bufp = require_ifs;
 
 	for (char *tokenp = next_token(&bufp); *tokenp; tokenp = next_token(&bufp))
 	{
-		fprintf(stderr, "next iface: %s\n", tokenp);
-
 		struct lif_interface *iface = lif_interface_collection_find(collection, tokenp);
 
 		/* already up or down, skip */
 		if (up == iface->is_up)
 			continue;
+
+		if (opts->verbose)
+			fprintf(stderr, "ifupdown: changing state of dependent interface %s (of %s) to %s\n",
+				iface->ifname, parent->ifname, up ? "up" : "down");
 
 		if (!lif_lifecycle_run(opts, iface, collection, state, iface->ifname, up))
 			return false;
