@@ -19,6 +19,7 @@
 #include <string.h>
 #include <getopt.h>
 #include "libifupdown/libifupdown.h"
+#include "cmd/multicall.h"
 
 struct match_options {
 	bool is_auto;
@@ -31,7 +32,7 @@ static bool up;
 static struct lif_execute_opts exec_opts = {};
 
 void
-usage()
+ifupdown_usage(void)
 {
 	fprintf(stderr, "usage: %s [options] <interfaces>\n", argv0);
 
@@ -106,7 +107,7 @@ change_auto_interfaces(struct lif_dict *collection, struct lif_dict *state, stru
 }
 
 int
-main(int argc, char *argv[])
+ifupdown_main(int argc, char *argv[])
 {
 	argv0 = basename(argv[0]);
 	up = !is_ifdown();
@@ -137,7 +138,7 @@ main(int argc, char *argv[])
 
 		switch (c) {
 		case 'h':
-			usage();
+			ifupdown_usage();
 			break;
 		case 'V':
 			lif_common_version();
@@ -187,7 +188,7 @@ main(int argc, char *argv[])
 		return EXIT_SUCCESS;
 	}
 	else if (optind >= argc)
-		usage();
+		ifupdown_usage();
 
 	int idx = optind;
 	for (; idx < argc; idx++)
@@ -231,3 +232,15 @@ main(int argc, char *argv[])
 
 	return EXIT_SUCCESS;
 }
+
+struct if_applet ifup_applet = {
+	.name = "ifup",
+	.main = ifupdown_main,
+	.usage = ifupdown_usage
+};
+
+struct if_applet ifdown_applet = {
+	.name = "ifdown",
+	.main = ifupdown_main,
+	.usage = ifupdown_usage
+};

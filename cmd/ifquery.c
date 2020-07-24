@@ -19,6 +19,7 @@
 #include <string.h>
 #include <getopt.h>
 #include "libifupdown/libifupdown.h"
+#include "cmd/multicall.h"
 
 void
 print_interface(struct lif_interface *iface)
@@ -61,7 +62,7 @@ print_interface(struct lif_interface *iface)
 }
 
 void
-usage()
+ifquery_usage(void)
 {
 	fprintf(stderr, "usage: ifquery [options] <interfaces>\n");
 	fprintf(stderr, "       ifquery [options] --list\n");
@@ -138,7 +139,7 @@ list_state(struct lif_dict *state, struct match_options *opts)
 }
 
 int
-main(int argc, char *argv[])
+ifquery_main(int argc, char *argv[])
 {
 	struct lif_dict state = {};
 	struct lif_dict collection = {};
@@ -168,7 +169,7 @@ main(int argc, char *argv[])
 
 		switch (c) {
 		case 'h':
-			usage();
+			ifquery_usage();
 			break;
 		case 'V':
 			lif_common_version();
@@ -214,7 +215,7 @@ main(int argc, char *argv[])
 
 	/* --list --state is not allowed */
 	if (listing && listing_stat)
-		usage();
+		ifquery_usage();
 
 	if (listing)
 	{
@@ -228,7 +229,7 @@ main(int argc, char *argv[])
 	}
 
 	if (optind >= argc)
-		usage();
+		ifquery_usage();
 
 	int idx = optind;
 	for (; idx < argc; idx++)
@@ -254,3 +255,9 @@ main(int argc, char *argv[])
 
 	return EXIT_SUCCESS;
 }
+
+struct if_applet ifquery_applet = {
+	.name = "ifquery",
+	.main = ifquery_main,
+	.usage = ifquery_usage
+};
