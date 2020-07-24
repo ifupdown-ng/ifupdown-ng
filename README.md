@@ -5,9 +5,7 @@ ifupdown, BusyBox ifupdown and Cumulus Networks' ifupdown2.
 
 ## Dependency Resolution
 
-<div style="float: left">
 ![Dependency resolution example](doc/img/dependency-resolution.png)
-</div>
 
 ifupdown-ng uses a dependency resolver to determine interface bring-up order
 in a deterministic way.  To use this feature, you must declare relationships
