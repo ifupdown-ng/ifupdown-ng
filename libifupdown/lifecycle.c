@@ -222,6 +222,9 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 		while (*ep++)
 		{
 			*ep = toupper(*ep);
+
+			if (*ep == '-')
+				*ep = '_';
 		}
 
 		lif_environment_push(&envp, envkey, (const char *) entry->data);
