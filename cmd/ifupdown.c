@@ -170,13 +170,19 @@ ifupdown_main(int argc, char *argv[])
 
 	if (!lif_state_read_path(&state, state_file))
 	{
-		fprintf(stderr, "ifquery: could not parse %s\n", state_file);
+		fprintf(stderr, "%s: could not parse %s\n", argv0, state_file);
 		return EXIT_FAILURE;
 	}
 
 	if (!lif_interface_file_parse(&collection, interfaces_file))
 	{
-		fprintf(stderr, "ifquery: could not parse %s\n", interfaces_file);
+		fprintf(stderr, "%s: could not parse %s\n", argv0, interfaces_file);
+		return EXIT_FAILURE;
+	}
+
+	if (!lif_state_sync(&state, &collection))
+	{
+		fprintf(stderr, "%s: could not sync state\n", argv0);
 		return EXIT_FAILURE;
 	}
 

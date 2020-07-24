@@ -26,5 +26,6 @@ extern void lif_state_delete(struct lif_dict *state, const char *ifname);
 extern void lif_state_write(const struct lif_dict *state, FILE *f);
 extern bool lif_state_write_path(const struct lif_dict *state, const char *path);
 extern struct lif_interface *lif_state_lookup(struct lif_dict *state, struct lif_dict *if_collection, const char *ifname);
+extern bool lif_state_sync(struct lif_dict *state, struct lif_dict *if_collection);
 
 #endif

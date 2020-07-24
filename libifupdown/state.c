@@ -114,3 +114,19 @@ lif_state_lookup(struct lif_dict *state, struct lif_dict *if_collection, const c
 
 	return if_entry->data;
 }
+
+bool
+lif_state_sync(struct lif_dict *state, struct lif_dict *if_collection)
+{
+	struct lif_node *iter;
+
+	LIF_DICT_FOREACH(iter, state)
+	{
+		struct lif_dict_entry *entry = iter->data;
+		struct lif_interface *iface = lif_interface_collection_find(if_collection, entry->key);
+
+		iface->is_up = true;
+	}
+
+	return true;
+}
