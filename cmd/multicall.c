@@ -22,11 +22,13 @@
 extern struct if_applet ifquery_applet;
 extern struct if_applet ifup_applet;
 extern struct if_applet ifdown_applet;
+struct if_applet ifupdown_applet;
 
 struct if_applet *applet_table[] = {
 	&ifdown_applet,
 	&ifquery_applet,
 	&ifup_applet,
+	&ifupdown_applet,
 };
 
 #define ARRAY_SIZE(x)	(sizeof(x) / sizeof(*x))
@@ -39,6 +41,8 @@ applet_cmp(const void *a, const void *b)
 
 	return strcmp(key, applet->name);
 }
+
+void multicall_usage(void);
 
 int
 main(int argc, char *argv[])
@@ -53,8 +57,42 @@ main(int argc, char *argv[])
 	if (app == NULL)
 	{
 		fprintf(stderr, "%s: applet not found\n", argv0);
-		return EXIT_FAILURE;
+		multicall_usage();
 	}
 
 	return (*app)->main(argc, argv);
 }
+
+int
+multicall_main(int argc, char *argv[])
+{
+	if (argc < 2)
+		multicall_usage();
+
+	return main(argc - 1, argv + 1);
+}
+
+void
+multicall_usage(void)
+{
+	fprintf(stderr, "usage: ifupdown <applet> [options]\n");
+
+	fprintf(stderr, "\nBuilt-in applets:\n\t");
+	for (size_t i = 0; i < ARRAY_SIZE(applet_table); i++)
+	{
+		if (i != 0)
+			fprintf(stderr, ", ");
+
+		fprintf(stderr, "%s", applet_table[i]->name);
+	}
+
+	fprintf(stderr, "\n");
+
+	exit(EXIT_FAILURE);
+}
+
+struct if_applet ifupdown_applet = {
+	.name = "ifupdown",
+	.main = multicall_main,
+	.usage = multicall_usage,
+};
