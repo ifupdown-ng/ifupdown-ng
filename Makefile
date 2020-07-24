@@ -1,3 +1,5 @@
+SCDOC := scdoc
+
 PACKAGE_NAME := ifupdown-ng
 PACKAGE_VERSION := 0.2
 PACKAGE_BUGREPORT := https://github.com/kaniini/ifupdown-ng/issues/new
@@ -54,6 +56,7 @@ libifupdown.a: ${LIBIFUPDOWN_OBJ}
 clean:
 	rm -f ${LIBIFUPDOWN_OBJ} ${CMD_OBJ}
 	rm -f ${CMDS} ${MULTICALL}
+	rm -f ${MANPAGES}
 
 check: libifupdown.a ${CMDS}
 	kyua test
@@ -63,3 +66,13 @@ install: all
 	for i in ${CMDS}; do \
 		ln -s /sbin/${MULTICALL} ${DESTDIR}/sbin/$$i; \
 	done
+
+.scd.1 .scd.2 .scd.3 .scd.4 .scd.5 .scd.6 .scd.7 .scd.8:
+	${SCDOC} < $< > $@
+
+MANPAGES = \
+	doc/ifquery.8
+
+docs: ${MANPAGES}
+
+.SUFFIXES: .scd .1 .2 .3 .4 .5 .6 .7 .8
