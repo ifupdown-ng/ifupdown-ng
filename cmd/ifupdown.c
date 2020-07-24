@@ -64,7 +64,7 @@ change_interface(struct lif_interface *iface, struct lif_dict *collection, struc
 {
 	if (exec_opts.verbose)
 	{
-		fprintf(stderr, "%s: changing interface %s state to '%s'\n",
+		fprintf(stderr, "%s: changing state of interface %s to '%s'\n",
 			argv0, ifname, up ? "up" : "down");
 	}
 
