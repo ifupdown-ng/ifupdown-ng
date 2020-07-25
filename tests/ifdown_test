@@ -7,7 +7,9 @@ tests_init \
 	lo_always_auto \
 	dual_stack \
 	static_ipv4 \
+	static_ipv4_netmask \
 	static_ipv6 \
+	static_ipv6_netmask \
 	inet_dhcp \
 	use_dhcp \
 	alias_eth0_home \
@@ -43,6 +45,15 @@ static_ipv4_body() {
 		ifdown -S/dev/null -i $FIXTURES/static-eth0-v4.interfaces -n -a
 }
 
+static_ipv4_netmask_body() {
+	atf_check -s exit:0 -e ignore \
+		-o match:'ip link set down dev lo' \
+		-o match:'ip link set down dev eth0' \
+		-o match:'del 203.0.113.2/29 dev eth0' \
+		-o match:'default via 203.0.113.1' \
+		ifdown -S/dev/null -i $FIXTURES/static-eth0-v4-netmask.interfaces -n -a
+}
+
 static_ipv6_body() {
 	atf_check -s exit:0 -e ignore \
 		-o match:'ip link set down dev lo' \
@@ -50,6 +61,15 @@ static_ipv6_body() {
 		-o match:'del 2001:db8:1000:2::2/64 dev eth0' \
 		-o match:'default via 2001:db8:1000:2::1' \
 		ifdown -S/dev/null -i $FIXTURES/static-eth0-v6.interfaces -n -a
+}
+
+static_ipv6_netmask_body() {
+	atf_check -s exit:0 -e ignore \
+		-o match:'ip link set down dev lo' \
+		-o match:'ip link set down dev eth0' \
+		-o match:'del 2001:db8:1000:2::2/112 dev eth0' \
+		-o match:'default via 2001:db8:1000:2::1' \
+		ifdown -S/dev/null -i $FIXTURES/static-eth0-v6-netmask.interfaces -n -a
 }
 
 inet_dhcp_body() {
