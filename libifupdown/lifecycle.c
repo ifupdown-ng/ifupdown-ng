@@ -45,13 +45,56 @@ handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[
 	return true;
 }
 
+static inline size_t
+count_set_bits(const char *netmask)
+{
+	/* netmask set to CIDR length */
+	if (strchr(netmask, '.') == NULL)
+		return strtol(netmask, NULL, 10);
+
+	size_t r = 0;
+	struct in_addr in;
+
+	if (inet_pton(AF_INET, netmask, &in) == 0)
+		return r;
+
+	/* take the IP, put it in host endian order, and
+	 * flip it so that all the set bits are set to the right.
+	 * then we can simply count down from 32 and right-shift
+	 * until the bit field is all zero.
+	 */
+	unsigned int bits = htonl(in.s_addr);
+	for (bits = ~bits, r = 32; bits; bits >>= 1, r--)
+		;
+
+	return r;
+}
+
 static bool
-handle_address(const struct lif_execute_opts *opts, struct lif_address *addr, const char *cmd, const char *lifname)
+handle_address(const struct lif_execute_opts *opts, struct lif_address *addr, const char *cmd, const char *lifname, struct lif_interface *iface)
 {
 	char addrbuf[4096];
 
-	if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
-		return false;
+	if (addr->netmask)
+	{
+		if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
+			return false;
+	}
+	else
+	{
+		/* if fallback netmask is not set, default to 255.255.255.0 */
+		addr->netmask = 24;
+
+		struct lif_dict_entry *entry = lif_dict_find(&iface->vars, "netmask");
+		if (entry != NULL)
+			addr->netmask = count_set_bits(entry->data);
+
+		if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, false))
+			return false;
+
+		/* reset cidrlen */
+		addr->netmask = 0;
+	}
 
 	return lif_execute_fmt(opts, NULL, "/sbin/ip -%d addr %s %s dev %s",
 			       addr->domain == AF_INET ? 4 : 6, cmd, addrbuf, lifname);
@@ -95,7 +138,7 @@ handle_up(const struct lif_execute_opts *opts, struct lif_interface *iface, cons
 		{
 			struct lif_address *addr = entry->data;
 
-			if (!handle_address(opts, addr, "add", lifname))
+			if (!handle_address(opts, addr, "add", lifname, iface))
 				return false;
 		}
 		else if (!strcmp(entry->key, "gateway"))
@@ -131,7 +174,7 @@ handle_down(const struct lif_execute_opts *opts, struct lif_interface *iface, co
 		{
 			struct lif_address *addr = entry->data;
 
-			if (!handle_address(opts, addr, "del", lifname))
+			if (!handle_address(opts, addr, "del", lifname, iface))
 				return false;
 		}
 		else if (!strcmp(entry->key, "gateway"))
