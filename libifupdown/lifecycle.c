@@ -224,6 +224,9 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 	else
 		lif_environment_push(&envp, "MODE", "stop");
 
+	if (opts->verbose)
+		lif_environment_push(&envp, "VERBOSE", "1");
+
 	struct lif_node *iter;
 	bool did_address = false, did_gateway = false;
 
