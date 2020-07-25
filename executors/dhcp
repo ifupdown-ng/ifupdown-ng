@@ -1,0 +1,40 @@
+#!/bin/sh
+
+set -e
+
+determine_implementation() {
+	[ -x /sbin/udhcpc ] && echo "udhcpc" && return
+	echo "???"
+}
+
+start() {
+	case "$1" in
+	udhcpc)
+		/sbin/udhcpc -b -R -p /var/run/udhcpc.$IFACE.pid -i $IFACE
+		;;
+	*)
+		echo "implementation $1 not supported"
+		exit 1
+	esac
+}
+
+stop() {
+	case "$1" in
+	udhcpc)
+		kill $(cat /var/lib/udhcpc.$IFACE.pid)
+		;;
+	*)
+		echo "implementation $1 not supported"
+		exit 1
+	esac
+}
+
+impl=$(determine_implementation)
+
+[ -z "$VERBOSE" ] || set -x
+
+case "$MODE" in
+start) start $impl ;;
+stop) stop $impl ;;
+*) echo "unknown mode $MODE" ;;
+esac
