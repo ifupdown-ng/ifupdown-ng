@@ -209,7 +209,7 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 {
 	char **envp = NULL;
 
-	lif_environment_push(&envp, "IFACE", iface->ifname);
+	lif_environment_push(&envp, "IFACE", lifname);
 	lif_environment_push(&envp, "PHASE", phase);
 
 	/* try to provide $METHOD for ifupdown1 scripts if we can */
