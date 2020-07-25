@@ -26,7 +26,14 @@ For compatibility with some legacy ifupdown executors, we also provide the
 
 ## Building
 
-Simply do `make` and `make install` to build and install.
+On musl systems, simply do `make` and `make install` to build and install.
+
+On glibc systems, you must additionally define LIBBSD_CFLAGS and LIBBSD_LIBS:
+
+   export LIBBSD_CFLAGS=$(pkg-config --cflags libbsd-overlay)
+   export LIBBSD_LIBS=$(pkg-config --libs libbsd-overlay)
+   make
+   make install
 
 To run the tests, do `make check`.
 

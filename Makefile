@@ -1,4 +1,6 @@
 SCDOC := scdoc
+LIBBSD_CFLAGS =
+LIBBSD_LIBS =
 
 PACKAGE_NAME := ifupdown-ng
 PACKAGE_VERSION := 0.2.1
@@ -7,7 +9,9 @@ PACKAGE_BUGREPORT := https://github.com/kaniini/ifupdown-ng/issues/new
 
 INTERFACES_FILE := /etc/network/interfaces
 STATE_FILE := /run/ifstate
-CFLAGS = -ggdb3 -Os -Wall -Wextra
+CFLAGS ?= -ggdb3 -Os
+CFLAGS += -Wall -Wextra
+CFLAGS += ${LIBBSD_CFLAGS}
 CPPFLAGS = -I. -DINTERFACES_FILE=\"${INTERFACES_FILE}\" -DSTATE_FILE=\"${STATE_FILE}\" -DPACKAGE_NAME=\"${PACKAGE_NAME}\" -DPACKAGE_VERSION=\"${PACKAGE_VERSION}\" -DPACKAGE_BUGREPORT=\"${PACKAGE_BUGREPORT}\"
 
 
@@ -41,6 +45,7 @@ CMD_OBJ = ${MULTICALL_OBJ} ${IFQUERY_OBJ} ${IFUPDOWN_OBJ}
 CMDS = ifup ifdown ifquery
 
 LIBS = ${LIBIFUPDOWN_LIB}
+LIBS += ${LIBBSD_LIBS}
 
 all: libifupdown.a ${MULTICALL} ${CMDS}
 
