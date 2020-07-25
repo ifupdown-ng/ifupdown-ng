@@ -3,12 +3,19 @@
 set -e
 
 determine_implementation() {
+	[ -x /sbin/dhcpcd ] && echo "dhcpcd" && return
 	[ -x /sbin/udhcpc ] && echo "udhcpc" && return
 	echo "???"
 }
 
 start() {
 	case "$1" in
+	dhcpcd)
+		[ -z "$IF_HOSTNAME" ] && optargs="$optargs -h $IF_HOSTNAME"
+		[ -z "$IF_VENDOR" ] && optargs="$optargs -i $IF_VENDOR"
+		[ -z "$IF_CLIENT" ] && optargs="$optargs -i $IF_CLIENT"
+		[ -z "$IF_LEASETIME" ] && optargs="$optargs -l $IF_LEASETIME"
+		/sbin/dhcpcd $optargs $IFACE
 	udhcpc)
 		/sbin/udhcpc -b -R -p /var/run/udhcpc.$IFACE.pid -i $IFACE
 		;;
@@ -20,6 +27,9 @@ start() {
 
 stop() {
 	case "$1" in
+	dhcpcd)
+		/sbin/dhcpcd -k $IFACE
+		;;
 	udhcpc)
 		kill $(cat /var/lib/udhcpc.$IFACE.pid)
 		;;
