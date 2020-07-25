@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <spawn.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -57,4 +58,18 @@ lif_execute_fmt(const struct lif_execute_opts *opts, char *const envp[], const c
 	waitpid(child, &status, 0);
 
 	return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+}
+
+bool
+lif_file_is_executable(const char *path)
+{
+	struct stat st;
+
+	if (stat(path, &st))
+		return false;
+
+	if (!S_ISREG(st.st_mode))
+		return false;
+
+	return access(path, X_OK);
 }

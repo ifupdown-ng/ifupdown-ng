@@ -25,5 +25,6 @@ struct lif_execute_opts {
 };
 
 extern bool lif_execute_fmt(const struct lif_execute_opts *opts, char *const envp[], const char *fmt, ...);
+extern bool lif_file_is_executable(const char *path);
 
 #endif
