@@ -22,9 +22,11 @@
 struct lif_execute_opts {
 	bool verbose;
 	bool mock;
+	const char *executor_path;
 };
 
 extern bool lif_execute_fmt(const struct lif_execute_opts *opts, char *const envp[], const char *fmt, ...);
 extern bool lif_file_is_executable(const char *path);
+extern bool lif_maybe_run_executor(const struct lif_execute_opts *opts, char *const envp[], const char *executor);
 
 #endif

@@ -28,7 +28,9 @@ struct match_options {
 };
 
 static bool up;
-static struct lif_execute_opts exec_opts = {};
+static struct lif_execute_opts exec_opts = {
+	.executor_path = EXECUTOR_PATH,
+};
 
 void
 ifupdown_usage(void)

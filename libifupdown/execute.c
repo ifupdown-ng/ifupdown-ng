@@ -73,3 +73,19 @@ lif_file_is_executable(const char *path)
 
 	return access(path, X_OK);
 }
+
+bool
+lif_maybe_run_executor(const struct lif_execute_opts *opts, char *const envp[], const char *executor)
+{
+	if (opts->verbose)
+		fprintf(stderr, "ifupdown: attempting to run %s executor\n", executor);
+
+	char pathbuf[4096];
+
+	snprintf(pathbuf, sizeof pathbuf, "%s/%s", opts->executor_path, executor);
+
+	if (!lif_file_is_executable(pathbuf))
+		return true;
+
+	return lif_execute_fmt(opts, envp, "%s", pathbuf);
+}
