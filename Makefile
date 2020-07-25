@@ -111,3 +111,12 @@ install_docs: docs
 	done
 
 .SUFFIXES: .scd .1 .2 .3 .4 .5 .6 .7 .8
+
+DIST_NAME = ${PACKAGE_NAME}-${PACKAGE_VERSION}
+DIST_TARBALL = ${DIST_NAME}.tar.xz
+
+distcheck: check dist
+dist: ${DIST_TARBALL}
+${DIST_TARBALL}:
+	git archive --format=tar --prefix=${DIST_NAME}/ -o ${DIST_NAME}.tar ${DIST_NAME}
+	xz ${DIST_NAME}.tar
