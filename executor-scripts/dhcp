@@ -6,7 +6,8 @@ determine_implementation() {
 	[ -x /sbin/dhcpcd ] && echo "dhcpcd" && return
 	[ -x /usr/sbin/dhclient ] && echo "dhclient" && return
 	[ -x /sbin/udhcpc ] && echo "udhcpc" && return
-	echo "???"
+	echo "could not find a supported DHCP implementation"
+	exit 1
 }
 
 start() {
@@ -24,8 +25,7 @@ start() {
 		/sbin/udhcpc -b -R -p /var/run/udhcpc.$IFACE.pid -i $IFACE
 		;;
 	*)
-		echo "implementation $1 not supported"
-		exit 1
+		;;
 	esac
 }
 
@@ -41,8 +41,7 @@ stop() {
 		kill $(cat /var/run/udhcpc.$IFACE.pid)
 		;;
 	*)
-		echo "implementation $1 not supported"
-		exit 1
+		;;
 	esac
 }
 
