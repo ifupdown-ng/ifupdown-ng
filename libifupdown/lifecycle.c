@@ -74,13 +74,9 @@ static bool
 handle_address(const struct lif_execute_opts *opts, struct lif_address *addr, const char *cmd, const char *lifname, struct lif_interface *iface)
 {
 	char addrbuf[4096];
+	size_t orig_netmask = addr->netmask;
 
-	if (addr->netmask)
-	{
-		if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
-			return false;
-	}
-	else
+	if (!addr->netmask)
 	{
 		/* if fallback netmask is not set, default to 255.255.255.0 */
 		addr->netmask = 24;
@@ -88,13 +84,13 @@ handle_address(const struct lif_execute_opts *opts, struct lif_address *addr, co
 		struct lif_dict_entry *entry = lif_dict_find(&iface->vars, "netmask");
 		if (entry != NULL)
 			addr->netmask = count_set_bits(entry->data);
-
-		if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, false))
-			return false;
-
-		/* reset cidrlen */
-		addr->netmask = 0;
 	}
+
+	if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
+		return false;
+
+	/* reset the netmask */
+	addr->netmask = orig_netmask;
 
 	return lif_execute_fmt(opts, NULL, "/sbin/ip -%d addr %s %s dev %s",
 			       addr->domain == AF_INET ? 4 : 6, cmd, addrbuf, lifname);
