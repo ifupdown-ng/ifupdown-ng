@@ -45,6 +45,26 @@ handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[
 	return true;
 }
 
+static bool
+handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface)
+{
+	struct lif_node *iter;
+
+	LIF_DICT_FOREACH(iter, &iface->vars)
+	{
+		struct lif_dict_entry *entry = iter->data;
+
+		if (strcmp(entry->key, "use"))
+			continue;
+
+		const char *cmd = entry->data;
+		if (!lif_maybe_run_executor(opts, envp, cmd))
+			return false;
+	}
+
+	return true;
+}
+
 static inline size_t
 count_set_bits(const char *netmask)
 {
@@ -302,6 +322,7 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 			goto on_error;
 	}
 
+	handle_executors_for_phase(opts, envp, iface);
 	handle_commands_for_phase(opts, envp, iface, lifname, phase);
 
 	/* we should do error handling here, but ifupdown1 doesn't */
