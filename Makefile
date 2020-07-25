@@ -48,6 +48,8 @@ IFQUERY_OBJ = ${IFQUERY_SRC:.c=.o}
 IFUPDOWN_SRC = cmd/ifupdown.c
 IFUPDOWN_OBJ = ${IFUPDOWN_SRC:.c=.o}
 
+EXECUTOR_SCRIPTS = dhcp
+
 CMD_OBJ = ${MULTICALL_OBJ} ${IFQUERY_OBJ} ${IFUPDOWN_OBJ}
 
 CMDS = ifup ifdown ifquery
@@ -78,6 +80,9 @@ install: all
 	install -D -m755 ${MULTICALL} ${DESTDIR}/sbin/${MULTICALL}
 	for i in ${CMDS}; do \
 		ln -s /sbin/${MULTICALL} ${DESTDIR}/sbin/$$i; \
+	done
+	for i in ${EXECUTOR_SCRIPTS}; do \
+		install -D -m755 executor-scripts/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
 	done
 
 .scd.1 .scd.2 .scd.3 .scd.4 .scd.5 .scd.6 .scd.7 .scd.8:
