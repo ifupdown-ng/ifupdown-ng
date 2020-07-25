@@ -50,8 +50,8 @@ impl=$(determine_implementation)
 
 [ -z "$VERBOSE" ] || set -x
 
-case "$MODE" in
-start) start $impl ;;
-stop) stop $impl ;;
-*) echo "unknown mode $MODE" ;;
+case "$PHASE" in
+up) start $impl ;;
+down) stop $impl ;;
+*) ;;
 esac
