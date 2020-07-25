@@ -31,6 +31,9 @@ configured in the configuration database.
 *-v, --verbose*
 	Show what commands are being run as they are executed.
 
+*-E, --executor-path* _PATH_
+	Look for executors in the given _PATH_.
+
 *-I, --include* _PATTERN_
 	Include _PATTERN_ when matching against the config or state
 	database.

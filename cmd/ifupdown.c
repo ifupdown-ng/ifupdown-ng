@@ -47,6 +47,7 @@ ifupdown_usage(void)
 	fprintf(stderr, "  -X, --exclude PATTERN        never match against interfaces matching PATTERN\n");
 	fprintf(stderr, "  -n, --no-act                 do not actually run any commands\n");
 	fprintf(stderr, "  -v, --verbose                show what commands are being run\n");
+	fprintf(stderr, "  -E, --executor-path PATH     use PATH for executor directory\n");
 
 	exit(1);
 }
@@ -124,6 +125,7 @@ ifupdown_main(int argc, char *argv[])
 		{"state-file", required_argument, 0, 'S'},
 		{"no-act", no_argument, 0, 'n'},
 		{"verbose", no_argument, 0, 'v'},
+		{"executor-path", required_argument, 0, 'E'},
 		{NULL, 0, 0, 0}
 	};
 	struct match_options match_opts = {};
@@ -132,7 +134,7 @@ ifupdown_main(int argc, char *argv[])
 
 	for (;;)
 	{
-		int c = getopt_long(argc, argv, "hVi:aI:X:S:nv", long_options, NULL);
+		int c = getopt_long(argc, argv, "hVi:aI:X:S:nvE:", long_options, NULL);
 		if (c == -1)
 			break;
 
@@ -164,6 +166,9 @@ ifupdown_main(int argc, char *argv[])
 			break;
 		case 'v':
 			exec_opts.verbose = true;
+			break;
+		case 'E':
+			exec_opts.executor_path = optarg;
 			break;
 		}
 	}
