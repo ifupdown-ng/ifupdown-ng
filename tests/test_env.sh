@@ -1,5 +1,6 @@
 PATH="$(atf_get_srcdir)/..:$PATH"
 FIXTURES="$(atf_get_srcdir)/fixtures"
+EXECUTORS="$(atf_get_srcdir)/executors"
 
 tests_init() {
 	TESTS="$@"

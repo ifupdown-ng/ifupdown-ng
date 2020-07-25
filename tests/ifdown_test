@@ -33,7 +33,7 @@ dual_stack_body() {
 		-o match:'del 2001:db8:1000:2::2/64 dev eth0' \
 		-o match:'default via 203.0.113.1' \
 		-o match:'default via 2001:db8:1000:2::1' \
-		ifdown -S/dev/null -i $FIXTURES/static-eth0.interfaces -n -a
+		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/static-eth0.interfaces -n -a
 }
 
 static_ipv4_body() {
@@ -42,7 +42,7 @@ static_ipv4_body() {
 		-o match:'ip link set down dev eth0' \
 		-o match:'del 203.0.113.2/24 dev eth0' \
 		-o match:'default via 203.0.113.1' \
-		ifdown -S/dev/null -i $FIXTURES/static-eth0-v4.interfaces -n -a
+		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/static-eth0-v4.interfaces -n -a
 }
 
 static_ipv4_netmask_body() {
@@ -51,7 +51,7 @@ static_ipv4_netmask_body() {
 		-o match:'ip link set down dev eth0' \
 		-o match:'del 203.0.113.2/29 dev eth0' \
 		-o match:'default via 203.0.113.1' \
-		ifdown -S/dev/null -i $FIXTURES/static-eth0-v4-netmask.interfaces -n -a
+		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/static-eth0-v4-netmask.interfaces -n -a
 }
 
 static_ipv6_body() {
@@ -60,7 +60,7 @@ static_ipv6_body() {
 		-o match:'ip link set down dev eth0' \
 		-o match:'del 2001:db8:1000:2::2/64 dev eth0' \
 		-o match:'default via 2001:db8:1000:2::1' \
-		ifdown -S/dev/null -i $FIXTURES/static-eth0-v6.interfaces -n -a
+		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/static-eth0-v6.interfaces -n -a
 }
 
 static_ipv6_netmask_body() {
@@ -69,7 +69,7 @@ static_ipv6_netmask_body() {
 		-o match:'ip link set down dev eth0' \
 		-o match:'del 2001:db8:1000:2::2/112 dev eth0' \
 		-o match:'default via 2001:db8:1000:2::1' \
-		ifdown -S/dev/null -i $FIXTURES/static-eth0-v6-netmask.interfaces -n -a
+		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/static-eth0-v6-netmask.interfaces -n -a
 }
 
 inet_dhcp_body() {
@@ -77,7 +77,7 @@ inet_dhcp_body() {
 		-o match:'ip link set down dev lo' \
 		-o match:'ip link set down dev eth0' \
 		-o match:'dhc' \
-		ifdown -S/dev/null -i $FIXTURES/dhcp-eth0.interfaces -n -a
+		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/dhcp-eth0.interfaces -n -a
 }
 
 use_dhcp_body() {
@@ -85,7 +85,7 @@ use_dhcp_body() {
 		-o match:'ip link set down dev lo' \
 		-o match:'ip link set down dev eth0' \
 		-o match:'dhc' \
-		ifdown -S/dev/null -i $FIXTURES/use-dhcp-eth0.interfaces -n -a
+		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/use-dhcp-eth0.interfaces -n -a
 }
 
 alias_eth0_home_body() {
@@ -93,7 +93,7 @@ alias_eth0_home_body() {
 		-o match:'ip link set down dev wlan0' \
 		-o match:'dhc' \
 		ifdown -S $FIXTURES/alias-home.ifstate \
-			-i $FIXTURES/alias-home-work.interfaces -n wlan0
+			-E $EXECUTORS -i $FIXTURES/alias-home-work.interfaces -n wlan0
 }
 
 alias_eth0_work_body() {
@@ -104,7 +104,7 @@ alias_eth0_work_body() {
 		-o match:'default via 203.0.113.1' \
 		-o match:'default via 2001:db8:1000:2::1' \
 		ifdown -S $FIXTURES/alias-work.ifstate \
-			-i $FIXTURES/alias-home-work.interfaces -n wlan0
+			-E $EXECUTORS -i $FIXTURES/alias-home-work.interfaces -n wlan0
 }
 
 bonded_bridge_body() {
@@ -118,5 +118,5 @@ bonded_bridge_body() {
 		-o match:'default via 203.0.113.1' \
 		-o match:'default via 2001:db8:1000:2::1' \
 		ifdown -S $FIXTURES/bonded-bridge.ifstate \
-			-i $FIXTURES/bonded-bridge.interfaces -n br0
+			-E $EXECUTORS -i $FIXTURES/bonded-bridge.interfaces -n br0
 }
