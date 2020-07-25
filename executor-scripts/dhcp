@@ -4,6 +4,7 @@ set -e
 
 determine_implementation() {
 	[ -x /sbin/dhcpcd ] && echo "dhcpcd" && return
+	[ -x /usr/sbin/dhclient ] && echo "dhclient" && return
 	[ -x /sbin/udhcpc ] && echo "udhcpc" && return
 	echo "???"
 }
@@ -16,6 +17,9 @@ start() {
 		[ -z "$IF_CLIENT" ] && optargs="$optargs -i $IF_CLIENT"
 		[ -z "$IF_LEASETIME" ] && optargs="$optargs -l $IF_LEASETIME"
 		/sbin/dhcpcd $optargs $IFACE
+	dhclient)
+		/usr/sbin/dhclient -pf /var/run/dhclient.$IFACE.pid $IFACE
+		;;
 	udhcpc)
 		/sbin/udhcpc -b -R -p /var/run/udhcpc.$IFACE.pid -i $IFACE
 		;;
@@ -30,8 +34,11 @@ stop() {
 	dhcpcd)
 		/sbin/dhcpcd -k $IFACE
 		;;
+	dhclient)
+		kill -9 $(cat /var/run/dhclient.$IFACE.pid) 2>/dev/null
+		;;
 	udhcpc)
-		kill $(cat /var/lib/udhcpc.$IFACE.pid)
+		kill $(cat /var/run/udhcpc.$IFACE.pid)
 		;;
 	*)
 		echo "implementation $1 not supported"
