@@ -44,7 +44,7 @@ applet_cmp(const void *a, const void *b)
 	return strcmp(key, applet->name);
 }
 
-void multicall_usage(void);
+void multicall_usage(void) __attribute__((noreturn));
 
 int
 main(int argc, char *argv[])
