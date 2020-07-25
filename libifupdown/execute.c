@@ -71,7 +71,7 @@ lif_file_is_executable(const char *path)
 	if (!S_ISREG(st.st_mode))
 		return false;
 
-	return access(path, X_OK);
+	return !access(path, X_OK);
 }
 
 bool
