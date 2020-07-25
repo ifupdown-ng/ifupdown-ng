@@ -100,6 +100,12 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 		{
 			char *executor = lif_next_token(&bufp);
 
+			if (cur_iface == NULL)
+			{
+				fprintf(stderr, "%s: use '%s' without interface\n", filename, executor);
+				goto parse_error;
+			}
+
 			/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
 			if (!strcmp(executor, "dhcp"))
 				cur_iface->is_dhcp = true;
