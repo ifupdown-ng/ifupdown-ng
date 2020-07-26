@@ -3,6 +3,7 @@
 set -e
 
 determine_implementation() {
+	[ -n "$IF_DHCP_PROGRAM" ] && echo "$IF_DHCP_PROGRAM" && return
 	[ -x /sbin/dhcpcd ] && echo "dhcpcd" && return
 	[ -x /usr/sbin/dhclient ] && echo "dhclient" && return
 	[ -x /sbin/udhcpc ] && echo "udhcpc" && return
@@ -13,16 +14,17 @@ determine_implementation() {
 start() {
 	case "$1" in
 	dhcpcd)
-		[ -z "$IF_HOSTNAME" ] && optargs="$optargs -h $IF_HOSTNAME"
-		[ -z "$IF_VENDOR" ] && optargs="$optargs -i $IF_VENDOR"
-		[ -z "$IF_CLIENT" ] && optargs="$optargs -i $IF_CLIENT"
-		[ -z "$IF_LEASETIME" ] && optargs="$optargs -l $IF_LEASETIME"
-		/sbin/dhcpcd $optargs $IFACE
+		[ -n "$IF_HOSTNAME" ] && optargs="$optargs -h $IF_HOSTNAME"
+		[ -n "$IF_VENDOR" ] && optargs="$optargs -i $IF_VENDOR"
+		[ -n "$IF_CLIENT" ] && optargs="$optargs -i $IF_CLIENT"
+		[ -n "$IF_LEASETIME" ] && optargs="$optargs -l $IF_LEASETIME"
+		${MOCK} /sbin/dhcpcd $optargs $IFACE
+		;;
 	dhclient)
-		/usr/sbin/dhclient -pf /var/run/dhclient.$IFACE.pid $IFACE
+		${MOCK} /usr/sbin/dhclient -pf /var/run/dhclient.$IFACE.pid $IFACE
 		;;
 	udhcpc)
-		/sbin/udhcpc -b -R -p /var/run/udhcpc.$IFACE.pid -i $IFACE
+		${MOCK} /sbin/udhcpc -b -R -p /var/run/udhcpc.$IFACE.pid -i $IFACE
 		;;
 	*)
 		;;
@@ -32,13 +34,13 @@ start() {
 stop() {
 	case "$1" in
 	dhcpcd)
-		/sbin/dhcpcd -k $IFACE
+		${MOCK} /sbin/dhcpcd -k $IFACE
 		;;
 	dhclient)
-		kill -9 $(cat /var/run/dhclient.$IFACE.pid) 2>/dev/null
+		${MOCK} kill -9 $(cat /var/run/dhclient.$IFACE.pid) 2>/dev/null
 		;;
 	udhcpc)
-		kill $(cat /var/run/udhcpc.$IFACE.pid)
+		${MOCK} kill $(cat /var/run/udhcpc.$IFACE.pid)
 		;;
 	*)
 		;;

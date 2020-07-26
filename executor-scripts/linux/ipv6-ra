@@ -1,11 +1,11 @@
 #!/bin/sh
 
 start() {
-	echo 1 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra
+	${MOCK} echo 1 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra
 }
 
 stop() {
-	echo 0 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra
+	${MOCK} echo 0 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra
 }
 
 [ -z "$VERBOSE" ] || set -x
