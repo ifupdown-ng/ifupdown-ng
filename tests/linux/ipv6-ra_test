@@ -1,0 +1,18 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/ipv6-ra"
+
+tests_init up down
+
+up_body() {
+	export IFACE=lo PHASE=up MOCK=echo MOCK_ESC=\\
+	atf_check -s exit:0 -o match:'echo 1 > /proc/sys/net/ipv6/conf/lo/accept_ra' \
+		${EXECUTOR}
+}
+
+down_body() {
+	export IFACE=lo PHASE=down MOCK=echo MOCK_ESC=\\
+	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv6/conf/lo/accept_ra' \
+		${EXECUTOR}
+}

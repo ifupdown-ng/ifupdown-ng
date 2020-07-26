@@ -3,3 +3,4 @@ syntax(2)
 test_suite('ifupdown-ng')
 
 atf_test_program{name='link_test'}
+atf_test_program{name='ipv6-ra_test'}
