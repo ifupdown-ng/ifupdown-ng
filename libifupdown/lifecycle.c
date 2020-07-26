@@ -91,41 +91,6 @@ count_set_bits(const char *netmask)
 }
 
 static bool
-handle_address(const struct lif_execute_opts *opts, struct lif_address *addr, const char *cmd, const char *lifname, struct lif_interface *iface)
-{
-	char addrbuf[4096];
-	size_t orig_netmask = addr->netmask;
-
-	if (!addr->netmask)
-	{
-		/* if fallback netmask is not set, default to 255.255.255.0 */
-		addr->netmask = 24;
-
-		struct lif_dict_entry *entry = lif_dict_find(&iface->vars, "netmask");
-		if (entry != NULL)
-			addr->netmask = count_set_bits(entry->data);
-	}
-
-	if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
-		return false;
-
-	/* reset the netmask */
-	addr->netmask = orig_netmask;
-
-	return lif_execute_fmt(opts, NULL, "/sbin/ip -%d addr %s %s dev %s",
-			       addr->domain == AF_INET ? 4 : 6, cmd, addrbuf, lifname);
-}
-
-static bool
-handle_gateway(const struct lif_execute_opts *opts, const char *gateway, const char *cmd)
-{
-	int ipver = strchr(gateway, ':') ? 6 : 4;
-
-	return lif_execute_fmt(opts, NULL, "/sbin/ip -%d route %s default via %s",
-			       ipver, cmd, gateway);
-}
-
-static bool
 handle_pre_up(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname)
 {
 	(void) opts;
@@ -138,28 +103,10 @@ handle_pre_up(const struct lif_execute_opts *opts, struct lif_interface *iface, 
 static bool
 handle_up(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname)
 {
-	struct lif_node *iter;
+	(void) iface;
 
 	if (!lif_execute_fmt(opts, NULL, "/sbin/ip link set up dev %s", lifname))
 		return false;
-
-	LIF_DICT_FOREACH(iter, &iface->vars)
-	{
-		struct lif_dict_entry *entry = iter->data;
-
-		if (!strcmp(entry->key, "address"))
-		{
-			struct lif_address *addr = entry->data;
-
-			if (!handle_address(opts, addr, "add", lifname, iface))
-				return false;
-		}
-		else if (!strcmp(entry->key, "gateway"))
-		{
-			if (!handle_gateway(opts, entry->data, "add"))
-				return false;
-		}
-	}
 
 	return true;
 }
@@ -167,25 +114,7 @@ handle_up(const struct lif_execute_opts *opts, struct lif_interface *iface, cons
 static bool
 handle_down(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname)
 {
-	struct lif_node *iter;
-
-	LIF_DICT_FOREACH(iter, &iface->vars)
-	{
-		struct lif_dict_entry *entry = iter->data;
-
-		if (!strcmp(entry->key, "address"))
-		{
-			struct lif_address *addr = entry->data;
-
-			if (!handle_address(opts, addr, "del", lifname, iface))
-				return false;
-		}
-		else if (!strcmp(entry->key, "gateway"))
-		{
-			if (!handle_gateway(opts, entry->data, "del"))
-				return false;
-		}
-	}
+	(void) iface;
 
 	if (!lif_execute_fmt(opts, NULL, "/sbin/ip link set down dev %s", lifname))
 		return false;
