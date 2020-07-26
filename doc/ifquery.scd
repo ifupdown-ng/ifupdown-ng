@@ -29,6 +29,9 @@ configuration file to the current format.
 *-i, --interfaces* _FILE_
 	Use _FILE_ as the config database.
 
+*-p, --property* _PROPERTY_
+	Print the values of matching properties for an interface.
+
 *-s, --state*
 	Query the state database instead of the config database.
 

@@ -85,6 +85,73 @@ print_interface_dot(struct lif_dict *collection, struct lif_interface *iface, st
 	}
 }
 
+static inline size_t
+count_set_bits(const char *netmask)
+{
+	/* netmask set to CIDR length */
+	if (strchr(netmask, '.') == NULL)
+		return strtol(netmask, NULL, 10);
+
+	size_t r = 0;
+	struct in_addr in;
+
+	if (inet_pton(AF_INET, netmask, &in) == 0)
+		return r;
+
+	/* take the IP, put it in host endian order, and
+	 * flip it so that all the set bits are set to the right.
+	 * then we can simply count down from 32 and right-shift
+	 * until the bit field is all zero.
+	 */
+	unsigned int bits = htonl(in.s_addr);
+	for (bits = ~bits, r = 32; bits; bits >>= 1, r--)
+		;
+
+	return r;
+}
+
+void
+print_interface_property(struct lif_interface *iface, const char *property)
+{
+	struct lif_node *iter;
+	bool printing_address = !strcmp(property, "address");
+
+	LIF_DICT_FOREACH(iter, &iface->vars)
+	{
+		struct lif_dict_entry *entry = iter->data;
+
+		if (strcmp(entry->key, property))
+			continue;
+
+		if (printing_address)
+		{
+			struct lif_address *addr = entry->data;
+			size_t orig_netmask = addr->netmask;
+
+			if (!addr->netmask)
+			{
+				/* if fallback netmask is not set, default to 255.255.255.0 */
+				addr->netmask = 24;
+
+				struct lif_dict_entry *entry = lif_dict_find(&iface->vars, "netmask");
+				if (entry != NULL)
+					addr->netmask = count_set_bits(entry->data);
+			}
+
+			char addr_buf[512];
+
+			if (!lif_address_unparse(addr, addr_buf, sizeof addr_buf, true))
+				continue;
+
+			addr->netmask = orig_netmask;
+
+			printf("%s\n", addr_buf);
+		}
+		else
+			printf("%s\n", (const char *) entry->data);
+	}
+}
+
 void
 ifquery_usage(void)
 {
@@ -103,6 +170,7 @@ ifquery_usage(void)
 	fprintf(stderr, "  -S, --state-file FILE        use FILE for state\n");
 	fprintf(stderr, "  -s, --state                  show configured state\n");
 	fprintf(stderr, "  -D, --dot                    generate a dependency graph\n");
+	fprintf(stderr, "  -p, --property PROPERTY      print values of properties matching PROPERTY\n");
 
 	exit(1);
 }
@@ -113,6 +181,7 @@ struct match_options {
 	char *include_pattern;
 	bool pretty_print;
 	bool dot;
+	char *property;
 };
 
 void
@@ -193,6 +262,7 @@ ifquery_main(int argc, char *argv[])
 		{"state-file", required_argument, 0, 'S'},
 		{"state", no_argument, 0, 's'},
 		{"dot", no_argument, 0, 'D'},
+		{"property", required_argument, 0, 'p'},
 		{NULL, 0, 0, 0}
 	};
 	struct match_options match_opts = {};
@@ -202,7 +272,7 @@ ifquery_main(int argc, char *argv[])
 
 	for (;;)
 	{
-		int c = getopt_long(argc, argv, "hVi:LaI:X:PS:sD", long_options, NULL);
+		int c = getopt_long(argc, argv, "hVi:LaI:X:PS:sDp:", long_options, NULL);
 		if (c == -1)
 			break;
 
@@ -239,6 +309,9 @@ ifquery_main(int argc, char *argv[])
 			break;
 		case 'D':
 			match_opts.dot = true;
+			break;
+		case 'p':
+			match_opts.property = optarg;
 			break;
 		}
 	}
@@ -292,7 +365,10 @@ ifquery_main(int argc, char *argv[])
 			return EXIT_FAILURE;
 		}
 
-		print_interface(iface);
+		if (match_opts.property != NULL)
+			print_interface_property(iface, match_opts.property);
+		else
+			print_interface(iface);
 	}
 
 	return EXIT_SUCCESS;
