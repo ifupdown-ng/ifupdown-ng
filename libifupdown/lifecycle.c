@@ -24,11 +24,9 @@
 #include "libifupdown/tokenize.h"
 
 static bool
-handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface, const char *lifname, const char *phase)
+handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface, const char *phase)
 {
 	struct lif_node *iter;
-
-	(void) lifname;
 
 	LIF_DICT_FOREACH(iter, &iface->vars)
 	{
@@ -146,7 +144,7 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 	if (!handle_executors_for_phase(opts, envp, iface))
 		goto handle_error;
 
-	if (!handle_commands_for_phase(opts, envp, iface, lifname, phase))
+	if (!handle_commands_for_phase(opts, envp, iface, phase))
 		goto handle_error;
 
 	/* we should do error handling here, but ifupdown1 doesn't */
