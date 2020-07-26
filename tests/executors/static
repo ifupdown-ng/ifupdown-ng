@@ -1,18 +1,1 @@
-#!/bin/sh
-
-case "$PHASE" in
-up)
-	cmd="add"
-	;;
-down)
-	cmd="del"
-	;;
-esac
-
-for i in $(ifquery -p address -i $INTERFACES_FILE $IFACE); do
-	echo ip addr $cmd $i dev $IFACE
-done
-
-for i in $(ifquery -p gateway -i $INTERFACES_FILE $IFACE); do
-	echo ip route $cmd default via $i
-done
+mock-executor
