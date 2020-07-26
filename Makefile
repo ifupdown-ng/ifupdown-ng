@@ -4,7 +4,7 @@ LIBBSD_CFLAGS =
 LIBBSD_LIBS =
 
 PACKAGE_NAME := ifupdown-ng
-PACKAGE_VERSION := 0.4
+PACKAGE_VERSION := 0.4.1
 PACKAGE_BUGREPORT := https://github.com/kaniini/ifupdown-ng/issues/new
 
 
