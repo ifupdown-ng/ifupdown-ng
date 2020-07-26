@@ -1,0 +1,2 @@
+#!/bin/sh
+${MOCK} ip link set $PHASE dev $IFACE

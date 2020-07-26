@@ -52,7 +52,8 @@ IFUPDOWN_OBJ = ${IFUPDOWN_SRC:.c=.o}
 EXECUTOR_SCRIPTS = \
 	dhcp \
 	ipv6-ra \
-	static
+	static \
+	link
 
 CMD_OBJ = ${MULTICALL_OBJ} ${IFQUERY_OBJ} ${IFUPDOWN_OBJ}
 
