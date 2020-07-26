@@ -1,3 +1,5 @@
 #!/bin/sh
 [ -z "$VERBOSE" ] || set -x
-${MOCK} ip link set $PHASE dev $IFACE
+case "$PHASE" in
+up|down)	${MOCK} ip link set $PHASE dev $IFACE ;;
+esac
