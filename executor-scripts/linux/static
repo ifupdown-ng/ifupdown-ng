@@ -24,6 +24,8 @@ configure_gateways() {
 	done
 }
 
+[ -z "$VERBOSE" ] || set -x
+
 case "$PHASE" in
 up)
 	configure_addresses add
