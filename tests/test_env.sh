@@ -1,4 +1,4 @@
-PATH="$(atf_get_srcdir)/..:$PATH"
+PATH="$(atf_get_srcdir)/..:$(atf_get_srcdir)/../..:$PATH"
 FIXTURES="$(atf_get_srcdir)/fixtures"
 EXECUTORS="$(atf_get_srcdir)/executors"
 
