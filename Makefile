@@ -1,3 +1,4 @@
+LAYOUT ?= linux
 SCDOC := scdoc
 LIBBSD_CFLAGS =
 LIBBSD_LIBS =
@@ -50,7 +51,8 @@ IFUPDOWN_OBJ = ${IFUPDOWN_SRC:.c=.o}
 
 EXECUTOR_SCRIPTS = \
 	dhcp \
-	ipv6-ra
+	ipv6-ra \
+	static
 
 CMD_OBJ = ${MULTICALL_OBJ} ${IFQUERY_OBJ} ${IFUPDOWN_OBJ}
 
@@ -84,7 +86,7 @@ install: all
 		ln -s /sbin/${MULTICALL} ${DESTDIR}/sbin/$$i; \
 	done
 	for i in ${EXECUTOR_SCRIPTS}; do \
-		install -D -m755 executor-scripts/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
+		install -D -m755 executor-scripts/${LAYOUT}/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
 	done
 
 .scd.1 .scd.2 .scd.3 .scd.4 .scd.5 .scd.6 .scd.7 .scd.8:
