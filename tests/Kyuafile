@@ -5,3 +5,5 @@ test_suite('ifupdown-ng')
 atf_test_program{name='ifquery_test'}
 atf_test_program{name='ifup_test'}
 atf_test_program{name='ifdown_test'}
+
+include('linux/Kyuafile')
