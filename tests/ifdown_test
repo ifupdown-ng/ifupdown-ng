@@ -29,10 +29,7 @@ dual_stack_body() {
 	atf_check -s exit:0 -e ignore \
 		-o match:'ip link set down dev lo' \
 		-o match:'ip link set down dev eth0' \
-		-o match:'del 203.0.113.2/24 dev eth0' \
-		-o match:'del 2001:db8:1000:2::2/64 dev eth0' \
-		-o match:'default via 203.0.113.1' \
-		-o match:'default via 2001:db8:1000:2::1' \
+		-o match:'executors/static' \
 		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/static-eth0.interfaces -n -a
 }
 
@@ -40,8 +37,7 @@ static_ipv4_body() {
 	atf_check -s exit:0 -e ignore \
 		-o match:'ip link set down dev lo' \
 		-o match:'ip link set down dev eth0' \
-		-o match:'del 203.0.113.2/24 dev eth0' \
-		-o match:'default via 203.0.113.1' \
+		-o match:'executors/static' \
 		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/static-eth0-v4.interfaces -n -a
 }
 
@@ -49,8 +45,7 @@ static_ipv4_netmask_body() {
 	atf_check -s exit:0 -e ignore \
 		-o match:'ip link set down dev lo' \
 		-o match:'ip link set down dev eth0' \
-		-o match:'del 203.0.113.2/29 dev eth0' \
-		-o match:'default via 203.0.113.1' \
+		-o match:'executors/static' \
 		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/static-eth0-v4-netmask.interfaces -n -a
 }
 
@@ -58,8 +53,7 @@ static_ipv6_body() {
 	atf_check -s exit:0 -e ignore \
 		-o match:'ip link set down dev lo' \
 		-o match:'ip link set down dev eth0' \
-		-o match:'del 2001:db8:1000:2::2/64 dev eth0' \
-		-o match:'default via 2001:db8:1000:2::1' \
+		-o match:'executors/static' \
 		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/static-eth0-v6.interfaces -n -a
 }
 
@@ -67,8 +61,7 @@ static_ipv6_netmask_body() {
 	atf_check -s exit:0 -e ignore \
 		-o match:'ip link set down dev lo' \
 		-o match:'ip link set down dev eth0' \
-		-o match:'del 2001:db8:1000:2::2/112 dev eth0' \
-		-o match:'default via 2001:db8:1000:2::1' \
+		-o match:'executors/static' \
 		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/static-eth0-v6-netmask.interfaces -n -a
 }
 
@@ -76,7 +69,7 @@ inet_dhcp_body() {
 	atf_check -s exit:0 -e ignore \
 		-o match:'ip link set down dev lo' \
 		-o match:'ip link set down dev eth0' \
-		-o match:'dhc' \
+		-o match:'executors/dhcp' \
 		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/dhcp-eth0.interfaces -n -a
 }
 
@@ -84,14 +77,14 @@ use_dhcp_body() {
 	atf_check -s exit:0 -e ignore \
 		-o match:'ip link set down dev lo' \
 		-o match:'ip link set down dev eth0' \
-		-o match:'dhc' \
+		-o match:'executors/dhcp' \
 		ifdown -S/dev/null -E $EXECUTORS -i $FIXTURES/use-dhcp-eth0.interfaces -n -a
 }
 
 alias_eth0_home_body() {
 	atf_check -s exit:0 -e ignore \
 		-o match:'ip link set down dev wlan0' \
-		-o match:'dhc' \
+		-o match:'executors/dhcp' \
 		ifdown -S $FIXTURES/alias-home.ifstate \
 			-E $EXECUTORS -i $FIXTURES/alias-home-work.interfaces -n wlan0
 }
@@ -99,10 +92,7 @@ alias_eth0_home_body() {
 alias_eth0_work_body() {
 	atf_check -s exit:0 -e ignore \
 		-o match:'ip link set down dev wlan0' \
-		-o match:'del 203.0.113.2/24 dev wlan0' \
-		-o match:'del 2001:db8:1000:2::2/64 dev wlan0' \
-		-o match:'default via 203.0.113.1' \
-		-o match:'default via 2001:db8:1000:2::1' \
+		-o match:'executors/static' \
 		ifdown -S $FIXTURES/alias-work.ifstate \
 			-E $EXECUTORS -i $FIXTURES/alias-home-work.interfaces -n wlan0
 }
@@ -113,10 +103,9 @@ bonded_bridge_body() {
 		-o match:'ip link set down dev eth1' \
 		-o match:'ip link set down dev bond0' \
 		-o match:'ip link set down dev br0' \
-		-o match:'del 203.0.113.2/24 dev br0' \
-		-o match:'del 2001:db8:1000:2::2/64 dev br0' \
-		-o match:'default via 203.0.113.1' \
-		-o match:'default via 2001:db8:1000:2::1' \
+		-o match:'executors/bond' \
+		-o match:'executors/bridge' \
+		-o match:'executors/static' \
 		ifdown -S $FIXTURES/bonded-bridge.ifstate \
 			-E $EXECUTORS -i $FIXTURES/bonded-bridge.interfaces -n br0
 }
