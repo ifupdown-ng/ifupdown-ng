@@ -75,7 +75,14 @@ lif_interface_address_add(struct lif_interface *interface, const char *address)
 		return false;
 	}
 
+	if (!interface->is_static)
+	{
+		lif_dict_add(&interface->vars, "use", strdup("static"));
+		interface->is_static = true;
+	}
+
 	lif_dict_add(&interface->vars, "address", addr);
+
 	return true;
 }
 

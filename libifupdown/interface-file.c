@@ -115,6 +115,8 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 				cur_iface->is_bridge = true;
 			else if (!strcmp(executor, "bond"))
 				cur_iface->is_bond = true;
+			else if (!strcmp(executor, "static"))
+				cur_iface->is_static = true;
 
 			lif_dict_add(&cur_iface->vars, token, strdup(executor));
 		}
