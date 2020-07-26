@@ -23,6 +23,7 @@ struct lif_execute_opts {
 	bool verbose;
 	bool mock;
 	const char *executor_path;
+	const char *interfaces_file;
 };
 
 extern bool lif_execute_fmt(const struct lif_execute_opts *opts, char *const envp[], const char *fmt, ...);

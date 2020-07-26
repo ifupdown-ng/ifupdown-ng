@@ -30,6 +30,7 @@ struct match_options {
 static bool up;
 static struct lif_execute_opts exec_opts = {
 	.executor_path = EXECUTOR_PATH,
+	.interfaces_file = INTERFACES_FILE,
 };
 
 void
@@ -129,7 +130,6 @@ ifupdown_main(int argc, char *argv[])
 		{NULL, 0, 0, 0}
 	};
 	struct match_options match_opts = {};
-	char *interfaces_file = INTERFACES_FILE;
 	char *state_file = STATE_FILE;
 
 	for (;;)
@@ -146,7 +146,7 @@ ifupdown_main(int argc, char *argv[])
 			lif_common_version();
 			break;
 		case 'i':
-			interfaces_file = optarg;
+			exec_opts.interfaces_file = optarg;
 			break;
 		case 'a':
 			match_opts.is_auto = true;
@@ -179,9 +179,9 @@ ifupdown_main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (!lif_interface_file_parse(&collection, interfaces_file))
+	if (!lif_interface_file_parse(&collection, exec_opts.interfaces_file))
 	{
-		fprintf(stderr, "%s: could not parse %s\n", argv0, interfaces_file);
+		fprintf(stderr, "%s: could not parse %s\n", argv0, exec_opts.interfaces_file);
 		return EXIT_FAILURE;
 	}
 
