@@ -65,73 +65,6 @@ handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp
 	return true;
 }
 
-static inline size_t
-count_set_bits(const char *netmask)
-{
-	/* netmask set to CIDR length */
-	if (strchr(netmask, '.') == NULL)
-		return strtol(netmask, NULL, 10);
-
-	size_t r = 0;
-	struct in_addr in;
-
-	if (inet_pton(AF_INET, netmask, &in) == 0)
-		return r;
-
-	/* take the IP, put it in host endian order, and
-	 * flip it so that all the set bits are set to the right.
-	 * then we can simply count down from 32 and right-shift
-	 * until the bit field is all zero.
-	 */
-	unsigned int bits = htonl(in.s_addr);
-	for (bits = ~bits, r = 32; bits; bits >>= 1, r--)
-		;
-
-	return r;
-}
-
-static bool
-handle_pre_up(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname)
-{
-	(void) opts;
-	(void) iface;
-	(void) lifname;
-
-	return true;
-}
-
-static bool
-handle_up(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname)
-{
-	(void) iface;
-
-	if (!lif_execute_fmt(opts, NULL, "/sbin/ip link set up dev %s", lifname))
-		return false;
-
-	return true;
-}
-
-static bool
-handle_down(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname)
-{
-	(void) iface;
-
-	if (!lif_execute_fmt(opts, NULL, "/sbin/ip link set down dev %s", lifname))
-		return false;
-
-	return true;
-}
-
-static bool
-handle_post_down(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname)
-{
-	(void) opts;
-	(void) iface;
-	(void) lifname;
-
-	return true;
-}
-
 bool
 lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *phase, const char *lifname, bool up)
 {
@@ -210,29 +143,11 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 		lif_environment_push(&envp, envkey, (const char *) entry->data);
 	}
 
-	if (!strcmp(phase, "pre-up"))
-	{
-		if (!handle_pre_up(opts, iface, lifname))
-			goto on_error;
-	}
-	else if (!strcmp(phase, "up"))
-	{
-		if (!handle_up(opts, iface, lifname))
-			goto on_error;
-	}
-	else if (!strcmp(phase, "down"))
-	{
-		if (!handle_down(opts, iface, lifname))
-			goto on_error;
-	}
-	else if (!strcmp(phase, "post-down"))
-	{
-		if (!handle_post_down(opts, iface, lifname))
-			goto on_error;
-	}
+	if (!handle_executors_for_phase(opts, envp, iface))
+		goto handle_error;
 
-	handle_executors_for_phase(opts, envp, iface);
-	handle_commands_for_phase(opts, envp, iface, lifname, phase);
+	if (!handle_commands_for_phase(opts, envp, iface, lifname, phase))
+		goto handle_error;
 
 	/* we should do error handling here, but ifupdown1 doesn't */
 	lif_execute_fmt(opts, envp, "/bin/run-parts /etc/network/if-%s.d", phase);
@@ -240,7 +155,7 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 	lif_environment_free(&envp);
 	return true;
 
-on_error:
+handle_error:
 	lif_environment_free(&envp);
 	return false;
 }
