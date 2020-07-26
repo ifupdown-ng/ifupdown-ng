@@ -141,10 +141,8 @@ lif_interface_collection_init(struct lif_dict *collection)
 
 	/* always enable loopback interface as part of a collection */
 	if_lo = lif_interface_collection_find(collection, "lo");
-	if_lo->is_auto = if_lo->is_loopback = true;
+	if_lo->is_auto = true;
 	lif_dict_add(&if_lo->vars, "use", strdup("loopback"));
-
-	lif_interface_address_add(if_lo, "127.0.0.1/8");
 }
 
 void

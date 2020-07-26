@@ -109,8 +109,6 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 			/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
 			if (!strcmp(executor, "dhcp"))
 				cur_iface->is_dhcp = true;
-			else if (!strcmp(executor, "loopback"))
-				cur_iface->is_loopback = true;
 			else if (!strcmp(executor, "bridge"))
 				cur_iface->is_bridge = true;
 			else if (!strcmp(executor, "bond"))

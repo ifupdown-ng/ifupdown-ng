@@ -48,7 +48,6 @@ struct lif_interface {
 	char *ifname;
 
 	bool is_dhcp;
-	bool is_loopback;
 	bool is_auto;
 	bool is_bridge;
 	bool is_bond;

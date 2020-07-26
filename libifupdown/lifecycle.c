@@ -143,9 +143,6 @@ handle_up(const struct lif_execute_opts *opts, struct lif_interface *iface, cons
 	if (!lif_execute_fmt(opts, NULL, "/sbin/ip link set up dev %s", lifname))
 		return false;
 
-	if (iface->is_loopback)
-		return true;
-
 	LIF_DICT_FOREACH(iter, &iface->vars)
 	{
 		struct lif_dict_entry *entry = iter->data;
@@ -172,9 +169,6 @@ handle_down(const struct lif_execute_opts *opts, struct lif_interface *iface, co
 {
 	struct lif_node *iter;
 
-	if (iface->is_loopback)
-		goto skip_addresses;
-
 	LIF_DICT_FOREACH(iter, &iface->vars)
 	{
 		struct lif_dict_entry *entry = iter->data;
@@ -193,7 +187,6 @@ handle_down(const struct lif_execute_opts *opts, struct lif_interface *iface, co
 		}
 	}
 
-skip_addresses:
 	if (!lif_execute_fmt(opts, NULL, "/sbin/ip link set down dev %s", lifname))
 		return false;
 
@@ -219,9 +212,7 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 	lif_environment_push(&envp, "PHASE", phase);
 
 	/* try to provide $METHOD for ifupdown1 scripts if we can */
-	if (iface->is_loopback)
-		lif_environment_push(&envp, "METHOD", "loopback");
-	else if (iface->is_dhcp)
+	if (iface->is_dhcp)
 		lif_environment_push(&envp, "METHOD", "dhcp");
 
 	/* same for $MODE */
