@@ -1,0 +1,30 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/dhcp"
+
+tests_init udhcpc_up dhcpcd_up dhcpcd_down dhclient_up
+
+udhcpc_up_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=udhcpc
+	atf_check -s exit:0 -o match:'/sbin/udhcpc -b -R -p /var/run/udhcpc.eth0.pid -i eth0' \
+		${EXECUTOR}
+}
+
+dhcpcd_up_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=dhcpcd
+	atf_check -s exit:0 -o match:'/sbin/dhcpcd eth0' \
+		${EXECUTOR}
+}
+
+dhcpcd_down_body() {
+	export IFACE=eth0 PHASE=down MOCK=echo IF_DHCP_PROGRAM=dhcpcd
+	atf_check -s exit:0 -o match:'/sbin/dhcpcd -k eth0' \
+		${EXECUTOR}
+}
+
+dhclient_up_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=dhclient
+	atf_check -s exit:0 -o match:'/usr/sbin/dhclient -pf /var/run/dhclient.eth0.pid eth0' \
+		${EXECUTOR}
+}
