@@ -49,7 +49,7 @@ IFQUERY_OBJ = ${IFQUERY_SRC:.c=.o}
 IFUPDOWN_SRC = cmd/ifupdown.c
 IFUPDOWN_OBJ = ${IFUPDOWN_SRC:.c=.o}
 
-EXECUTOR_SCRIPTS = \
+EXECUTOR_SCRIPTS ?= \
 	dhcp \
 	ipv6-ra \
 	static \
