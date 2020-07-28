@@ -51,6 +51,31 @@ lif_dict_add(struct lif_dict *dict, const char *key, void *data)
 }
 
 struct lif_dict_entry *
+lif_dict_add_once(struct lif_dict *dict, const char *key, void *data,
+                  int (*compar)(const void *, const void *))
+{
+	struct lif_list *existing = lif_dict_find_all(dict, key);
+	if (existing)
+	{
+		struct lif_node *iter;
+		LIF_LIST_FOREACH(iter, existing->head)
+		{
+			if (!compar(data, iter->data))
+				return NULL;
+		}
+	}
+
+	struct lif_dict_entry *entry = calloc(1, sizeof *entry);
+
+	entry->key = strdup(key);
+	entry->data = data;
+
+	lif_node_insert_tail(&entry->node, entry, &dict->list);
+
+	return entry;
+}
+
+struct lif_dict_entry *
 lif_dict_find(struct lif_dict *dict, const char *key)
 {
 	struct lif_node *iter;
