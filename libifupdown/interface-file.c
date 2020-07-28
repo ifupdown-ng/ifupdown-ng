@@ -19,7 +19,6 @@
 #include "libifupdown/interface-file.h"
 #include "libifupdown/fgetline.h"
 #include "libifupdown/tokenize.h"
-#include "libifupdown/compar.h"
 
 bool
 lif_interface_file_parse(struct lif_dict *collection, const char *filename)
@@ -146,7 +145,8 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 			{
 				/* Copy word1 to not mangle *token */
 				char *addon = strndup(token, word_end - token);
-				lif_dict_add_once(&cur_iface->vars, "use", addon, compar_str);
+				if (lif_dict_add_once(&cur_iface->vars, "use", addon, (lif_dict_cmp_t) strcmp) == NULL)
+					free(addon);
 
 				/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
 				if (!strcmp(addon, "dhcp"))

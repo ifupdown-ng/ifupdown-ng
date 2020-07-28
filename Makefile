@@ -25,7 +25,6 @@ CPPFLAGS += -DEXECUTOR_PATH=\"${EXECUTOR_PATH}\"
 
 
 LIBIFUPDOWN_SRC = \
-	libifupdown/compar.c \
 	libifupdown/list.c \
 	libifupdown/dict.c \
 	libifupdown/interface.c \

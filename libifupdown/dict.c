@@ -53,7 +53,7 @@ lif_dict_add(struct lif_dict *dict, const char *key, void *data)
 
 struct lif_dict_entry *
 lif_dict_add_once(struct lif_dict *dict, const char *key, void *data,
-                  int (*compar)(const void *, const void *))
+                  lif_dict_cmp_t compar)
 {
 	struct lif_list *existing = lif_dict_find_all(dict, key);
 	if (existing != NULL)
