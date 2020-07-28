@@ -14,7 +14,8 @@ tests_init \
 	use_dhcp \
 	alias_eth0_home \
 	alias_eth0_work \
-	bonded_bridge
+	bonded_bridge \
+	learned_dependency
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifdown -S/dev/null
@@ -98,4 +99,16 @@ bonded_bridge_body() {
 		-o match:'executors/static' \
 		ifdown -S $FIXTURES/bonded-bridge.ifstate \
 			-E $EXECUTORS -i $FIXTURES/bonded-bridge.interfaces -n br0
+}
+
+learned_dependency_body() {
+	atf_check -s exit:0 -o ignore \
+		-e match:"eth0" \
+		-e match:"eth1" \
+		-e match:"eth2" \
+		-e match:"eth3" \
+		-e match:"eth4" \
+		ifdown -n -S $FIXTURES/mock-dependency-generator.ifstate \
+			-E $EXECUTORS \
+			-i $FIXTURES/mock-dependency-generator.interfaces br0
 }
