@@ -19,21 +19,19 @@
 #include "libifupdown/list.h"
 
 void
-lif_list_free_nodes(struct lif_list **list)
+lif_list_free_nodes(struct lif_list *list)
 {
-	if (*list == NULL)
+	if (list == NULL)
 		return;
 
-	struct lif_node *iter;
+	struct lif_node *iter, *iter_next;
 
-	LIF_LIST_FOREACH (iter, (*list)->head)
+	LIF_LIST_FOREACH_SAFE(iter, iter_next, list->head)
 	{
-		free (iter->prev);
+		free (iter);
 	}
 
-	free (iter);
-	free (*list);
-	*list = NULL;
+	free (list);
 }
 
 void

@@ -30,7 +30,7 @@ struct lif_list {
 	size_t length;
 };
 
-extern void lif_list_free_nodes(struct lif_list **list);
+extern void lif_list_free_nodes(struct lif_list *list);
 
 extern void lif_node_insert(struct lif_node *node, void *data, struct lif_list *list);
 extern void lif_node_insert_tail(struct lif_node *node, void *data, struct lif_list *list);

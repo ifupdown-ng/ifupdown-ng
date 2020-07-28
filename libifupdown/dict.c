@@ -69,7 +69,8 @@ lif_dict_add_once(struct lif_dict *dict, const char *key, void *data,
 			}
 		}
 
-		lif_list_free_nodes (&existing);
+		lif_list_free_nodes(existing);
+
 		if (found)
 			return NULL;
 	}
