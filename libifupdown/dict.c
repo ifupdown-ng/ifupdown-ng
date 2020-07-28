@@ -3,6 +3,7 @@
  * Purpose: wrapping linked lists to provide a naive dictionary
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
+ * Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -63,6 +64,31 @@ lif_dict_find(struct lif_dict *dict, const char *key)
 	}
 
 	return NULL;
+}
+
+struct lif_list *
+lif_dict_find_all(struct lif_dict *dict, const char *key)
+{
+	struct lif_list *entries = calloc(1, sizeof(struct lif_list));
+	struct lif_node *iter;
+
+	LIF_LIST_FOREACH(iter, dict->list.head)
+	{
+		struct lif_dict_entry *entry = iter->data;
+		if (!strcmp(entry->key, key))
+		{
+			struct lif_node *new = calloc(1, sizeof(struct lif_node));
+			lif_node_insert_tail(new, entry->data, entries);
+		}
+	}
+
+	if (entries->length == 0)
+	{
+		free(entries);
+		return NULL;
+	}
+
+	return entries;
 }
 
 void
