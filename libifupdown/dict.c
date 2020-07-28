@@ -3,6 +3,7 @@
  * Purpose: wrapping linked lists to provide a naive dictionary
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
+ * Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,6 +14,7 @@
  * from the use of this software.
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include "libifupdown/dict.h"
@@ -50,6 +52,39 @@ lif_dict_add(struct lif_dict *dict, const char *key, void *data)
 }
 
 struct lif_dict_entry *
+lif_dict_add_once(struct lif_dict *dict, const char *key, void *data,
+                  int (*compar)(const void *, const void *))
+{
+	struct lif_list *existing = lif_dict_find_all(dict, key);
+	if (existing != NULL)
+	{
+		bool found = false;
+		struct lif_node *iter;
+		LIF_LIST_FOREACH(iter, existing->head)
+		{
+			if (!compar(data, iter->data))
+			{
+				found = true;
+				break;
+			}
+		}
+
+		lif_list_free_nodes (&existing);
+		if (found)
+			return NULL;
+	}
+
+	struct lif_dict_entry *entry = calloc(1, sizeof *entry);
+
+	entry->key = strdup(key);
+	entry->data = data;
+
+	lif_node_insert_tail(&entry->node, entry, &dict->list);
+
+	return entry;
+}
+
+struct lif_dict_entry *
 lif_dict_find(struct lif_dict *dict, const char *key)
 {
 	struct lif_node *iter;
@@ -63,6 +98,31 @@ lif_dict_find(struct lif_dict *dict, const char *key)
 	}
 
 	return NULL;
+}
+
+struct lif_list *
+lif_dict_find_all(struct lif_dict *dict, const char *key)
+{
+	struct lif_list *entries = calloc(1, sizeof(struct lif_list));
+	struct lif_node *iter;
+
+	LIF_LIST_FOREACH(iter, dict->list.head)
+	{
+		struct lif_dict_entry *entry = iter->data;
+		if (!strcmp(entry->key, key))
+		{
+			struct lif_node *new = calloc(1, sizeof(struct lif_node));
+			lif_node_insert_tail(new, entry->data, entries);
+		}
+	}
+
+	if (entries->length == 0)
+	{
+		free(entries);
+		return NULL;
+	}
+
+	return entries;
 }
 
 void

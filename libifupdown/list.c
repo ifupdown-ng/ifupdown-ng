@@ -3,6 +3,7 @@
  * Purpose: linked lists
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
+ * Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +15,26 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include "libifupdown/list.h"
+
+void
+lif_list_free_nodes(struct lif_list **list)
+{
+	if (*list == NULL)
+		return;
+
+	struct lif_node *iter;
+
+	LIF_LIST_FOREACH (iter, (*list)->head)
+	{
+		free (iter->prev);
+	}
+
+	free (iter);
+	free (*list);
+	*list = NULL;
+}
 
 void
 lif_node_insert(struct lif_node *node, void *data, struct lif_list *list)
