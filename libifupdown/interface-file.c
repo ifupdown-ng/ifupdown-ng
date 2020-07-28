@@ -19,6 +19,7 @@
 #include "libifupdown/interface-file.h"
 #include "libifupdown/fgetline.h"
 #include "libifupdown/tokenize.h"
+#include "libifupdown/compar.h"
 
 bool
 lif_interface_file_parse(struct lif_dict *collection, const char *filename)
@@ -138,6 +139,23 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 		else if (cur_iface != NULL)
 		{
 			lif_dict_add(&cur_iface->vars, token, strdup(bufp));
+
+			/* Check if token looks like <word1>-<word*> and assume <word1> is an addon */
+			char *word_end = strchr(token, '-');
+			if (word_end)
+			{
+				/* Copy word1 to not mangle *token */
+				char *addon = strndup(token, word_end - token);
+				lif_dict_add_once(&cur_iface->vars, "use", addon, compar_str);
+
+				/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
+				if (!strcmp(addon, "dhcp"))
+					cur_iface->is_dhcp = true;
+				else if (!strcmp(addon, "bridge"))
+					cur_iface->is_bridge = true;
+				else if (!strcmp(addon, "bond"))
+					cur_iface->is_bond = true;
+			}
 		}
 	}
 
