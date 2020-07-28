@@ -100,6 +100,8 @@ lif_execute_fmt_with_result(const struct lif_execute_opts *opts, char *buf, size
 		return false;
 	}
 
+	posix_spawn_file_actions_destroy(&file_actions);
+
 	close(pipefds[1]);
 
 	struct pollfd pfd = {
