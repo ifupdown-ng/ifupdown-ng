@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <poll.h>
 
 #include "libifupdown/execute.h"
 
@@ -61,7 +62,7 @@ lif_execute_fmt(const struct lif_execute_opts *opts, char *const envp[], const c
 }
 
 bool
-lif_execute_buf_with_result(const struct lif_execute_opts *opts, char *buf, size_t bufsize, char *const envp[], const char *fmt, ...)
+lif_execute_fmt_with_result(const struct lif_execute_opts *opts, char *buf, size_t bufsize, char *const envp[], const char *fmt, ...)
 {
 	char cmdbuf[4096];
 	va_list va;
@@ -99,14 +100,25 @@ lif_execute_buf_with_result(const struct lif_execute_opts *opts, char *buf, size
 		return false;
 	}
 
-	int status;
-	waitpid(child, &status, 0);
+	close(pipefds[1]);
+
+	struct pollfd pfd = {
+		.fd = pipefds[0],
+		.events = POLLIN
+	};
+
+	if (poll(&pfd, 1, -1) < 1)
+		goto no_result;
 
 	if (read(pipefds[0], buf, bufsize) < 0)
 	{
 		fprintf(stderr, "reading from pipe: %s\n", strerror(errno));
 		return false;
 	}
+
+	int status;
+no_result:
+	waitpid(child, &status, 0);
 
 	return WIFEXITED(status) && WEXITSTATUS(status) == 0;
 }
@@ -139,4 +151,20 @@ lif_maybe_run_executor(const struct lif_execute_opts *opts, char *const envp[], 
 		return true;
 
 	return lif_execute_fmt(opts, envp, "%s", pathbuf);
+}
+
+bool
+lif_maybe_run_executor_with_result(const struct lif_execute_opts *opts, char *const envp[], const char *executor, char *buf, size_t bufsize)
+{
+	if (opts->verbose)
+		fprintf(stderr, "ifupdown: attempting to run %s executor\n", executor);
+
+	char pathbuf[4096];
+
+	snprintf(pathbuf, sizeof pathbuf, "%s/%s", opts->executor_path, executor);
+
+	if (!lif_file_is_executable(pathbuf))
+		return true;
+
+	return lif_execute_fmt_with_result(opts, buf, bufsize, envp, "%s", pathbuf);
 }

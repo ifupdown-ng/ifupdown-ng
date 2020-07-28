@@ -63,6 +63,89 @@ handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp
 	return true;
 }
 
+static bool
+query_dependents_from_executors(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface, char *buf, size_t bufsize)
+{
+	struct lif_node *iter;
+
+	LIF_DICT_FOREACH(iter, &iface->vars)
+	{
+		char resbuf[1024] = {};
+		struct lif_dict_entry *entry = iter->data;
+		struct lif_execute_opts exec_opts = {
+			.verbose = opts->verbose,
+			.executor_path = opts->executor_path,
+			.interfaces_file = opts->interfaces_file
+		};
+
+		if (strcmp(entry->key, "use"))
+			continue;
+
+		const char *cmd = entry->data;
+		if (!lif_maybe_run_executor_with_result(&exec_opts, envp, cmd, resbuf, sizeof resbuf))
+			return false;
+
+		if (!*resbuf)
+			continue;
+
+		strlcat(buf, " ", bufsize);
+		strlcat(buf, resbuf, bufsize);
+	}
+
+	return true;
+}
+
+bool
+lif_lifecycle_query_dependents(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname)
+{
+	char deps[4096] = {};
+	char final_deps[4096] = {};
+
+	if (lifname == NULL)
+		lifname = iface->ifname;
+
+	char **envp = NULL;
+
+	lif_environment_push(&envp, "IFACE", lifname);
+	lif_environment_push(&envp, "PHASE", "depend");
+	lif_environment_push(&envp, "MODE", "depend");
+
+	if (opts->verbose)
+		lif_environment_push(&envp, "VERBOSE", "1");
+
+	if (opts->interfaces_file)
+		lif_environment_push(&envp, "INTERFACES_FILE", opts->interfaces_file);
+
+	struct lif_dict_entry *entry = lif_dict_find(&iface->vars, "requires");
+	if (entry != NULL)
+		strlcpy(deps, entry->data, sizeof deps);
+
+	if (!query_dependents_from_executors(opts, envp, iface, deps, sizeof deps))
+		return false;
+
+	char *p = deps;
+	while (*p)
+	{
+		char *token = lif_next_token(&p);
+
+		if (strstr(final_deps, token) != NULL)
+			continue;
+
+		strlcat(final_deps, token, sizeof final_deps);
+		strlcat(final_deps, " ", sizeof final_deps);
+	}
+
+	if (entry != NULL)
+	{
+		free(entry->data);
+		entry->data = strdup(final_deps);
+	}
+	else
+		lif_dict_add(&iface->vars, "requires", strdup(final_deps));
+
+	return true;
+}
+
 bool
 lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *phase, const char *lifname, bool up)
 {
@@ -195,6 +278,9 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 {
 	if (lifname == NULL)
 		lifname = iface->ifname;
+
+	if (!lif_lifecycle_query_dependents(opts, iface, lifname))
+		return false;
 
 	if (up)
 	{

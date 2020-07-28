@@ -1,3 +1,2 @@
 #!/bin/sh
-
-echo $0 ${MODE}
+exit 0

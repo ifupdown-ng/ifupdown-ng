@@ -21,9 +21,17 @@
 #include "libifupdown/libifupdown.h"
 #include "cmd/multicall.h"
 
+static struct lif_execute_opts exec_opts = {
+	.interfaces_file = INTERFACES_FILE,
+	.executor_path = EXECUTOR_PATH
+};
+
 void
 print_interface(struct lif_interface *iface)
 {
+	if (!lif_lifecycle_query_dependents(&exec_opts, iface, iface->ifname))
+		return;
+
 	if (iface->is_auto)
 		printf("auto %s\n", iface->ifname);
 
@@ -263,16 +271,16 @@ ifquery_main(int argc, char *argv[])
 		{"state", no_argument, 0, 's'},
 		{"dot", no_argument, 0, 'D'},
 		{"property", required_argument, 0, 'p'},
+		{"executor-path", required_argument, 0, 'E'},
 		{NULL, 0, 0, 0}
 	};
 	struct match_options match_opts = {};
 	bool listing = false, listing_stat = false;
-	char *interfaces_file = INTERFACES_FILE;
 	char *state_file = STATE_FILE;
 
 	for (;;)
 	{
-		int c = getopt_long(argc, argv, "hVi:LaI:X:PS:sDp:", long_options, NULL);
+		int c = getopt_long(argc, argv, "hVi:LaI:X:PS:sDp:E:", long_options, NULL);
 		if (c == -1)
 			break;
 
@@ -284,7 +292,7 @@ ifquery_main(int argc, char *argv[])
 			lif_common_version();
 			break;
 		case 'i':
-			interfaces_file = optarg;
+			exec_opts.interfaces_file = optarg;
 			break;
 		case 'L':
 			listing = true;
@@ -313,6 +321,9 @@ ifquery_main(int argc, char *argv[])
 		case 'p':
 			match_opts.property = optarg;
 			break;
+		case 'E':
+			exec_opts.executor_path = optarg;
+			break;
 		}
 	}
 
@@ -322,9 +333,9 @@ ifquery_main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (!lif_interface_file_parse(&collection, interfaces_file))
+	if (!lif_interface_file_parse(&collection, exec_opts.interfaces_file))
 	{
-		fprintf(stderr, "%s: could not parse %s\n", argv0, interfaces_file);
+		fprintf(stderr, "%s: could not parse %s\n", argv0, exec_opts.interfaces_file);
 		return EXIT_FAILURE;
 	}
 

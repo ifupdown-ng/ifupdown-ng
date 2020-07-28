@@ -19,6 +19,7 @@
 #include "libifupdown/interface.h"
 #include "libifupdown/execute.h"
 
+extern bool lif_lifecycle_query_dependents(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname);
 extern bool lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *phase, const char *lifname, bool up);
 extern bool lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *lifname, bool up);
 
