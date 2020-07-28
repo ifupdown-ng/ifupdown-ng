@@ -12,7 +12,8 @@ tests_init \
 	use_dhcp \
 	state_query_home \
 	state_query_work \
-	state_print
+	state_print \
+	learned_dependency
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -68,4 +69,9 @@ state_print_body() {
 		  ifquery -S $FIXTURES/alias-home.ifstate -i $FIXTURES/alias-home-work.interfaces -s
 	atf_check -s exit:0 -o match:"wlan0=work" \
 		  ifquery -S $FIXTURES/alias-work.ifstate -i $FIXTURES/alias-home-work.interfaces -s
+}
+
+learned_dependency_body() {
+	atf_check -s exit:0 -o match:"requires eth0 eth1 eth2 eth3 eth4" \
+		ifquery -E $EXECUTORS -i $FIXTURES/mock-dependency-generator.interfaces br0
 }

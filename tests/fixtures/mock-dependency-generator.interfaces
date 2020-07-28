@@ -1,0 +1,2 @@
+iface br0
+	use mock-dependency-generator
