@@ -61,6 +61,57 @@ lif_execute_fmt(const struct lif_execute_opts *opts, char *const envp[], const c
 }
 
 bool
+lif_execute_buf_with_result(const struct lif_execute_opts *opts, char *buf, size_t bufsize, char *const envp[], const char *fmt, ...)
+{
+	char cmdbuf[4096];
+	va_list va;
+
+	va_start(va, fmt);
+	vsnprintf(cmdbuf, sizeof cmdbuf, fmt, va);
+	va_end(va);
+
+	pid_t child;
+	char *argv[] = { SHELL, "-c", cmdbuf, NULL };
+
+	if (opts->verbose)
+		puts(cmdbuf);
+
+	if (opts->mock)
+		return true;
+
+	int pipefds[2];
+	if (pipe(pipefds) < 0)
+	{
+		fprintf(stderr, "execute '%s': %s\n", cmdbuf, strerror(errno));
+		return false;
+	}
+
+	posix_spawn_file_actions_t file_actions;
+
+	posix_spawn_file_actions_init(&file_actions);
+	posix_spawn_file_actions_addclose(&file_actions, pipefds[0]);
+	posix_spawn_file_actions_adddup2(&file_actions, pipefds[1], 1);
+	posix_spawn_file_actions_addclose(&file_actions, pipefds[1]);
+
+	if (posix_spawn(&child, SHELL, &file_actions, NULL, argv, envp) != 0)
+	{
+		fprintf(stderr, "execute '%s': %s\n", cmdbuf, strerror(errno));
+		return false;
+	}
+
+	int status;
+	waitpid(child, &status, 0);
+
+	if (read(pipefds[0], buf, bufsize) < 0)
+	{
+		fprintf(stderr, "reading from pipe: %s\n", strerror(errno));
+		return false;
+	}
+
+	return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+}
+
+bool
 lif_file_is_executable(const char *path)
 {
 	struct stat st;
