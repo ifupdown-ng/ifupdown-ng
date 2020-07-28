@@ -18,6 +18,10 @@ configured in the configuration database.
 *-a, --auto*
 	Only match interfaces that are marked as _auto_.
 
+*-f, --force*
+	Force configuration of the interface.
+	This option exists for compatibility with other implementations.
+
 *-h, --help*
 	Display supported options to ifquery.
 

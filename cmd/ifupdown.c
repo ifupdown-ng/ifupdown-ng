@@ -49,6 +49,7 @@ ifupdown_usage(void)
 	fprintf(stderr, "  -n, --no-act                 do not actually run any commands\n");
 	fprintf(stderr, "  -v, --verbose                show what commands are being run\n");
 	fprintf(stderr, "  -E, --executor-path PATH     use PATH for executor directory\n");
+	fprintf(stderr, "  -f, --force                  force (de)configuration\n");
 
 	exit(1);
 }
@@ -127,6 +128,7 @@ ifupdown_main(int argc, char *argv[])
 		{"no-act", no_argument, 0, 'n'},
 		{"verbose", no_argument, 0, 'v'},
 		{"executor-path", required_argument, 0, 'E'},
+		{"force", no_argument, 0, 'f'},
 		{NULL, 0, 0, 0}
 	};
 	struct match_options match_opts = {};
@@ -169,6 +171,8 @@ ifupdown_main(int argc, char *argv[])
 			break;
 		case 'E':
 			exec_opts.executor_path = optarg;
+			break;
+		case 'f':
 			break;
 		}
 	}
