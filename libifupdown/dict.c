@@ -14,6 +14,7 @@
  * from the use of this software.
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include "libifupdown/dict.h"
@@ -55,14 +56,22 @@ lif_dict_add_once(struct lif_dict *dict, const char *key, void *data,
                   int (*compar)(const void *, const void *))
 {
 	struct lif_list *existing = lif_dict_find_all(dict, key);
-	if (existing)
+	if (existing != NULL)
 	{
+		bool found = false;
 		struct lif_node *iter;
 		LIF_LIST_FOREACH(iter, existing->head)
 		{
 			if (!compar(data, iter->data))
-				return NULL;
+			{
+				found = true;
+				break;
+			}
 		}
+
+		lif_list_free_nodes (&existing);
+		if (found)
+			return NULL;
 	}
 
 	struct lif_dict_entry *entry = calloc(1, sizeof *entry);

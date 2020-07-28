@@ -3,6 +3,7 @@
  * Purpose: linked lists
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
+ * Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -28,6 +29,8 @@ struct lif_list {
 	struct lif_node *head, *tail;
 	size_t length;
 };
+
+extern void lif_list_free_nodes(struct lif_list **list);
 
 extern void lif_node_insert(struct lif_node *node, void *data, struct lif_list *list);
 extern void lif_node_insert_tail(struct lif_node *node, void *data, struct lif_list *list);
