@@ -53,7 +53,8 @@ EXECUTOR_SCRIPTS = \
 	dhcp \
 	ipv6-ra \
 	static \
-	link
+	link \
+	bridge
 
 CMD_OBJ = ${MULTICALL_OBJ} ${IFQUERY_OBJ} ${IFUPDOWN_OBJ}
 
