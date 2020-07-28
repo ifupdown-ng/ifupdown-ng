@@ -33,6 +33,7 @@ lif_list_free_nodes(struct lif_list **list)
 
 	free (iter);
 	free (*list);
+	*list = NULL;
 }
 
 void
