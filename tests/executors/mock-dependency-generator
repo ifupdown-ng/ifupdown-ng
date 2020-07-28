@@ -1,0 +1,5 @@
+#!/bin/sh
+
+case "$PHASE" in
+depend)	echo "eth0 eth1 eth2 eth3 eth4" ;;
+esac
