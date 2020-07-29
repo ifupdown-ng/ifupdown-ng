@@ -34,6 +34,7 @@ static bool up;
 static struct lif_execute_opts exec_opts = {
 	.executor_path = EXECUTOR_PATH,
 	.interfaces_file = INTERFACES_FILE,
+	.state_file = STATE_FILE,
 };
 
 void
@@ -67,9 +68,65 @@ is_ifdown()
 	return false;
 }
 
+int
+acquire_state_lock(const char *state_path, const char *lifname)
+{
+	if (exec_opts.mock || exec_opts.no_lock)
+		return -1;
+
+	char lockpath[4096] = {};
+
+	snprintf(lockpath, sizeof lockpath, "%s.%s.lock", state_path, lifname);
+
+	int fd = open(lockpath, O_CREAT | O_WRONLY | O_TRUNC);
+	if (fd < 0)
+	{
+		fprintf(stderr, "opening lockfile %s: %s\n", lockpath, strerror(errno));
+		return -1;
+	}
+
+	int flags = fcntl(fd, F_GETFD);
+	if (flags < 0)
+	{
+		close(fd);
+
+		fprintf(stderr, "getting flags for lockfile: %s\n", strerror(errno));
+		return -1;
+	}
+
+	flags |= FD_CLOEXEC;
+	if (fcntl(fd, F_SETFD, flags) == -1)
+	{
+		close(fd);
+
+		fprintf(stderr, "setting lockfile close-on-exec: %s\n", strerror(errno));
+		return -1;
+	}
+
+	struct flock fl = {
+		.l_type = F_WRLCK,
+		.l_whence = SEEK_SET
+	};
+
+	if (exec_opts.verbose)
+		fprintf(stderr, "ifupdown: acquiring lock on %s\n", lockpath);
+
+	if (fcntl(fd, F_SETLKW, &fl) == -1)
+	{
+		close(fd);
+
+		fprintf(stderr, "locking lockfile: %s\n", strerror(errno));
+		return -1;
+	}
+
+	return fd;
+}
+
 bool
 change_interface(struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *ifname)
 {
+	int lockfd = acquire_state_lock(exec_opts.state_file, ifname);
+
 	if (exec_opts.verbose)
 	{
 		fprintf(stderr, "%s: changing state of interface %s to '%s'\n",
@@ -80,8 +137,15 @@ change_interface(struct lif_interface *iface, struct lif_dict *collection, struc
 	{
 		fprintf(stderr, "%s: failed to change interface %s state to '%s'\n",
 			argv0, ifname, up ? "up" : "down");
+
+		if (lockfd != -1)
+			close(lockfd);
+
 		return false;
 	}
+
+	if (lockfd != -1)
+		close(lockfd);
 
 	return true;
 }
@@ -115,54 +179,6 @@ change_auto_interfaces(struct lif_dict *collection, struct lif_dict *state, stru
 }
 
 int
-acquire_state_lock(const char *state_path)
-{
-	char lockpath[4096] = {};
-
-	snprintf(lockpath, sizeof lockpath, "%s.lock", state_path);
-
-	int fd = open(lockpath, O_CREAT | O_WRONLY | O_TRUNC);
-	if (fd < 0)
-	{
-		fprintf(stderr, "opening lockfile %s: %s\n", lockpath, strerror(errno));
-		return -1;
-	}
-
-	int flags = fcntl(fd, F_GETFD);
-	if (flags < 0)
-	{
-		close(fd);
-
-		fprintf(stderr, "getting flags for lockfile: %s\n", strerror(errno));
-		return -1;
-	}
-
-	flags |= FD_CLOEXEC;
-	if (fcntl(fd, F_SETFD, flags) == -1)
-	{
-		close(fd);
-
-		fprintf(stderr, "setting lockfile close-on-exec: %s\n", strerror(errno));
-		return -1;
-	}
-
-	struct flock fl = {
-		.l_type = F_WRLCK,
-		.l_whence = SEEK_SET
-	};
-
-	if (fcntl(fd, F_SETLKW, &fl) == -1)
-	{
-		close(fd);
-
-		fprintf(stderr, "locking lockfile: %s\n", strerror(errno));
-		return -1;
-	}
-
-	return fd;
-}
-
-int
 ifupdown_main(int argc, char *argv[])
 {
 	up = !is_ifdown();
@@ -185,9 +201,6 @@ ifupdown_main(int argc, char *argv[])
 		{NULL, 0, 0, 0}
 	};
 	struct match_options match_opts = {};
-	char *state_file = STATE_FILE;
-	int lockfd = -1;
-	bool no_lock = false;
 
 	for (;;)
 	{
@@ -215,7 +228,7 @@ ifupdown_main(int argc, char *argv[])
 			match_opts.exclude_pattern = optarg;
 			break;
 		case 'S':
-			state_file = optarg;
+			exec_opts.state_file = optarg;
 			break;
 		case 'n':
 			exec_opts.mock = true;
@@ -230,17 +243,14 @@ ifupdown_main(int argc, char *argv[])
 		case 'f':
 			break;
 		case 'L':
-			no_lock = true;
+			exec_opts.no_lock = true;
 			break;
 		}
 	}
 
-	if (!exec_opts.mock && !no_lock)
-		lockfd = acquire_state_lock(state_file);
-
-	if (!lif_state_read_path(&state, state_file))
+	if (!lif_state_read_path(&state, exec_opts.state_file))
 	{
-		fprintf(stderr, "%s: could not parse %s\n", argv0, state_file);
+		fprintf(stderr, "%s: could not parse %s\n", argv0, exec_opts.state_file);
 		return EXIT_FAILURE;
 	}
 
@@ -300,14 +310,11 @@ ifupdown_main(int argc, char *argv[])
 			return EXIT_FAILURE;
 	}
 
-	if (!exec_opts.mock && !lif_state_write_path(&state, state_file))
+	if (!exec_opts.mock && !lif_state_write_path(&state, exec_opts.state_file))
 	{
-		fprintf(stderr, "%s: could not update %s\n", argv0, state_file);
+		fprintf(stderr, "%s: could not update %s\n", argv0, exec_opts.state_file);
 		return EXIT_FAILURE;
 	}
-
-	if (lockfd >= 0)
-		close(lockfd);
 
 	return EXIT_SUCCESS;
 }
