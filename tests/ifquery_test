@@ -14,7 +14,8 @@ tests_init \
 	state_query_work \
 	state_print \
 	learned_dependency \
-	learned_dependency_2
+	learned_dependency_2 \
+	learned_executor
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -79,5 +80,10 @@ learned_dependency_body() {
 
 learned_dependency_2_body() {
 	atf_check -s exit:0 -o match:"requires bond0" \
+		ifquery -E $EXECUTORS -i $FIXTURES/mock-dependency-generator-2.interfaces br0
+}
+
+learned_executor_body() {
+	atf_check -s exit:0 -o match:"use mock" \
 		ifquery -E $EXECUTORS -i $FIXTURES/mock-dependency-generator-2.interfaces br0
 }
