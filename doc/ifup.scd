@@ -42,6 +42,9 @@ configured in the configuration database.
 	Include _PATTERN_ when matching against the config or state
 	database.
 
+*-L, --no-lock*
+	Do not use a lockfile to serialize state changes.
+
 *-S, --state-file* _FILE_
 	Use _FILE_ as the state database.
 

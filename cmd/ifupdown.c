@@ -18,6 +18,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <getopt.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
 #include "libifupdown/libifupdown.h"
 #include "cmd/multicall.h"
 
@@ -50,6 +53,7 @@ ifupdown_usage(void)
 	fprintf(stderr, "  -v, --verbose                show what commands are being run\n");
 	fprintf(stderr, "  -E, --executor-path PATH     use PATH for executor directory\n");
 	fprintf(stderr, "  -f, --force                  force (de)configuration\n");
+	fprintf(stderr, "  -L, --no-lock                do not use a lockfile to serialize state changes\n");
 
 	exit(1);
 }
@@ -111,6 +115,54 @@ change_auto_interfaces(struct lif_dict *collection, struct lif_dict *state, stru
 }
 
 int
+acquire_state_lock(const char *state_path)
+{
+	char lockpath[4096] = {};
+
+	snprintf(lockpath, sizeof lockpath, "%s.lock", state_path);
+
+	int fd = open(lockpath, O_CREAT | O_WRONLY | O_TRUNC);
+	if (fd < 0)
+	{
+		fprintf(stderr, "opening lockfile %s: %s\n", lockpath, strerror(errno));
+		return -1;
+	}
+
+	int flags = fcntl(fd, F_GETFD);
+	if (flags < 0)
+	{
+		close(fd);
+
+		fprintf(stderr, "getting flags for lockfile: %s\n", strerror(errno));
+		return -1;
+	}
+
+	flags |= FD_CLOEXEC;
+	if (fcntl(fd, F_SETFD, flags) == -1)
+	{
+		close(fd);
+
+		fprintf(stderr, "setting lockfile close-on-exec: %s\n", strerror(errno));
+		return -1;
+	}
+
+	struct flock fl = {
+		.l_type = F_WRLCK,
+		.l_whence = SEEK_SET
+	};
+
+	if (fcntl(fd, F_SETLKW, &fl) == -1)
+	{
+		close(fd);
+
+		fprintf(stderr, "locking lockfile: %s\n", strerror(errno));
+		return -1;
+	}
+
+	return fd;
+}
+
+int
 ifupdown_main(int argc, char *argv[])
 {
 	up = !is_ifdown();
@@ -129,14 +181,17 @@ ifupdown_main(int argc, char *argv[])
 		{"verbose", no_argument, 0, 'v'},
 		{"executor-path", required_argument, 0, 'E'},
 		{"force", no_argument, 0, 'f'},
+		{"no-lock", no_argument, 0, 'L'},
 		{NULL, 0, 0, 0}
 	};
 	struct match_options match_opts = {};
 	char *state_file = STATE_FILE;
+	int lockfd = -1;
+	bool no_lock = false;
 
 	for (;;)
 	{
-		int c = getopt_long(argc, argv, "hVi:aI:X:S:nvE:", long_options, NULL);
+		int c = getopt_long(argc, argv, "hVi:aI:X:S:nvE:fL", long_options, NULL);
 		if (c == -1)
 			break;
 
@@ -174,8 +229,14 @@ ifupdown_main(int argc, char *argv[])
 			break;
 		case 'f':
 			break;
+		case 'L':
+			no_lock = true;
+			break;
 		}
 	}
+
+	if (!exec_opts.mock && !no_lock)
+		lockfd = acquire_state_lock(state_file);
 
 	if (!lif_state_read_path(&state, state_file))
 	{
@@ -244,6 +305,9 @@ ifupdown_main(int argc, char *argv[])
 		fprintf(stderr, "%s: could not update %s\n", argv0, state_file);
 		return EXIT_FAILURE;
 	}
+
+	if (lockfd >= 0)
+		close(lockfd);
 
 	return EXIT_SUCCESS;
 }
