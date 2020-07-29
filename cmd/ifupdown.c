@@ -109,14 +109,14 @@ acquire_state_lock(const char *state_path, const char *lifname)
 	};
 
 	if (exec_opts.verbose)
-		fprintf(stderr, "ifupdown: acquiring lock on %s\n", lockpath);
+		fprintf(stderr, "%s: acquiring lock on %s\n", argv0, lockpath);
 
-	if (fcntl(fd, F_SETLKW, &fl) == -1)
+	if (fcntl(fd, F_SETLK, &fl) == -1)
 	{
 		close(fd);
 
 		fprintf(stderr, "locking lockfile: %s\n", strerror(errno));
-		return -1;
+		return -2;
 	}
 
 	return fd;
@@ -126,6 +126,12 @@ bool
 change_interface(struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *ifname)
 {
 	int lockfd = acquire_state_lock(exec_opts.state_file, ifname);
+
+	if (lockfd == -2)
+	{
+		fprintf(stderr, "%s: could not acquire exclusive lock for %s\n", argv0, ifname);
+		return false;
+	}
 
 	if (exec_opts.verbose)
 	{
