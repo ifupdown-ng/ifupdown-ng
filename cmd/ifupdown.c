@@ -81,7 +81,8 @@ acquire_state_lock(const char *state_path, const char *lifname)
 	int fd = open(lockpath, O_CREAT | O_WRONLY | O_TRUNC);
 	if (fd < 0)
 	{
-		fprintf(stderr, "%s: while opening lockfile %s: %s\n", argv0, lockpath, strerror(errno));
+		if (exec_opts.verbose)
+			fprintf(stderr, "%s: while opening lockfile %s: %s\n", argv0, lockpath, strerror(errno));
 		return -2;
 	}
 
@@ -90,7 +91,8 @@ acquire_state_lock(const char *state_path, const char *lifname)
 	{
 		close(fd);
 
-		fprintf(stderr, "%s: while getting flags for lockfile: %s\n", argv0, strerror(errno));
+		if (exec_opts.verbose)
+			fprintf(stderr, "%s: while getting flags for lockfile: %s\n", argv0, strerror(errno));
 		return -2;
 	}
 
@@ -99,7 +101,8 @@ acquire_state_lock(const char *state_path, const char *lifname)
 	{
 		close(fd);
 
-		fprintf(stderr, "%s: while setting lockfile close-on-exec: %s\n", argv0, strerror(errno));
+		if (exec_opts.verbose)
+			fprintf(stderr, "%s: while setting lockfile close-on-exec: %s\n", argv0, strerror(errno));
 		return -2;
 	}
 
