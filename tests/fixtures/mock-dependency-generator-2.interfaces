@@ -1,0 +1,7 @@
+iface br0
+	use mock-dependency-generator
+	mock-depends bond0
+
+iface bond0
+	use mock-dependency-generator
+	mock-depends eth0 eth1

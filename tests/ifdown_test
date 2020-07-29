@@ -15,7 +15,8 @@ tests_init \
 	alias_eth0_home \
 	alias_eth0_work \
 	bonded_bridge \
-	learned_dependency
+	learned_dependency \
+	learned_dependency_2
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifdown -S/dev/null
@@ -111,4 +112,14 @@ learned_dependency_body() {
 		ifdown -n -S $FIXTURES/mock-dependency-generator.ifstate \
 			-E $EXECUTORS \
 			-i $FIXTURES/mock-dependency-generator.interfaces br0
+}
+
+learned_dependency_2_body() {
+	atf_check -s exit:0 -o ignore \
+		-e match:"bond0" \
+		-e match:"eth0" \
+		-e match:"eth1" \
+		ifdown -n -S $FIXTURES/mock-dependency-generator-2.ifstate \
+			-E $EXECUTORS \
+			-i $FIXTURES/mock-dependency-generator-2.interfaces br0
 }
