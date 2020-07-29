@@ -1,5 +1,7 @@
 #!/bin/sh
 
+[ -z "$IF_MOCK_DEPENDS" ] && IF_MOCK_DEPENDS="eth0 eth1 eth2 eth3 eth4"
+
 case "$PHASE" in
-depend)	echo "eth0 eth1 eth2 eth3 eth4" ;;
+depend)	echo "$IF_MOCK_DEPENDS" ;;
 esac
