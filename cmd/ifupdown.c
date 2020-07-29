@@ -81,8 +81,8 @@ acquire_state_lock(const char *state_path, const char *lifname)
 	int fd = open(lockpath, O_CREAT | O_WRONLY | O_TRUNC);
 	if (fd < 0)
 	{
-		fprintf(stderr, "opening lockfile %s: %s\n", lockpath, strerror(errno));
-		return -1;
+		fprintf(stderr, "%s: while opening lockfile %s: %s\n", argv0, lockpath, strerror(errno));
+		return -2;
 	}
 
 	int flags = fcntl(fd, F_GETFD);
@@ -90,8 +90,8 @@ acquire_state_lock(const char *state_path, const char *lifname)
 	{
 		close(fd);
 
-		fprintf(stderr, "getting flags for lockfile: %s\n", strerror(errno));
-		return -1;
+		fprintf(stderr, "%s: while getting flags for lockfile: %s\n", argv0, strerror(errno));
+		return -2;
 	}
 
 	flags |= FD_CLOEXEC;
@@ -99,8 +99,8 @@ acquire_state_lock(const char *state_path, const char *lifname)
 	{
 		close(fd);
 
-		fprintf(stderr, "setting lockfile close-on-exec: %s\n", strerror(errno));
-		return -1;
+		fprintf(stderr, "%s: while setting lockfile close-on-exec: %s\n", argv0, strerror(errno));
+		return -2;
 	}
 
 	struct flock fl = {
@@ -115,7 +115,8 @@ acquire_state_lock(const char *state_path, const char *lifname)
 	{
 		close(fd);
 
-		fprintf(stderr, "locking lockfile: %s\n", strerror(errno));
+		if (exec_opts.verbose)
+			fprintf(stderr, "%s: while locking lockfile: %s\n", argv0, strerror(errno));
 		return -2;
 	}
 
@@ -129,7 +130,7 @@ change_interface(struct lif_interface *iface, struct lif_dict *collection, struc
 
 	if (lockfd == -2)
 	{
-		fprintf(stderr, "%s: could not acquire exclusive lock for %s\n", argv0, ifname);
+		fprintf(stderr, "%s: could not acquire exclusive lock for %s: %s\n", argv0, ifname, strerror(errno));
 		return false;
 	}
 
