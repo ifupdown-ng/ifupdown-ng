@@ -95,6 +95,81 @@ query_dependents_from_executors(const struct lif_execute_opts *opts, char *const
 	return true;
 }
 
+static void
+build_environment(char **envp[], const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname, const char *phase, const char *mode)
+{
+	if (lifname == NULL)
+		lifname = iface->ifname;
+
+	lif_environment_push(envp, "IFACE", lifname);
+	lif_environment_push(envp, "PHASE", phase);
+	lif_environment_push(envp, "MODE", mode);
+
+	/* try to provide $METHOD for ifupdown1 scripts if we can */
+	if (iface->is_dhcp)
+		lif_environment_push(envp, "METHOD", "dhcp");
+
+	if (opts->verbose)
+		lif_environment_push(envp, "VERBOSE", "1");
+
+	if (opts->interfaces_file)
+		lif_environment_push(envp, "INTERFACES_FILE", opts->interfaces_file);
+
+	struct lif_node *iter;
+	bool did_address = false, did_gateway = false;
+
+	LIF_DICT_FOREACH(iter, &iface->vars)
+	{
+		struct lif_dict_entry *entry = iter->data;
+
+		if (!strcmp(entry->key, "address"))
+		{
+			if (did_address)
+				continue;
+
+			struct lif_address *addr = entry->data;
+			char addrbuf[4096];
+
+			if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
+				continue;
+
+			lif_environment_push(envp, "IF_ADDRESS", addrbuf);
+			did_address = true;
+
+			continue;
+		}
+		else if (!strcmp(entry->key, "gateway"))
+		{
+			if (did_gateway)
+				continue;
+
+			did_gateway = true;
+		}
+		else if (!strcmp(entry->key, "requires"))
+		{
+			if (iface->is_bridge)
+				lif_environment_push(envp, "IF_BRIDGE_PORTS", (const char *) entry->data);
+
+			if (iface->is_bond)
+				lif_environment_push(envp, "IF_BOND_SLAVES", (const char *) entry->data);
+		}
+
+		char envkey[4096] = "IF_";
+		strlcat(envkey, entry->key, sizeof envkey);
+		char *ep = envkey + 2;
+
+		while (*ep++)
+		{
+			*ep = toupper(*ep);
+
+			if (*ep == '-')
+				*ep = '_';
+		}
+
+		lif_environment_push(envp, envkey, (const char *) entry->data);
+	}
+}
+
 bool
 lif_lifecycle_query_dependents(const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname)
 {
@@ -106,15 +181,7 @@ lif_lifecycle_query_dependents(const struct lif_execute_opts *opts, struct lif_i
 
 	char **envp = NULL;
 
-	lif_environment_push(&envp, "IFACE", lifname);
-	lif_environment_push(&envp, "PHASE", "depend");
-	lif_environment_push(&envp, "MODE", "depend");
-
-	if (opts->verbose)
-		lif_environment_push(&envp, "VERBOSE", "1");
-
-	if (opts->interfaces_file)
-		lif_environment_push(&envp, "INTERFACES_FILE", opts->interfaces_file);
+	build_environment(&envp, opts, iface, lifname, "depend", "depend");
 
 	struct lif_dict_entry *entry = lif_dict_find(&iface->vars, "requires");
 	if (entry != NULL)
@@ -143,6 +210,8 @@ lif_lifecycle_query_dependents(const struct lif_execute_opts *opts, struct lif_i
 	else
 		lif_dict_add(&iface->vars, "requires", strdup(final_deps));
 
+	lif_environment_free(&envp);
+
 	return true;
 }
 
@@ -151,78 +220,7 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 {
 	char **envp = NULL;
 
-	lif_environment_push(&envp, "IFACE", lifname);
-	lif_environment_push(&envp, "PHASE", phase);
-
-	/* try to provide $METHOD for ifupdown1 scripts if we can */
-	if (iface->is_dhcp)
-		lif_environment_push(&envp, "METHOD", "dhcp");
-
-	/* same for $MODE */
-	if (up)
-		lif_environment_push(&envp, "MODE", "start");
-	else
-		lif_environment_push(&envp, "MODE", "stop");
-
-	if (opts->verbose)
-		lif_environment_push(&envp, "VERBOSE", "1");
-
-	if (opts->interfaces_file)
-		lif_environment_push(&envp, "INTERFACES_FILE", opts->interfaces_file);
-
-	struct lif_node *iter;
-	bool did_address = false, did_gateway = false;
-
-	LIF_DICT_FOREACH(iter, &iface->vars)
-	{
-		struct lif_dict_entry *entry = iter->data;
-
-		if (!strcmp(entry->key, "address"))
-		{
-			if (did_address)
-				continue;
-
-			struct lif_address *addr = entry->data;
-			char addrbuf[4096];
-
-			if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
-				continue;
-
-			lif_environment_push(&envp, "IF_ADDRESS", addrbuf);
-			did_address = true;
-
-			continue;
-		}
-		else if (!strcmp(entry->key, "gateway"))
-		{
-			if (did_gateway)
-				continue;
-
-			did_gateway = true;
-		}
-		else if (!strcmp(entry->key, "requires"))
-		{
-			if (iface->is_bridge)
-				lif_environment_push(&envp, "IF_BRIDGE_PORTS", (const char *) entry->data);
-
-			if (iface->is_bond)
-				lif_environment_push(&envp, "IF_BOND_SLAVES", (const char *) entry->data);
-		}
-
-		char envkey[4096] = "IF_";
-		strlcat(envkey, entry->key, sizeof envkey);
-		char *ep = envkey + 2;
-
-		while (*ep++)
-		{
-			*ep = toupper(*ep);
-
-			if (*ep == '-')
-				*ep = '_';
-		}
-
-		lif_environment_push(&envp, envkey, (const char *) entry->data);
-	}
+	build_environment(&envp, opts, iface, lifname, phase, up ? "start" : "stop");
 
 	if (!handle_executors_for_phase(opts, envp, iface))
 		goto handle_error;
