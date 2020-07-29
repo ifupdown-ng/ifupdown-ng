@@ -114,6 +114,10 @@ install_docs: docs
 		target=$$(basename $$i); \
 		install -D -m644 $$i ${DESTDIR}/usr/share/man/man5/$$target; \
 	done
+	for i in ${MANPAGES_7}; do \
+		target=$$(basename $$i); \
+		install -D -m644 $$i ${DESTDIR}/usr/share/man/man7/$$target; \
+	done
 	for i in ${MANPAGES_8}; do \
 		target=$$(basename $$i); \
 		install -D -m644 $$i ${DESTDIR}/usr/share/man/man8/$$target; \
