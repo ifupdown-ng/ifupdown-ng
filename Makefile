@@ -102,7 +102,10 @@ MANPAGES_8 = \
 MANPAGES_5 = \
 	doc/interfaces.5
 
-MANPAGES = ${MANPAGES_5} ${MANPAGES_8}
+MANPAGES_7 = \
+	doc/ifupdown-executor.7
+
+MANPAGES = ${MANPAGES_5} ${MANPAGES_7} ${MANPAGES_8}
 
 docs: ${MANPAGES}
 
