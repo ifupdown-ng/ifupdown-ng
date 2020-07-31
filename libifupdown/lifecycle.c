@@ -207,7 +207,7 @@ lif_lifecycle_query_dependents(const struct lif_execute_opts *opts, struct lif_i
 		free(entry->data);
 		entry->data = strdup(final_deps);
 	}
-	else
+	else if (*final_deps)
 		lif_dict_add(&iface->vars, "requires", strdup(final_deps));
 
 	lif_environment_free(&envp);
