@@ -66,7 +66,7 @@ LIBS += ${LIBBSD_LIBS}
 all: libifupdown.a ${MULTICALL} ${CMDS}
 
 ${CMDS}: ${MULTICALL}
-	ln -s ifupdown $@
+	ln -sf ifupdown $@
 
 ${MULTICALL}: ${LIBS} ${CMD_OBJ}
 	${CC} -o $@ ${CMD_OBJ} ${LIBS}
