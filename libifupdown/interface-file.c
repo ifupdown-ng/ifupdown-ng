@@ -82,18 +82,16 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 			 * or "inet dhcp" or such to designate hints.  lets pick up
 			 * those hints here.
 			 */
-			char *inet_type = lif_next_token(&bufp);
-			if (!*inet_type)
-				continue;
-
-			char *hint = lif_next_token(&bufp);
-			if (!*hint)
-				continue;
-
-			if (!strcmp(hint, "dhcp"))
+			char *token = lif_next_token(&bufp);
+			while (*token)
 			{
-				cur_iface->is_dhcp = true;
-				lif_dict_add(&cur_iface->vars, "use", strdup("dhcp"));
+				if (!strcmp(token, "dhcp"))
+				{
+					cur_iface->is_dhcp = true;
+					lif_dict_add(&cur_iface->vars, "use", strdup("dhcp"));
+				}
+
+				token = lif_next_token(&bufp);
 			}
 		}
 		else if (!strcmp(token, "use"))
