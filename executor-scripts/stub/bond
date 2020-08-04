@@ -1,0 +1,5 @@
+#!/bin/sh
+[ -z "$IF_BOND_MEMBERS" ] && IF_BOND_MEMBERS="$IF_BOND_SLAVES"
+case "$PHASE" in
+depend)	echo "$IF_BOND_MEMBERS" ;;
+esac

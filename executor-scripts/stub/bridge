@@ -1,0 +1,4 @@
+#!/bin/sh
+case "$PHASE" in
+depend)	echo "$IF_BRIDGE_PORTS" ;;
+esac
