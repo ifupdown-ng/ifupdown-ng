@@ -49,12 +49,18 @@ IFQUERY_OBJ = ${IFQUERY_SRC:.c=.o}
 IFUPDOWN_SRC = cmd/ifupdown.c
 IFUPDOWN_OBJ = ${IFUPDOWN_SRC:.c=.o}
 
-EXECUTOR_SCRIPTS ?= \
+EXECUTOR_SCRIPTS_CORE ?= \
 	dhcp \
 	ipv6-ra \
 	static \
 	link \
+
+EXECUTOR_SCRIPTS_OPT ?= \
 	bridge
+
+EXECUTOR_SCRIPTS ?= ${EXECUTOR_SCRIPTS_CORE} ${EXECUTOR_SCRIPTS_OPT}
+
+EXECUTOR_SCRIPTS_STUB ?=
 
 CMD_OBJ = ${MULTICALL_OBJ} ${IFQUERY_OBJ} ${IFUPDOWN_OBJ}
 
@@ -89,6 +95,9 @@ install: all
 	done
 	for i in ${EXECUTOR_SCRIPTS}; do \
 		install -D -m755 executor-scripts/${LAYOUT}/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
+	done
+	for i in ${EXECUTOR_SCRIPTS_STUB}; do \
+		install -D -m755 executor-scripts/stub/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
 	done
 
 .scd.1 .scd.2 .scd.3 .scd.4 .scd.5 .scd.6 .scd.7 .scd.8:
