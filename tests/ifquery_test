@@ -15,7 +15,9 @@ tests_init \
 	state_print \
 	learned_dependency \
 	learned_dependency_2 \
-	learned_executor
+	learned_executor \
+	inheritance_0 \
+	inheritance_1
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -86,4 +88,20 @@ learned_dependency_2_body() {
 learned_executor_body() {
 	atf_check -s exit:0 -o match:"use mock" \
 		ifquery -E $EXECUTORS -i $FIXTURES/mock-dependency-generator-2.interfaces br0
+}
+
+inheritance_0_body() {
+	atf_check -s exit:0 -o match:"inherit base0" \
+		-o match:"address 203.0.113.2/24" \
+		-o match:"address 203.0.113.3/24" \
+		-o match:"address 2001:db8:1000:2::2/64" \
+		ifquery -E $EXECUTORS -i $FIXTURES/inheritance.interfaces inherit0
+}
+
+inheritance_1_body() {
+	atf_check -s exit:0 -o match:"inherit base0" \
+		-o match:"address 203.0.113.2/24" \
+		-o match:"address 203.0.113.4/24" \
+		-o match:"address 2001:db8:1000:2::2/64" \
+		ifquery -E $EXECUTORS -i $FIXTURES/inheritance.interfaces inherit1
 }

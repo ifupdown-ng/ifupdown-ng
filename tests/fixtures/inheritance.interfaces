@@ -1,0 +1,10 @@
+iface base0
+        address 203.0.113.2/24
+        address 2001:db8:1000:2::2/64
+
+iface inherit0 inherits base0
+	address 203.0.113.3/24
+
+iface inherit1
+	inherit base0
+	address 203.0.113.4/24
