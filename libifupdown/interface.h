@@ -73,6 +73,7 @@ extern void lif_interface_collection_init(struct lif_dict *collection);
 extern void lif_interface_collection_fini(struct lif_dict *collection);
 extern struct lif_interface *lif_interface_collection_find(struct lif_dict *collection, const char *ifname);
 extern struct lif_interface *lif_interface_collection_upsert(struct lif_dict *collection, struct lif_interface *interface);
+extern bool lif_interface_collection_inherit(struct lif_interface *interface, struct lif_dict *collection, const char *ifname);
 extern void lif_interface_collection_delete(struct lif_dict *collection, struct lif_interface *interface);
 
 #endif

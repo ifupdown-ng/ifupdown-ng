@@ -214,3 +214,33 @@ lif_interface_collection_delete(struct lif_dict *collection, struct lif_interfac
 
 	lif_dict_delete_entry(collection, entry);
 }
+
+bool
+lif_interface_collection_inherit(struct lif_interface *interface, struct lif_dict *collection, const char *ifname)
+{
+	struct lif_interface *parent = lif_interface_collection_find(collection, ifname);
+
+	if (parent == NULL)
+		return false;
+
+	/* copy the variables */
+	struct lif_node *iter;
+	LIF_DICT_FOREACH(iter, &parent->vars)
+	{
+		struct lif_dict_entry *entry = iter->data;
+
+		if (!strcmp(entry->key, "address"))
+		{
+			struct lif_address *addr = calloc(1, sizeof *addr);
+			struct lif_address *other_addr = entry->data;
+
+			memcpy(addr, other_addr, sizeof *addr);
+
+			lif_dict_add(&interface->vars, entry->key, addr);
+		}
+		else
+			lif_dict_add(&interface->vars, entry->key, strdup(entry->data));
+	}
+
+	return true;
+}
