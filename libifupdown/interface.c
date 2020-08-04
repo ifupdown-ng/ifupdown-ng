@@ -223,6 +223,8 @@ lif_interface_collection_inherit(struct lif_interface *interface, struct lif_dic
 	if (parent == NULL)
 		return false;
 
+	lif_dict_add(&interface->vars, "inherit", strdup(ifname));
+
 	/* copy the variables */
 	struct lif_node *iter;
 	LIF_DICT_FOREACH(iter, &parent->vars)
