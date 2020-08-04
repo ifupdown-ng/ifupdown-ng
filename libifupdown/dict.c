@@ -104,7 +104,7 @@ lif_dict_find(struct lif_dict *dict, const char *key)
 struct lif_list *
 lif_dict_find_all(struct lif_dict *dict, const char *key)
 {
-	struct lif_list *entries = calloc(1, sizeof(struct lif_list));
+	struct lif_list *entries = calloc(1, sizeof *entries);
 	struct lif_node *iter;
 
 	LIF_LIST_FOREACH(iter, dict->list.head)
@@ -112,7 +112,7 @@ lif_dict_find_all(struct lif_dict *dict, const char *key)
 		struct lif_dict_entry *entry = iter->data;
 		if (!strcmp(entry->key, key))
 		{
-			struct lif_node *new = calloc(1, sizeof(struct lif_node));
+			struct lif_node *new = calloc(1, sizeof *new);
 			lif_node_insert_tail(new, entry->data, entries);
 		}
 	}
