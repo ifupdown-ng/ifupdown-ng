@@ -69,6 +69,10 @@ the system will only respond to certain keywords by default:
 	Interfaces associated with the parent are taken down at
 	the same time as the parent.
 
+*inherit* _interface_
+	Designates that the parent interface should inherit
+	configuration data from _interface_.
+
 *use* _option_
 	Designates that an option should be used.  See _OPTIONS_
 	section for more information on options.
