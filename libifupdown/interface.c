@@ -224,6 +224,10 @@ lif_interface_collection_inherit(struct lif_interface *interface, struct lif_dic
 		return false;
 
 	lif_dict_add(&interface->vars, "inherit", strdup(ifname));
+	interface->is_static = parent->is_static;
+	interface->is_dhcp = parent->is_dhcp;
+	interface->is_bond = parent->is_bond;
+	interface->is_bridge = parent->is_bridge;
 
 	/* copy the variables */
 	struct lif_node *iter;
@@ -241,7 +245,12 @@ lif_interface_collection_inherit(struct lif_interface *interface, struct lif_dic
 			lif_dict_add(&interface->vars, entry->key, addr);
 		}
 		else
-			lif_dict_add(&interface->vars, entry->key, strdup(entry->data));
+		{
+			char *value = strdup(entry->data);
+
+			if (lif_dict_add_once(&interface->vars, entry->key, value, (lif_dict_cmp_t) strcmp) == NULL)
+				free(value);
+		}
 	}
 
 	return true;
