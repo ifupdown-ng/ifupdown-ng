@@ -17,7 +17,8 @@ tests_init \
 	bonded_bridge \
 	learned_dependency \
 	learned_dependency_2 \
-	learned_executor
+	learned_executor \
+	implicit_vlan
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifup -S/dev/null
@@ -122,4 +123,11 @@ learned_executor_body() {
 	atf_check -s exit:0 -o ignore \
 		-e match:"attempting to run mock executor" \
 		ifup -n -S/dev/null -E $EXECUTORS -i $FIXTURES/mock-dependency-generator-2.interfaces br0
+}
+
+implicit_vlan_body() {
+	atf_check -s exit:0 -o ignore \
+		-e match:"attempting to run vlan executor" \
+		-e match:"attempting to run link executor" \
+		ifup -n -S/dev/null -E $EXECUTORS -i $FIXTURES/vlan.interfaces eth0.8
 }

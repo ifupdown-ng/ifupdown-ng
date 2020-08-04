@@ -17,7 +17,8 @@ tests_init \
 	learned_dependency_2 \
 	learned_executor \
 	inheritance_0 \
-	inheritance_1
+	inheritance_1 \
+	implicit_vlan
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -104,4 +105,10 @@ inheritance_1_body() {
 		-o match:"address 203.0.113.4/24" \
 		-o match:"address 2001:db8:1000:2::2/64" \
 		ifquery -E $EXECUTORS -i $FIXTURES/inheritance.interfaces inherit1
+}
+
+implicit_vlan_body() {
+	atf_check -s exit:0 -o match:"requires eth0" \
+		-o match:"use vlan" \
+		ifquery -E $EXECUTORS -i $FIXTURES/vlan.interfaces eth0.8
 }
