@@ -90,6 +90,22 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 					cur_iface->is_dhcp = true;
 					lif_dict_add(&cur_iface->vars, "use", strdup("dhcp"));
 				}
+				else if (!strcmp(token, "inherits"))
+				{
+					token = lif_next_token(&bufp);
+
+					if (!*token)
+					{
+						fprintf(stderr, "%s: inherits without interface\n", filename);
+						goto parse_error;
+					}
+
+					if (!lif_interface_collection_inherit(cur_iface, collection, token))
+					{
+						fprintf(stderr, "%s: could not inherit %s\n", filename, token);
+						goto parse_error;
+					}
+				}
 
 				token = lif_next_token(&bufp);
 			}
@@ -120,6 +136,22 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 				continue;
 
 			lif_dict_add(&cur_iface->vars, token, strdup(executor));
+		}
+		else if (!strcmp(token, "inherit"))
+		{
+			token = lif_next_token(&bufp);
+
+			if (!*token)
+			{
+				fprintf(stderr, "%s: inherits without interface\n", filename);
+				goto parse_error;
+			}
+
+			if (!lif_interface_collection_inherit(cur_iface, collection, token))
+			{
+				fprintf(stderr, "%s: could not inherit %s\n", filename, token);
+				goto parse_error;
+			}
 		}
 		else if (!strcmp(token, "address"))
 		{
