@@ -62,7 +62,11 @@ lif_interface_init(struct lif_interface *interface, const char *ifname)
 	memset(interface, '\0', sizeof *interface);
 
 	interface->ifname = strdup(ifname);
-	lif_dict_add(&interface->vars, "use", strdup("link"));
+
+	if (strchr(ifname, '.') == NULL)
+		lif_dict_add(&interface->vars, "use", strdup("link"));
+	else
+		lif_dict_add(&interface->vars, "use", strdup("vlan"));
 }
 
 bool
