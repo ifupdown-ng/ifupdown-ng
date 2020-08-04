@@ -10,6 +10,9 @@ The */etc/network/interfaces* file is used to specify how network
 interfaces are configured.  The file is processed by *ifquery*(8),
 *ifup*(8) and *ifdown*(8) to introspect and change system state.
 
+In most cases, syntax from legacy implementations is supported as
+well, but that syntax is not discussed here.
+
 # FILE SYNTAX
 
 The interface configuration database is composed of a series of
