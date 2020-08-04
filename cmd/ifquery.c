@@ -65,6 +65,9 @@ print_interface(struct lif_interface *iface)
 void
 print_interface_dot(struct lif_dict *collection, struct lif_interface *iface, struct lif_interface *parent)
 {
+	if (!lif_lifecycle_query_dependents(&exec_opts, iface, iface->ifname))
+		return;
+
 	if (iface->is_up)
 		return;
 
