@@ -5,7 +5,7 @@ LIBBSD_LIBS =
 
 PACKAGE_NAME := ifupdown-ng
 PACKAGE_VERSION := 0.7.0
-PACKAGE_BUGREPORT := https://github.com/kaniini/ifupdown-ng/issues/new
+PACKAGE_BUGREPORT := https://github.com/ifupdown-ng/ifupdown-ng/issues/new
 
 
 INTERFACES_FILE := /etc/network/interfaces
