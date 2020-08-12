@@ -66,18 +66,18 @@ CMD_OBJ = ${MULTICALL_OBJ} ${IFQUERY_OBJ} ${IFUPDOWN_OBJ}
 
 CMDS = ifup ifdown ifquery
 
-LIBS = ${LIBIFUPDOWN_LIB}
-LIBS += ${LIBBSD_LIBS}
+TARGET_LIBS = ${LIBIFUPDOWN_LIB}
+LIBS += ${TARGET_LIBS} ${LIBBSD_LIBS}
 
-all: libifupdown.a ${MULTICALL} ${CMDS}
+all: ${MULTICALL} ${CMDS}
 
 ${CMDS}: ${MULTICALL}
 	ln -sf ifupdown $@
 
-${MULTICALL}: ${LIBS} ${CMD_OBJ}
+${MULTICALL}: ${TARGET_LIBS} ${CMD_OBJ}
 	${CC} -o $@ ${CMD_OBJ} ${LIBS}
 
-libifupdown.a: ${LIBIFUPDOWN_OBJ}
+${LIBIFUPDOWN_LIB}: ${LIBIFUPDOWN_OBJ}
 	${AR} -rcs $@ ${LIBIFUPDOWN_OBJ}
 
 clean:
@@ -86,7 +86,7 @@ clean:
 	rm -f ${CMDS} ${MULTICALL}
 	rm -f ${MANPAGES}
 
-check: libifupdown.a ${CMDS}
+check: ${LIBIFUPDOWN_LIB} ${CMDS}
 	kyua test
 
 install: all
