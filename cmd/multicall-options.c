@@ -51,7 +51,7 @@ generic_usage(const struct if_applet *applet, int result)
 
 			if (opt->long_opt)
 				fprintf(stderr, "%c --%-30s", opt->short_opt ? ',' : ' ',
-					opt->long_opt);
+					opt->long_opt_desc ? opt->long_opt_desc : opt->long_opt);
 			else
 				fprintf(stderr, "%34s", "");
 
@@ -73,8 +73,8 @@ generic_usage_request(int short_opt, const struct if_option *option, const char 
 }
 
 static struct if_option global_options[] = {
-	{'h', "help", "displays program help", false, generic_usage_request},
-	{'V', "version", "displays program version", false, (void *) lif_common_version},
+	{'h', "help", NULL, "this help", false, generic_usage_request},
+	{'V', "version", NULL, "show this program's version", false, (void *) lif_common_version},
 };
 
 struct if_option_group global_option_group = {

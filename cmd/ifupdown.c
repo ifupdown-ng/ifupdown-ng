@@ -204,7 +204,6 @@ ifupdown_main(int argc, char *argv[])
 		{"no-lock", no_argument, 0, 'L'},
 		{NULL, 0, 0, 0}
 	};
-	struct match_options match_opts = {};
 
 	for (;;)
 	{

@@ -27,6 +27,7 @@ struct if_applet;
 struct if_option {
 	char short_opt;
 	const char *long_opt;
+	const char *long_opt_desc;
 	const char *desc;
 	bool require_argument;
 	void (*const handle)(int short_opt, const struct if_option *opt, const char *opt_arg, const struct if_applet *applet);
@@ -47,18 +48,23 @@ struct if_applet {
 };
 
 extern char *argv0;
+extern const struct if_applet *self_applet;
 extern struct if_option_group global_option_group;
 
 struct match_options {
 	bool is_auto;
-	char *exclude_pattern;
-	char *include_pattern;
+	const char *exclude_pattern;
+	const char *include_pattern;
 	bool pretty_print;
 	bool dot;
-	char *property;
+	const char *property;
 };
+
+extern struct match_options match_opts;
 
 extern void process_options(const struct if_applet *applet, int argc, char *argv[]);
 extern const struct if_option *lookup_option(const struct if_applet *applet, int opt);
+
+extern struct if_option_group match_option_group;
 
 #endif

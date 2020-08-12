@@ -174,9 +174,6 @@ ifquery_usage(int status)
 	fprintf(stderr, "  -V, --version                show this program's version\n");
 	fprintf(stderr, "  -i, --interfaces FILE        use FILE for interface definitions\n");
 	fprintf(stderr, "  -L, --list                   list matching interfaces\n");
-	fprintf(stderr, "  -a, --auto                   only match against interfaces hinted as 'auto'\n");
-	fprintf(stderr, "  -I, --include PATTERN        only match against interfaces matching PATTERN\n");
-	fprintf(stderr, "  -X, --exclude PATTERN        never match against interfaces matching PATTERN\n");
 	fprintf(stderr, "  -P, --pretty-print           pretty print the interfaces instead of just listing\n");
 	fprintf(stderr, "  -S, --state-file FILE        use FILE for state\n");
 	fprintf(stderr, "  -s, --state                  show configured state\n");
@@ -253,13 +250,8 @@ ifquery_main(int argc, char *argv[])
 	struct lif_dict state = {};
 	struct lif_dict collection = {};
 	struct option long_options[] = {
-		{"help", no_argument, 0, 'h'},
-		{"version", no_argument, 0, 'V'},
 		{"interfaces", required_argument, 0, 'i'},
 		{"list", no_argument, 0, 'L'},
-		{"auto", no_argument, 0, 'a'},
-		{"include", required_argument, 0, 'I'},
-		{"exclude", required_argument, 0, 'X'},
 		{"pretty-print", no_argument, 0, 'P'},
 		{"state-file", required_argument, 0, 'S'},
 		{"state", no_argument, 0, 's'},
@@ -268,7 +260,6 @@ ifquery_main(int argc, char *argv[])
 		{"executor-path", required_argument, 0, 'E'},
 		{NULL, 0, 0, 0}
 	};
-	struct match_options match_opts = {};
 	bool listing = false, listing_stat = false;
 	char *state_file = STATE_FILE;
 
@@ -279,26 +270,11 @@ ifquery_main(int argc, char *argv[])
 			break;
 
 		switch (c) {
-		case 'h':
-			ifquery_usage(EXIT_SUCCESS);
-			break;
-		case 'V':
-			lif_common_version();
-			break;
 		case 'i':
 			exec_opts.interfaces_file = optarg;
 			break;
 		case 'L':
 			listing = true;
-			break;
-		case 'a':
-			match_opts.is_auto = true;
-			break;
-		case 'I':
-			match_opts.include_pattern = optarg;
-			break;
-		case 'X':
-			match_opts.exclude_pattern = optarg;
 			break;
 		case 'P':
 			match_opts.pretty_print = true;
@@ -381,6 +357,8 @@ ifquery_main(int argc, char *argv[])
 
 struct if_applet ifquery_applet = {
 	.name = "ifquery",
+	.desc = "query interface configuration",
 	.main = ifquery_main,
-	.usage = ifquery_usage
+	.usage = ifquery_usage,
+	.groups = { &global_option_group, &match_option_group, NULL },
 };

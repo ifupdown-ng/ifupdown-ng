@@ -41,7 +41,8 @@ LIBIFUPDOWN_LIB = libifupdown.a
 
 MULTICALL_SRC = \
 	cmd/multicall.c \
-	cmd/multicall-options.c
+	cmd/multicall-options.c \
+	cmd/multicall-match-options.c
 MULTICALL_OBJ = ${MULTICALL_SRC:.c=.o}
 MULTICALL = ifupdown
 
