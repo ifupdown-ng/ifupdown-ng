@@ -82,6 +82,7 @@ libifupdown.a: ${LIBIFUPDOWN_OBJ}
 
 clean:
 	rm -f ${LIBIFUPDOWN_OBJ} ${CMD_OBJ}
+	rm -f ${LIBIFUPDOWN_LIB}
 	rm -f ${CMDS} ${MULTICALL}
 	rm -f ${MANPAGES}
 
