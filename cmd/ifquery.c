@@ -186,15 +186,6 @@ ifquery_usage(int status)
 	exit(status);
 }
 
-struct match_options {
-	bool is_auto;
-	char *exclude_pattern;
-	char *include_pattern;
-	bool pretty_print;
-	bool dot;
-	char *property;
-};
-
 void
 list_interfaces(struct lif_dict *collection, struct match_options *opts)
 {

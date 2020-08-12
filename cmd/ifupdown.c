@@ -24,12 +24,6 @@
 #include "libifupdown/libifupdown.h"
 #include "cmd/multicall.h"
 
-struct match_options {
-	bool is_auto;
-	char *exclude_pattern;
-	char *include_pattern;
-};
-
 static bool up;
 static struct lif_execute_opts exec_opts = {
 	.executor_path = EXECUTOR_PATH,

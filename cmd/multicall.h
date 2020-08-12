@@ -49,4 +49,13 @@ struct if_applet {
 extern char *argv0;
 extern struct if_option_group global_option_group;
 
+struct match_options {
+	bool is_auto;
+	char *exclude_pattern;
+	char *include_pattern;
+	bool pretty_print;
+	bool dot;
+	char *property;
+};
+
 #endif
