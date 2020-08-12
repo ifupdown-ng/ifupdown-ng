@@ -23,16 +23,28 @@
 
 char *argv0;
 
+#ifdef CONFIG_IFQUERY
 extern struct if_applet ifquery_applet;
+#endif
+
+#ifdef CONFIG_IFUPDOWN
 extern struct if_applet ifup_applet;
 extern struct if_applet ifdown_applet;
+#endif
+
 struct if_applet ifupdown_applet;
 const struct if_applet *self_applet = NULL;
 
 struct if_applet *applet_table[] = {
+#ifdef CONFIG_IFUPDOWN
 	&ifdown_applet,
+#endif
+#ifdef CONFIG_IFQUERY
 	&ifquery_applet,
+#endif
+#ifdef CONFIG_IFUPDOWN
 	&ifup_applet,
+#endif
 	&ifupdown_applet,
 };
 
