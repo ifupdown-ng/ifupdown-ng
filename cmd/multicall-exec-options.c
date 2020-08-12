@@ -52,7 +52,7 @@ static void handle_exec(int short_opt, const struct if_option *opt, const char *
 			break;
 		case 'f':
 			break;
-		case 'L':
+		case 'l':
 			exec_opts.no_lock = true;
 			break;
 		default:
@@ -63,10 +63,10 @@ static void handle_exec(int short_opt, const struct if_option *opt, const char *
 static struct if_option exec_options[] = {
 	{'f', "force", NULL, "force (de)configuration", true, handle_exec},
 	{'i', "interfaces", "interfaces FILE", "use FILE for interface definitions", true, handle_exec},
+	{'l', "no-lock", NULL, "do not use a lockfile to serialize state changes", false, handle_exec},
 	{'n', "no-act", NULL, "do not actually run any commands", false, handle_exec},
 	{'v', "verbose", NULL, "show what commands are being run", false, handle_exec},
 	{'E', "executor-path", "executor-path PATH", "use PATH for executor directory", true, handle_exec},
-	{'L', "no-lock", NULL, "do not use a lockfile to serialize state changes", false, handle_exec},
 	{'S', "state-file", "state-file FILE", "use FILE for state", true, handle_exec},
 };
 

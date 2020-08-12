@@ -164,17 +164,6 @@ ifquery_usage(int status)
 	fprintf(stderr, "usage: ifquery [options] <interfaces>\n");
 	fprintf(stderr, "       ifquery [options] --list\n");
 
-	fprintf(stderr, "\nOptions:\n");
-	fprintf(stderr, "  -h, --help                   this help\n");
-	fprintf(stderr, "  -V, --version                show this program's version\n");
-	fprintf(stderr, "  -i, --interfaces FILE        use FILE for interface definitions\n");
-	fprintf(stderr, "  -L, --list                   list matching interfaces\n");
-	fprintf(stderr, "  -P, --pretty-print           pretty print the interfaces instead of just listing\n");
-	fprintf(stderr, "  -S, --state-file FILE        use FILE for state\n");
-	fprintf(stderr, "  -s, --state                  show configured state\n");
-	fprintf(stderr, "  -D, --dot                    generate a dependency graph\n");
-	fprintf(stderr, "  -p, --property PROPERTY      print values of properties matching PROPERTY\n");
-
 	exit(status);
 }
 
@@ -239,45 +228,52 @@ list_state(struct lif_dict *state, struct match_options *opts)
 	}
 }
 
+static bool listing = false, listing_stat = false;
+
+static void
+handle_local(int short_opt, const struct if_option *opt, const char *opt_arg, const struct if_applet *applet)
+{
+	(void) opt;
+	(void) applet;
+
+	switch (short_opt) {
+	case 'L':
+		listing = true;
+		break;
+	case 'P':
+		match_opts.pretty_print = true;
+		break;
+	case 's':
+		listing_stat = true;
+		break;
+	case 'D':
+		match_opts.dot = true;
+		break;
+	case 'p':
+		match_opts.property = opt_arg;
+		break;
+	}
+}
+
+static struct if_option local_options[] = {
+	{'s', "state", NULL, "show configured state", false, handle_local},
+	{'p', "property", "property PROPERTY", "print values of properties matching PROPERTY", true, handle_local},
+	{'D', "dot", NULL, "generate a dependency graph", false, handle_local},
+	{'L', "list", NULL, "list matching interfaces", false, handle_local},
+	{'P', "pretty-print", NULL, "pretty print the interfaces instead of just listing", false, handle_local},
+};
+
+static struct if_option_group local_option_group = {
+	.desc = "Program-specific options",
+	.group_size = ARRAY_SIZE(local_options),
+	.group = local_options
+};
+
 int
 ifquery_main(int argc, char *argv[])
 {
 	struct lif_dict state = {};
 	struct lif_dict collection = {};
-	struct option long_options[] = {
-		{"list", no_argument, 0, 'L'},
-		{"pretty-print", no_argument, 0, 'P'},
-		{"state", no_argument, 0, 's'},
-		{"dot", no_argument, 0, 'D'},
-		{"property", required_argument, 0, 'p'},
-		{NULL, 0, 0, 0}
-	};
-	bool listing = false, listing_stat = false;
-
-	for (;;)
-	{
-		int c = getopt_long(argc, argv, "hVi:LaI:X:PS:sDp:E:", long_options, NULL);
-		if (c == -1)
-			break;
-
-		switch (c) {
-		case 'L':
-			listing = true;
-			break;
-		case 'P':
-			match_opts.pretty_print = true;
-			break;
-		case 's':
-			listing_stat = true;
-			break;
-		case 'D':
-			match_opts.dot = true;
-			break;
-		case 'p':
-			match_opts.property = optarg;
-			break;
-		}
-	}
 
 	if (!lif_state_read_path(&state, exec_opts.state_file))
 	{
@@ -342,5 +338,5 @@ struct if_applet ifquery_applet = {
 	.desc = "query interface configuration",
 	.main = ifquery_main,
 	.usage = ifquery_usage,
-	.groups = { &global_option_group, &match_option_group, &exec_option_group },
+	.groups = { &global_option_group, &match_option_group, &exec_option_group, &local_option_group },
 };

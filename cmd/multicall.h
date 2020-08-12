@@ -44,7 +44,7 @@ struct if_applet {
 	const char *desc;
 	int (*const main)(int argc, char *argv[]);
 	void (*const usage)(int status);
-	const struct if_option_group *groups[4];
+	const struct if_option_group *groups[16];
 };
 
 extern char *argv0;
