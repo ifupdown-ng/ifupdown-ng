@@ -58,4 +58,7 @@ struct match_options {
 	char *property;
 };
 
+extern void process_options(const struct if_applet *applet, int argc, char *argv[]);
+extern const struct if_option *lookup_option(const struct if_applet *applet, int opt);
+
 #endif
