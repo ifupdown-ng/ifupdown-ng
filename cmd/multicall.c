@@ -27,6 +27,7 @@ extern struct if_applet ifquery_applet;
 extern struct if_applet ifup_applet;
 extern struct if_applet ifdown_applet;
 struct if_applet ifupdown_applet;
+const struct if_applet *self_applet = NULL;
 
 struct if_applet *applet_table[] = {
 	&ifdown_applet,
@@ -62,6 +63,7 @@ main(int argc, char *argv[])
 		multicall_usage(EXIT_FAILURE);
 	}
 
+	self_applet = *app;
 	process_options(*app, argc, argv);
 
 	return (*app)->main(argc, argv);
