@@ -13,10 +13,12 @@
  * from the use of this software.
  */
 
+#define _GNU_SOURCE
 #include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <getopt.h>
 #include "cmd/multicall.h"
 
 char *argv0;
@@ -25,6 +27,7 @@ extern struct if_applet ifquery_applet;
 extern struct if_applet ifup_applet;
 extern struct if_applet ifdown_applet;
 struct if_applet ifupdown_applet;
+const struct if_applet *self_applet = NULL;
 
 struct if_applet *applet_table[] = {
 	&ifdown_applet,
@@ -32,8 +35,6 @@ struct if_applet *applet_table[] = {
 	&ifup_applet,
 	&ifupdown_applet,
 };
-
-#define ARRAY_SIZE(x)	(sizeof(x) / sizeof(*x))
 
 int
 applet_cmp(const void *a, const void *b)
@@ -50,7 +51,7 @@ int
 main(int argc, char *argv[])
 {
 	argv0 = basename(argv[0]);
-	struct if_applet **app;
+	const struct if_applet **app;
 
 	app = bsearch(argv0, applet_table,
 		      ARRAY_SIZE(applet_table), sizeof(*applet_table),
@@ -61,6 +62,9 @@ main(int argc, char *argv[])
 		fprintf(stderr, "%s: applet not found\n", argv0);
 		multicall_usage(EXIT_FAILURE);
 	}
+
+	self_applet = *app;
+	process_options(*app, argc, argv);
 
 	return (*app)->main(argc, argv);
 }
@@ -73,6 +77,8 @@ multicall_main(int argc, char *argv[])
 
 	return main(argc - 1, argv + 1);
 }
+
+struct if_applet ifupdown_applet;
 
 void
 multicall_usage(int status)
@@ -96,5 +102,5 @@ multicall_usage(int status)
 struct if_applet ifupdown_applet = {
 	.name = "ifupdown",
 	.main = multicall_main,
-	.usage = multicall_usage,
+	.groups = { &global_option_group, NULL }
 };

@@ -24,40 +24,7 @@
 #include "libifupdown/libifupdown.h"
 #include "cmd/multicall.h"
 
-struct match_options {
-	bool is_auto;
-	char *exclude_pattern;
-	char *include_pattern;
-};
-
 static bool up;
-static struct lif_execute_opts exec_opts = {
-	.executor_path = EXECUTOR_PATH,
-	.interfaces_file = INTERFACES_FILE,
-	.state_file = STATE_FILE,
-};
-
-void
-ifupdown_usage(int status)
-{
-	fprintf(stderr, "usage: %s [options] <interfaces>\n", argv0);
-
-	fprintf(stderr, "\nOptions:\n");
-	fprintf(stderr, "  -h, --help                   this help\n");
-	fprintf(stderr, "  -V, --version                show this program's version\n");
-	fprintf(stderr, "  -i, --interfaces FILE        use FILE for interface definitions\n");
-	fprintf(stderr, "  -S, --state-file FILE        use FILE for state\n");
-	fprintf(stderr, "  -a, --auto                   only match against interfaces hinted as 'auto'\n");
-	fprintf(stderr, "  -I, --include PATTERN        only match against interfaces matching PATTERN\n");
-	fprintf(stderr, "  -X, --exclude PATTERN        never match against interfaces matching PATTERN\n");
-	fprintf(stderr, "  -n, --no-act                 do not actually run any commands\n");
-	fprintf(stderr, "  -v, --verbose                show what commands are being run\n");
-	fprintf(stderr, "  -E, --executor-path PATH     use PATH for executor directory\n");
-	fprintf(stderr, "  -f, --force                  force (de)configuration\n");
-	fprintf(stderr, "  -L, --no-lock                do not use a lockfile to serialize state changes\n");
-
-	exit(status);
-}
 
 bool
 is_ifdown()
@@ -195,68 +162,6 @@ ifupdown_main(int argc, char *argv[])
 
 	struct lif_dict state = {};
 	struct lif_dict collection = {};
-	struct option long_options[] = {
-		{"help", no_argument, 0, 'h'},
-		{"version", no_argument, 0, 'V'},
-		{"interfaces", required_argument, 0, 'i'},
-		{"auto", no_argument, 0, 'a'},
-		{"include", required_argument, 0, 'I'},
-		{"exclude", required_argument, 0, 'X'},
-		{"state-file", required_argument, 0, 'S'},
-		{"no-act", no_argument, 0, 'n'},
-		{"verbose", no_argument, 0, 'v'},
-		{"executor-path", required_argument, 0, 'E'},
-		{"force", no_argument, 0, 'f'},
-		{"no-lock", no_argument, 0, 'L'},
-		{NULL, 0, 0, 0}
-	};
-	struct match_options match_opts = {};
-
-	for (;;)
-	{
-		int c = getopt_long(argc, argv, "hVi:aI:X:S:nvE:fL", long_options, NULL);
-		if (c == -1)
-			break;
-
-		switch (c) {
-		case 'h':
-			ifupdown_usage(EXIT_SUCCESS);
-			break;
-		case 'V':
-			lif_common_version();
-			break;
-		case 'i':
-			exec_opts.interfaces_file = optarg;
-			break;
-		case 'a':
-			match_opts.is_auto = true;
-			break;
-		case 'I':
-			match_opts.include_pattern = optarg;
-			break;
-		case 'X':
-			match_opts.exclude_pattern = optarg;
-			break;
-		case 'S':
-			exec_opts.state_file = optarg;
-			break;
-		case 'n':
-			exec_opts.mock = true;
-			exec_opts.verbose = true;
-			break;
-		case 'v':
-			exec_opts.verbose = true;
-			break;
-		case 'E':
-			exec_opts.executor_path = optarg;
-			break;
-		case 'f':
-			break;
-		case 'L':
-			exec_opts.no_lock = true;
-			break;
-		}
-	}
 
 	if (!lif_state_read_path(&state, exec_opts.state_file))
 	{
@@ -284,7 +189,7 @@ ifupdown_main(int argc, char *argv[])
 		return EXIT_SUCCESS;
 	}
 	else if (optind >= argc)
-		ifupdown_usage(EXIT_FAILURE);
+		generic_usage(self_applet, EXIT_FAILURE);
 
 	int idx = optind;
 	for (; idx < argc; idx++)
@@ -331,12 +236,16 @@ ifupdown_main(int argc, char *argv[])
 
 struct if_applet ifup_applet = {
 	.name = "ifup",
+	.desc = "bring interfaces up",
 	.main = ifupdown_main,
-	.usage = ifupdown_usage
+	.usage = "ifup [options] <interfaces>",
+	.groups = { &global_option_group, &match_option_group, &exec_option_group, },
 };
 
 struct if_applet ifdown_applet = {
 	.name = "ifdown",
+	.desc = "take interfaces down",
 	.main = ifupdown_main,
-	.usage = ifupdown_usage
+	.usage = "ifdown [options] <interfaces>",
+	.groups = { &global_option_group, &match_option_group, &exec_option_group, },
 };
