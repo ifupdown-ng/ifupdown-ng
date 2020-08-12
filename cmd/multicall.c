@@ -44,7 +44,7 @@ applet_cmp(const void *a, const void *b)
 	return strcmp(key, applet->name);
 }
 
-void multicall_usage(void) __attribute__((noreturn));
+void multicall_usage(int status) __attribute__((noreturn));
 
 int
 main(int argc, char *argv[])
@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 	if (app == NULL)
 	{
 		fprintf(stderr, "%s: applet not found\n", argv0);
-		multicall_usage();
+		multicall_usage(EXIT_FAILURE);
 	}
 
 	return (*app)->main(argc, argv);
@@ -69,13 +69,13 @@ int
 multicall_main(int argc, char *argv[])
 {
 	if (argc < 2)
-		multicall_usage();
+		multicall_usage(EXIT_FAILURE);
 
 	return main(argc - 1, argv + 1);
 }
 
 void
-multicall_usage(void)
+multicall_usage(int status)
 {
 	fprintf(stderr, "usage: ifupdown <applet> [options]\n");
 
@@ -90,7 +90,7 @@ multicall_usage(void)
 
 	fprintf(stderr, "\n");
 
-	exit(EXIT_FAILURE);
+	exit(status);
 }
 
 struct if_applet ifupdown_applet = {

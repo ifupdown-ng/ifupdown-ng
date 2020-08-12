@@ -38,7 +38,7 @@ static struct lif_execute_opts exec_opts = {
 };
 
 void
-ifupdown_usage(void)
+ifupdown_usage(int status)
 {
 	fprintf(stderr, "usage: %s [options] <interfaces>\n", argv0);
 
@@ -56,7 +56,7 @@ ifupdown_usage(void)
 	fprintf(stderr, "  -f, --force                  force (de)configuration\n");
 	fprintf(stderr, "  -L, --no-lock                do not use a lockfile to serialize state changes\n");
 
-	exit(1);
+	exit(status);
 }
 
 bool
@@ -220,7 +220,7 @@ ifupdown_main(int argc, char *argv[])
 
 		switch (c) {
 		case 'h':
-			ifupdown_usage();
+			ifupdown_usage(EXIT_SUCCESS);
 			break;
 		case 'V':
 			lif_common_version();
@@ -284,7 +284,7 @@ ifupdown_main(int argc, char *argv[])
 		return EXIT_SUCCESS;
 	}
 	else if (optind >= argc)
-		ifupdown_usage();
+		ifupdown_usage(EXIT_FAILURE);
 
 	int idx = optind;
 	for (; idx < argc; idx++)

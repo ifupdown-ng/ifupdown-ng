@@ -164,7 +164,7 @@ print_interface_property(struct lif_interface *iface, const char *property)
 }
 
 void
-ifquery_usage(void)
+ifquery_usage(int status)
 {
 	fprintf(stderr, "usage: ifquery [options] <interfaces>\n");
 	fprintf(stderr, "       ifquery [options] --list\n");
@@ -183,7 +183,7 @@ ifquery_usage(void)
 	fprintf(stderr, "  -D, --dot                    generate a dependency graph\n");
 	fprintf(stderr, "  -p, --property PROPERTY      print values of properties matching PROPERTY\n");
 
-	exit(1);
+	exit(status);
 }
 
 struct match_options {
@@ -289,7 +289,7 @@ ifquery_main(int argc, char *argv[])
 
 		switch (c) {
 		case 'h':
-			ifquery_usage();
+			ifquery_usage(EXIT_SUCCESS);
 			break;
 		case 'V':
 			lif_common_version();
@@ -344,7 +344,7 @@ ifquery_main(int argc, char *argv[])
 
 	/* --list --state is not allowed */
 	if (listing && listing_stat)
-		ifquery_usage();
+		ifquery_usage(EXIT_FAILURE);
 
 	if (listing)
 	{
@@ -358,7 +358,7 @@ ifquery_main(int argc, char *argv[])
 	}
 
 	if (optind >= argc)
-		ifquery_usage();
+		ifquery_usage(EXIT_FAILURE);
 
 	int idx = optind;
 	for (; idx < argc; idx++)

@@ -21,7 +21,7 @@
 struct if_applet {
 	const char *name;
 	int (*const main)(int argc, char *argv[]);
-	void (*const usage)(void);
+	void (*const usage)(int status);
 };
 
 extern char *argv0;
