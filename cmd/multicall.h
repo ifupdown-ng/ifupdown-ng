@@ -42,8 +42,8 @@ struct if_option_group {
 struct if_applet {
 	const char *name;
 	const char *desc;
+	const char *usage;
 	int (*const main)(int argc, char *argv[]);
-	void (*const usage)(int status);
 	const struct if_option_group *groups[16];
 };
 
@@ -69,5 +69,7 @@ extern struct if_option_group match_option_group;
 
 extern struct lif_execute_opts exec_opts;
 extern struct if_option_group exec_option_group;
+
+void generic_usage(const struct if_applet *applet, int result);
 
 #endif

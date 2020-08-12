@@ -21,7 +21,7 @@
 #include <getopt.h>
 #include "cmd/multicall.h"
 
-static void
+void
 generic_usage(const struct if_applet *applet, int result)
 {
 	fprintf(stderr, "%s", applet->name);
@@ -29,6 +29,9 @@ generic_usage(const struct if_applet *applet, int result)
 		fprintf(stderr, " - %s", applet->desc);
 
 	fprintf(stderr, "\n");
+
+	if (applet->usage != NULL)
+		fprintf(stderr, "\nUsage:\n  %s\n", applet->usage);
 
 	size_t iter;
 	for (iter = 0; applet->groups[iter] != NULL; iter++)

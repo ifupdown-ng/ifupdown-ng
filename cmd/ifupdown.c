@@ -320,11 +320,9 @@ ifupdown_main(int argc, char *argv[])
 struct if_applet ifup_applet = {
 	.name = "ifup",
 	.main = ifupdown_main,
-	.usage = ifupdown_usage
 };
 
 struct if_applet ifdown_applet = {
 	.name = "ifdown",
 	.main = ifupdown_main,
-	.usage = ifupdown_usage
 };

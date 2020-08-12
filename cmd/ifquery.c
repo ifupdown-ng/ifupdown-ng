@@ -159,15 +159,6 @@ print_interface_property(struct lif_interface *iface, const char *property)
 }
 
 void
-ifquery_usage(int status)
-{
-	fprintf(stderr, "usage: ifquery [options] <interfaces>\n");
-	fprintf(stderr, "       ifquery [options] --list\n");
-
-	exit(status);
-}
-
-void
 list_interfaces(struct lif_dict *collection, struct match_options *opts)
 {
 	struct lif_node *iter;
@@ -289,7 +280,7 @@ ifquery_main(int argc, char *argv[])
 
 	/* --list --state is not allowed */
 	if (listing && listing_stat)
-		ifquery_usage(EXIT_FAILURE);
+		generic_usage(self_applet, EXIT_FAILURE);
 
 	if (listing)
 	{
@@ -303,7 +294,7 @@ ifquery_main(int argc, char *argv[])
 	}
 
 	if (optind >= argc)
-		ifquery_usage(EXIT_FAILURE);
+		generic_usage(self_applet, EXIT_FAILURE);
 
 	int idx = optind;
 	for (; idx < argc; idx++)
@@ -337,6 +328,6 @@ struct if_applet ifquery_applet = {
 	.name = "ifquery",
 	.desc = "query interface configuration",
 	.main = ifquery_main,
-	.usage = ifquery_usage,
+	.usage = "ifquery [options] <interfaces>\n  ifquery [options] --list",
 	.groups = { &global_option_group, &match_option_group, &exec_option_group, &local_option_group },
 };

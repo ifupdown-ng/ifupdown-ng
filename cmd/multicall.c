@@ -102,6 +102,5 @@ multicall_usage(int status)
 struct if_applet ifupdown_applet = {
 	.name = "ifupdown",
 	.main = multicall_main,
-	.usage = multicall_usage,
 	.groups = { &global_option_group, NULL }
 };
