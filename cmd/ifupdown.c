@@ -25,11 +25,6 @@
 #include "cmd/multicall.h"
 
 static bool up;
-static struct lif_execute_opts exec_opts = {
-	.executor_path = EXECUTOR_PATH,
-	.interfaces_file = INTERFACES_FILE,
-	.state_file = STATE_FILE,
-};
 
 void
 ifupdown_usage(int status)
@@ -218,9 +213,6 @@ ifupdown_main(int argc, char *argv[])
 		case 'V':
 			lif_common_version();
 			break;
-		case 'i':
-			exec_opts.interfaces_file = optarg;
-			break;
 		case 'a':
 			match_opts.is_auto = true;
 			break;
@@ -229,6 +221,9 @@ ifupdown_main(int argc, char *argv[])
 			break;
 		case 'X':
 			match_opts.exclude_pattern = optarg;
+			break;
+		case 'i':
+			exec_opts.interfaces_file = optarg;
 			break;
 		case 'S':
 			exec_opts.state_file = optarg;

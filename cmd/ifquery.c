@@ -21,11 +21,6 @@
 #include "libifupdown/libifupdown.h"
 #include "cmd/multicall.h"
 
-static struct lif_execute_opts exec_opts = {
-	.interfaces_file = INTERFACES_FILE,
-	.executor_path = EXECUTOR_PATH
-};
-
 void
 print_interface(struct lif_interface *iface)
 {
@@ -250,18 +245,14 @@ ifquery_main(int argc, char *argv[])
 	struct lif_dict state = {};
 	struct lif_dict collection = {};
 	struct option long_options[] = {
-		{"interfaces", required_argument, 0, 'i'},
 		{"list", no_argument, 0, 'L'},
 		{"pretty-print", no_argument, 0, 'P'},
-		{"state-file", required_argument, 0, 'S'},
 		{"state", no_argument, 0, 's'},
 		{"dot", no_argument, 0, 'D'},
 		{"property", required_argument, 0, 'p'},
-		{"executor-path", required_argument, 0, 'E'},
 		{NULL, 0, 0, 0}
 	};
 	bool listing = false, listing_stat = false;
-	char *state_file = STATE_FILE;
 
 	for (;;)
 	{
@@ -270,17 +261,11 @@ ifquery_main(int argc, char *argv[])
 			break;
 
 		switch (c) {
-		case 'i':
-			exec_opts.interfaces_file = optarg;
-			break;
 		case 'L':
 			listing = true;
 			break;
 		case 'P':
 			match_opts.pretty_print = true;
-			break;
-		case 'S':
-			state_file = optarg;
 			break;
 		case 's':
 			listing_stat = true;
@@ -291,15 +276,12 @@ ifquery_main(int argc, char *argv[])
 		case 'p':
 			match_opts.property = optarg;
 			break;
-		case 'E':
-			exec_opts.executor_path = optarg;
-			break;
 		}
 	}
 
-	if (!lif_state_read_path(&state, state_file))
+	if (!lif_state_read_path(&state, exec_opts.state_file))
 	{
-		fprintf(stderr, "%s: could not parse %s\n", argv0, state_file);
+		fprintf(stderr, "%s: could not parse %s\n", argv0, exec_opts.state_file);
 		return EXIT_FAILURE;
 	}
 
@@ -360,5 +342,5 @@ struct if_applet ifquery_applet = {
 	.desc = "query interface configuration",
 	.main = ifquery_main,
 	.usage = ifquery_usage,
-	.groups = { &global_option_group, &match_option_group, NULL },
+	.groups = { &global_option_group, &match_option_group, &exec_option_group },
 };

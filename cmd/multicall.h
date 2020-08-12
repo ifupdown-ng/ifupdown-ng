@@ -67,4 +67,7 @@ extern const struct if_option *lookup_option(const struct if_applet *applet, int
 
 extern struct if_option_group match_option_group;
 
+extern struct lif_execute_opts exec_opts;
+extern struct if_option_group exec_option_group;
+
 #endif
