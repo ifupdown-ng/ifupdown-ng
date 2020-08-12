@@ -32,10 +32,17 @@ extern struct if_applet ifup_applet;
 extern struct if_applet ifdown_applet;
 #endif
 
+#ifdef CONFIG_IFCTRSTAT
+extern struct if_applet ifctrstat_applet;
+#endif
+
 struct if_applet ifupdown_applet;
 const struct if_applet *self_applet = NULL;
 
 struct if_applet *applet_table[] = {
+#ifdef CONFIG_IFCTRSTAT
+	&ifctrstat_applet,
+#endif
 #ifdef CONFIG_IFUPDOWN
 	&ifdown_applet,
 #endif

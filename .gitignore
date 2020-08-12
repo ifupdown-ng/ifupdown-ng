@@ -12,4 +12,5 @@ ifupdown
 ifquery
 ifup
 ifdown
+ifctrstat
 *.lock
