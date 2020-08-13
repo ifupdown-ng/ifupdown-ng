@@ -39,3 +39,7 @@ To run the tests, do `make check`.
 
 To build the documentation, do `make docs` and `make install_docs`.  Building
 the documentation requires scdoc (`apk add scdoc`).
+
+## Discussion
+
+Discuss ifupdown-ng on IRC: irc.as7007.net #ifupdown-ng
