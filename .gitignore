@@ -12,3 +12,4 @@ ifupdown
 ifquery
 ifup
 ifdown
+*.lock
