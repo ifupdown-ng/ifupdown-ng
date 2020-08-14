@@ -37,16 +37,44 @@ counter_is_valid(const char *candidate)
 	return false;
 }
 
+static void
+print_counter(const char *iface, const char *name, const char *value)
+{
+	fprintf(stdout, "%s: %s\n", name, value);
+}
+
+static int
+print_all_counters(const char *iface)
+{
+	int code = EXIT_SUCCESS;
+	const char *res;
+
+	for (int i = 0; i < avail_counters_count; i++) {
+		const char *ctr = avail_counters[i];
+
+		res = read_counter(iface, ctr);
+		if (!res)
+		{
+			fprintf(stderr, "%s: could not determine value of %s for interface %s: %s\n", argv0, ctr, iface, strerror(errno));
+			code = EXIT_FAILURE;
+		} else {
+			print_counter(iface, ctr, res);
+		}
+	}
+
+	return code;
+}
+
 void
-ifstats_list_counters(int short_opt, const struct if_option *opt,
-		const char *opt_arg, const struct if_applet *applet)
+ifctrstat_list_counters(int short_opt, const struct if_option *opt, const char *opt_arg, const struct if_applet *applet)
 {
 	(void) short_opt;
 	(void) opt;
 	(void) opt_arg;
 	(void) applet;
 
-	for (int i = 0; i < avail_counters_count; i++) {
+	for (int i = 0; i < avail_counters_count; i++)
+	{
 		fprintf(stdout, "%s\n", avail_counters[i]);
 	}
 
@@ -54,27 +82,31 @@ ifstats_list_counters(int short_opt, const struct if_option *opt,
 }
 
 int
-ifstats_main(int argc, char *argv[])
+ifctrstat_main(int argc, char *argv[])
 {
 	if (optind >= argc)
 		generic_usage(self_applet, EXIT_FAILURE);
 
 	int idx = optind;
-	if (argc - idx < 2)
+	if (argc - idx == 0)
 	{
-		fprintf(stderr, "%s: interface and counter(s) required\n",
+		fprintf(stderr, "%s: interface required\n",
 			argv0);
 		return EXIT_FAILURE;
 	}
 
 	const char *iface = argv[idx++];
 
+	if (argc - idx == 0)
+	{
+		return print_all_counters(iface);
+	}
+
 	for (; idx < argc; idx++)
 	{
 		if (!counter_is_valid(argv[idx]))
 		{
-			fprintf(stderr, "%s: counter %s is not valid or not "
-					"available\n", argv0, argv[idx]);
+			fprintf(stderr, "%s: counter %s is not valid or not available\n", argv0, argv[idx]);
 			return EXIT_FAILURE;
 		}
 
@@ -82,18 +114,18 @@ ifstats_main(int argc, char *argv[])
 		const char *res = read_counter(iface, argv[idx]);
 		if (!res)
 		{
-			fprintf(stderr, "%s: could not determine value of "
-					"%s for interface %s: %s\n", argv0,
-					argv[idx], iface, strerror(errno));
+			fprintf(stderr, "%s: could not determine value of %s for interface %s: %s\n", argv0, argv[idx], iface, strerror(errno));
 			return EXIT_FAILURE;
 		}
+
+		print_counter(iface, argv[idx], res);
 	}
 
 	return EXIT_SUCCESS;
 }
 
 static struct if_option local_options[] = {
-	{'L', "list", NULL, "List available counters", false, ifstats_list_counters}
+	{'L', "list", NULL, "List available counters", false, ifctrstat_list_counters}
 };
 
 static struct if_option_group local_option_group = {
@@ -105,7 +137,7 @@ static struct if_option_group local_option_group = {
 struct if_applet ifctrstat_applet = {
 	.name = "ifctrstat",
 	.desc = "Display statistics about an interface",
-	.main = ifstats_main,
+	.main = ifctrstat_main,
 	.usage = "ifctrstat [options] <interface> <counter>\n  ifctrstat [options] --list\n",
 	.groups = { &global_option_group, &local_option_group, NULL }
 };
