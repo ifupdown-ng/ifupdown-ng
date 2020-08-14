@@ -14,9 +14,10 @@
  */
 
 #include <errno.h>
+#include <getopt.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <getopt.h>
 #include "libifupdown/libifupdown.h"
 #include "cmd/multicall.h"
 
@@ -24,6 +25,8 @@ extern const char *avail_counters[];
 extern int avail_counters_count;
 
 extern const char *read_counter(const char *interface, const char *counter);
+
+static bool show_label = true;
 
 static bool
 counter_is_valid(const char *candidate)
@@ -40,7 +43,10 @@ counter_is_valid(const char *candidate)
 static void
 print_counter(const char *iface, const char *name, const char *value)
 {
-	fprintf(stdout, "%s: %s\n", name, value);
+	if (show_label)
+		fprintf(stdout, "%s: %s\n", name, value);
+	else
+		fprintf(stdout, "%s\n", value);
 }
 
 static int
@@ -79,6 +85,17 @@ ifctrstat_list_counters(int short_opt, const struct if_option *opt, const char *
 	}
 
 	exit(EXIT_SUCCESS);
+}
+
+void
+ifctrstat_set_nolabel(int short_opt, const struct if_option *opt, const char *opt_arg, const struct if_applet *applet)
+{
+	(void) short_opt;
+	(void) opt;
+	(void) opt_arg;
+	(void) applet;
+
+	show_label = false;
 }
 
 int
@@ -125,7 +142,8 @@ ifctrstat_main(int argc, char *argv[])
 }
 
 static struct if_option local_options[] = {
-	{'L', "list", NULL, "List available counters", false, ifctrstat_list_counters}
+	{'L', "list", NULL, "List available counters", false, ifctrstat_list_counters},
+	{'n', "no-label", NULL, "Print value without counter label", false, ifctrstat_set_nolabel}
 };
 
 static struct if_option_group local_option_group = {
