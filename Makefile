@@ -64,7 +64,7 @@ CPPFLAGS_${CONFIG_IFQUERY} += -DCONFIG_IFQUERY
 
 # enable ifctrstat applet (+9 KB)
 CONFIG_IFCTRSTAT ?= Y
-IFCTRSTAT_SRC = cmd/ifctrstat.c cmd/ifctrstat_linux.c
+IFCTRSTAT_SRC = cmd/ifctrstat.c cmd/ifctrstat-${LAYOUT}.c
 MULTICALL_${CONFIG_IFCTRSTAT}_OBJ += ${IFCTRSTAT_SRC:.c=.o}
 CMDS_${CONFIG_IFCTRSTAT} += ifctrstat
 CPPFLAGS_${CONFIG_IFCTRSTAT} += -DCONFIG_IFCTRSTAT

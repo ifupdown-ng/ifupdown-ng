@@ -1,6 +1,6 @@
 /*
- * cmd/ifctrstat_linux.c
- * Purpose: Implement ifstats system-specific routines for Linux
+ * cmd/ifctrstat-linux.c
+ * Purpose: Implement ifctrstat system-specific routines for Linux
  *
  * Copyright (c) 2020 Adélie Software in the Public Benefit, Inc.
  *
@@ -15,6 +15,7 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include "multicall.h"
 
 const char *avail_counters[] = {
 	"rx.octets",
@@ -27,7 +28,7 @@ const char *avail_counters[] = {
 	"tx.errors"
 };
 
-size_t avail_counters_count = sizeof(avail_counters) / sizeof(*avail_counters);
+size_t avail_counters_count = ARRAY_SIZE(avail_counters);
 
 const char *
 read_counter(const char *interface, const char *counter)
