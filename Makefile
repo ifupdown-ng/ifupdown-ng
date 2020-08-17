@@ -62,7 +62,7 @@ MULTICALL_${CONFIG_IFQUERY}_OBJ += ${IFQUERY_SRC:.c=.o}
 CMDS_${CONFIG_IFQUERY} += ifquery
 CPPFLAGS_${CONFIG_IFQUERY} += -DCONFIG_IFQUERY
 
-# enable ifctrstat applet (+16 KB)
+# enable ifctrstat applet (+1 KB)
 CONFIG_IFCTRSTAT ?= Y
 IFCTRSTAT_SRC = cmd/ifctrstat.c cmd/ifctrstat-${LAYOUT}.c
 MULTICALL_${CONFIG_IFCTRSTAT}_OBJ += ${IFCTRSTAT_SRC:.c=.o}

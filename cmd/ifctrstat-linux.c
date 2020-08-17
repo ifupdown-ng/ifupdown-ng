@@ -19,18 +19,27 @@
 #include <string.h>
 #include "multicall.h"
 
-const char *avail_counters[] = {
-	"rx.octets",
-	"rx.packets",
-	"rx.discard",
-	"rx.errors",
-	"tx.octets",
-	"tx.packets",
-	"tx.discard",
-	"tx.errors"
+struct counter_desc {
+	const char *name;
+	const void *data;
+} avail_counters[] = {
+	{"rx.discard", "rx_dropped"},
+	{"rx.errors", "rx_errors"},
+	{"rx.octets", "rx_bytes"},
+	{"rx.packets", "rx_packets"},
+	{"tx.discard", "tx_dropped"},
+	{"tx.errors", "tx_errors"},
+	{"tx.octets", "tx_bytes"},
+	{"tx.packets", "tx_packets"}
 };
 
 size_t avail_counters_count = ARRAY_SIZE(avail_counters);
+
+static int
+counter_compare(const void *key, const void *candidate)
+{
+	return strcasecmp((const char *)key, ((struct counter_desc *)candidate)->name);
+}
 
 char *
 read_counter(const char *interface, const char *counter)
@@ -40,26 +49,13 @@ read_counter(const char *interface, const char *counter)
 	char full_path[PATH_MAX];
 	char buffer[1024];
 	size_t in_count;
+	struct counter_desc *ctrdata;
 
 	errno = 0;
 
-	if (strcasecmp(counter, "rx.octets") == 0)
-	{
-		path = "rx_bytes";
-	} else if (strcasecmp(counter, "rx.packets") == 0) {
-		path = "rx_packets";
-	} else if (strcasecmp(counter, "rx.discard") == 0) {
-		path = "rx_dropped";
-	} else if (strcasecmp(counter, "rx.errors") == 0) {
-		path = "rx_errors";
-	} else if (strcasecmp(counter, "tx.octets") == 0) {
-		path = "tx_bytes";
-	} else if (strcasecmp(counter, "tx.packets") == 0) {
-		path = "tx_packets";
-	} else if (strcasecmp(counter, "tx.discard") == 0) {
-		path = "tx_dropped";
-	} else if (strcasecmp(counter, "tx.errors") == 0) {
-		path = "tx_errors";
+	ctrdata = bsearch(counter, avail_counters, avail_counters_count, sizeof(struct counter_desc), counter_compare);
+	if (ctrdata) {
+		path = (const char *)ctrdata->data;
 	} else {
 		errno = ENOSYS;
 		return NULL;

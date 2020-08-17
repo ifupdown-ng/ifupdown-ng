@@ -21,7 +21,7 @@
 #include "libifupdown/libifupdown.h"
 #include "cmd/multicall.h"
 
-extern const char *avail_counters[];
+extern struct counter_desc { const char *name; const void *data; } avail_counters[];
 extern int avail_counters_count;
 
 extern const char *read_counter(const char *interface, const char *counter);
@@ -33,7 +33,7 @@ counter_is_valid(const char *candidate)
 {
 	for (int i = 0; i < avail_counters_count; i++)
 	{
-		if (strcasecmp(avail_counters[i], candidate) == 0)
+		if (strcasecmp(avail_counters[i].name, candidate) == 0)
 			return true;
 	}
 
@@ -56,7 +56,7 @@ print_all_counters(const char *iface)
 	const char *res;
 
 	for (int i = 0; i < avail_counters_count; i++) {
-		const char *ctr = avail_counters[i];
+		const char *ctr = avail_counters[i].name;
 
 		res = read_counter(iface, ctr);
 		if (!res)
@@ -81,7 +81,7 @@ ifctrstat_list_counters(int short_opt, const struct if_option *opt, const char *
 
 	for (int i = 0; i < avail_counters_count; i++)
 	{
-		fprintf(stdout, "%s\n", avail_counters[i]);
+		fprintf(stdout, "%s\n", avail_counters[i].name);
 	}
 
 	exit(EXIT_SUCCESS);
