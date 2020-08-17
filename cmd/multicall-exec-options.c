@@ -27,47 +27,60 @@ struct lif_execute_opts exec_opts = {
 	.state_file = STATE_FILE
 };
 
-static void handle_exec(int short_opt, const struct if_option *opt, const char *opt_arg, const struct if_applet *applet)
+static void
+set_interfaces_file(const char *opt_arg)
 {
-	(void) opt;
-	(void) applet;
+	exec_opts.interfaces_file = opt_arg;
+}
 
-	switch (short_opt)
-	{
-		case 'i':
-			exec_opts.interfaces_file = opt_arg;
-			break;
-		case 'S':
-			exec_opts.state_file = opt_arg;
-			break;
-		case 'n':
-			exec_opts.mock = true;
-			exec_opts.verbose = true;
-			break;
-		case 'v':
-			exec_opts.verbose = true;
-			break;
-		case 'E':
-			exec_opts.executor_path = opt_arg;
-			break;
-		case 'f':
-			break;
-		case 'l':
-			exec_opts.no_lock = true;
-			break;
-		default:
-			break;
-	}
+static void
+set_state_file(const char *opt_arg)
+{
+	exec_opts.state_file = opt_arg;
+}
+
+static void
+set_no_act(const char *opt_arg)
+{
+	(void) opt_arg;
+	exec_opts.mock = true;
+	exec_opts.verbose = true;
+}
+
+static void
+set_verbose(const char *opt_arg)
+{
+	(void) opt_arg;
+	exec_opts.verbose = true;
+}
+
+static void
+set_executor_path(const char *opt_arg)
+{
+	exec_opts.executor_path = opt_arg;
+}
+
+static void
+set_no_lock(const char *opt_arg)
+{
+	(void) opt_arg;
+	exec_opts.no_lock = true;
+}
+
+static void
+no_op(const char *opt_arg)
+{
+	(void) opt_arg;
 }
 
 static struct if_option exec_options[] = {
-	{'f', "force", NULL, "force (de)configuration", true, handle_exec},
-	{'i', "interfaces", "interfaces FILE", "use FILE for interface definitions", true, handle_exec},
-	{'l', "no-lock", NULL, "do not use a lockfile to serialize state changes", false, handle_exec},
-	{'n', "no-act", NULL, "do not actually run any commands", false, handle_exec},
-	{'v', "verbose", NULL, "show what commands are being run", false, handle_exec},
-	{'E', "executor-path", "executor-path PATH", "use PATH for executor directory", true, handle_exec},
-	{'S', "state-file", "state-file FILE", "use FILE for state", true, handle_exec},
+	{'f', "force", NULL, "force (de)configuration", true, no_op},
+	{'i', "interfaces", "interfaces FILE", "use FILE for interface definitions", true, set_interfaces_file},
+	{'l', "no-lock", NULL, "do not use a lockfile to serialize state changes", false, set_no_lock},
+	{'n', "no-act", NULL, "do not actually run any commands", false, set_no_act},
+	{'v', "verbose", NULL, "show what commands are being run", false, set_verbose},
+	{'E', "executor-path", "executor-path PATH", "use PATH for executor directory", true, set_executor_path},
+	{'S', "state-file", "state-file FILE", "use FILE for state", true, set_state_file},
 };
 
 struct if_option_group exec_option_group = {

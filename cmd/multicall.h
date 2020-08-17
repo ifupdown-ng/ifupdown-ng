@@ -30,7 +30,7 @@ struct if_option {
 	const char *long_opt_desc;
 	const char *desc;
 	bool require_argument;
-	void (*const handle)(int short_opt, const struct if_option *opt, const char *opt_arg, const struct if_applet *applet);
+	void (*const handle)(const char *opt_arg);
 };
 
 struct if_option_group {

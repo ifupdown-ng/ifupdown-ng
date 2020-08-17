@@ -43,6 +43,7 @@ counter_is_valid(const char *candidate)
 static void
 print_counter(const char *iface, const char *name, const char *value)
 {
+	(void) iface;
 	if (show_label)
 		fprintf(stdout, "%s: %s\n", name, value);
 	else
@@ -71,13 +72,10 @@ print_all_counters(const char *iface)
 	return code;
 }
 
-void
-ifctrstat_list_counters(int short_opt, const struct if_option *opt, const char *opt_arg, const struct if_applet *applet)
+static void
+ifctrstat_list_counters(const char *opt_arg)
 {
-	(void) short_opt;
-	(void) opt;
 	(void) opt_arg;
-	(void) applet;
 
 	for (int i = 0; i < avail_counters_count; i++)
 	{
@@ -87,14 +85,10 @@ ifctrstat_list_counters(int short_opt, const struct if_option *opt, const char *
 	exit(EXIT_SUCCESS);
 }
 
-void
-ifctrstat_set_nolabel(int short_opt, const struct if_option *opt, const char *opt_arg, const struct if_applet *applet)
+static void
+ifctrstat_set_nolabel(const char *opt_arg)
 {
-	(void) short_opt;
-	(void) opt;
 	(void) opt_arg;
-	(void) applet;
-
 	show_label = false;
 }
 
