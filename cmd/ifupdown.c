@@ -239,6 +239,7 @@ struct if_applet ifup_applet = {
 	.desc = "bring interfaces up",
 	.main = ifupdown_main,
 	.usage = "ifup [options] <interfaces>",
+	.manpage = "8 ifup",
 	.groups = { &global_option_group, &match_option_group, &exec_option_group, },
 };
 
@@ -247,5 +248,6 @@ struct if_applet ifdown_applet = {
 	.desc = "take interfaces down",
 	.main = ifupdown_main,
 	.usage = "ifdown [options] <interfaces>",
+	.manpage = "8 ifdown",
 	.groups = { &global_option_group, &match_option_group, &exec_option_group, },
 };

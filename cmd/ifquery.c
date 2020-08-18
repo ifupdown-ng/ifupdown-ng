@@ -329,5 +329,6 @@ struct if_applet ifquery_applet = {
 	.desc = "query interface configuration",
 	.main = ifquery_main,
 	.usage = "ifquery [options] <interfaces>\n  ifquery [options] --list",
+	.manpage = "8 ifquery",
 	.groups = { &global_option_group, &match_option_group, &exec_option_group, &local_option_group },
 };

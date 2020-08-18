@@ -43,6 +43,7 @@ struct if_applet {
 	const char *name;
 	const char *desc;
 	const char *usage;
+	const char *manpage;
 	int (*const main)(int argc, char *argv[]);
 	const struct if_option_group *groups[16];
 };
