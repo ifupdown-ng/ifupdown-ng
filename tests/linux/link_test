@@ -3,7 +3,7 @@
 . $(atf_get_srcdir)/../test_env.sh
 EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/link"
 
-tests_init up down
+tests_init up down mtu
 
 up_body() {
 	export IFACE=lo PHASE=up MOCK=echo
@@ -14,5 +14,11 @@ up_body() {
 down_body() {
 	export IFACE=lo PHASE=down MOCK=echo
 	atf_check -s exit:0 -o match:'ip link set down dev lo' \
+		${EXECUTOR}
+}
+
+mtu_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_MTU=1492
+	atf_check -s exit:0 -o match:'ip link set up dev eth0 mtu 1492' \
 		${EXECUTOR}
 }
