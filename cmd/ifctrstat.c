@@ -43,6 +43,8 @@ counter_is_valid(const char *candidate)
 static void
 print_counter(const char *iface, const char *name, const char *value)
 {
+	(void) iface;
+
 	if (show_label)
 		fprintf(stdout, "%s: %s\n", name, value);
 	else
@@ -55,7 +57,8 @@ print_all_counters(const char *iface)
 	int code = EXIT_SUCCESS;
 	const char *res;
 
-	for (int i = 0; i < avail_counters_count; i++) {
+	for (int i = 0; i < avail_counters_count; i++)
+	{
 		const char *ctr = avail_counters[i].name;
 
 		res = read_counter(iface, ctr);
@@ -63,7 +66,9 @@ print_all_counters(const char *iface)
 		{
 			fprintf(stderr, "%s: could not determine value of %s for interface %s: %s\n", argv0, ctr, iface, strerror(errno));
 			code = EXIT_FAILURE;
-		} else {
+		}
+		else
+		{
 			print_counter(iface, ctr, res);
 		}
 	}
