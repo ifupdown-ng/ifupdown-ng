@@ -8,10 +8,10 @@ ifupdown, BusyBox ifupdown and Cumulus Networks' ifupdown2.
 ![Dependency resolution example](doc/img/dependency-resolution.png)
 
 ifupdown-ng uses a dependency resolver to determine interface bring-up order
-in a deterministic way.  To use this feature, you must declare relationships
-between interfaces with the `requires` keyword.  This keeps the implementation
-efficient.  For convenience, the `requires` keyword is exported to executors
-as the `IF_REQUIRES` environment variable.
+in a deterministic way.
+
+This is accomplished through a combination of manual hinting using the `requires`
+keyword and dependency learning using native executors.
 
 For compatibility with some legacy ifupdown executors, we also provide the
 `requires` keyword under other environment variables in some cases.
