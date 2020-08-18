@@ -127,7 +127,8 @@ install: all
 MANPAGES_8 = \
 	doc/ifquery.8 \
 	doc/ifup.8 \
-	doc/ifdown.8
+	doc/ifdown.8 \
+	doc/ifctrstat.8
 
 MANPAGES_5 = \
 	doc/interfaces.5
