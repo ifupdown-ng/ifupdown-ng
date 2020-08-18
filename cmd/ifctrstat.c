@@ -161,6 +161,7 @@ struct if_applet ifctrstat_applet = {
 	.name = "ifctrstat",
 	.desc = "Display statistics about an interface",
 	.main = ifctrstat_main,
-	.usage = "ifctrstat [options] <interface> <counter>\n  ifctrstat [options] --list\n",
+	.usage = "ifctrstat [options] <interface> <counter>\n  ifctrstat [options] --list",
+	.manpage = "8 ifctrstat",
 	.groups = { &global_option_group, &local_option_group, NULL }
 };
