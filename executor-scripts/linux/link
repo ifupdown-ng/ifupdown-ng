@@ -1,5 +1,9 @@
 #!/bin/sh
 [ -z "$VERBOSE" ] || set -x
+OPTIONS=""
 case "$PHASE" in
-up|down)	${MOCK} ip link set $PHASE dev $IFACE ;;
+up|down)
+	[ -n "$IF_MTU" ] && OPTIONS="$OPTIONS mtu $IF_MTU"
+	${MOCK} ip link set $PHASE dev $IFACE $OPTIONS
+	;;
 esac
