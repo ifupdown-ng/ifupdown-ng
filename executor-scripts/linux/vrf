@@ -1,0 +1,25 @@
+#!/bin/sh
+handle_init() {
+	${MOCK} /sbin/ip link $1 $IFACE type vrf table $IF_VRF_TABLE
+	${MOCK} /sbin/ip rule $1 iif $IFACE table $IF_VRF_TABLE
+	${MOCK} /sbin/ip rule $1 oif $IFACE table $IF_VRF_TABLE
+}
+
+handle_member() {
+	${MOCK} /sbin/ip link set $IFACE master $IF_VRF_MEMBER
+}
+
+[ -n "$VERBOSE" ] && set -x
+
+case "$PHASE" in
+pre-up)
+	[ -n "$IF_VRF_TABLE" ] && handle_init "add"
+	[ -n "$IF_VRF_MEMBER" ] && handle_member
+	;;
+post-down)
+	[ -n "$IF_VRF_TABLE" ] && handle_init "del"
+	;;
+*)
+	exit 0
+	;;
+esac
