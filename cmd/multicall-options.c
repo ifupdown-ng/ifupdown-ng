@@ -21,6 +21,8 @@
 #include <getopt.h>
 #include "cmd/multicall.h"
 
+extern const struct if_applet *self_applet;
+
 void
 generic_usage(const struct if_applet *applet, int result)
 {
@@ -69,13 +71,11 @@ generic_usage(const struct if_applet *applet, int result)
 }
 
 static void
-generic_usage_request(int short_opt, const struct if_option *option, const char *opt_arg, const struct if_applet *applet)
+generic_usage_request(const char *opt_arg)
 {
-	(void) short_opt;
-	(void) option;
 	(void) opt_arg;
 
-	generic_usage(applet, EXIT_SUCCESS);
+	generic_usage(self_applet, EXIT_SUCCESS);
 }
 
 static struct if_option global_options[] = {
@@ -157,6 +157,6 @@ process_options(const struct if_applet *applet, int argc, char *argv[])
 		if (opt == NULL)
 			break;
 
-		opt->handle(c, opt, optarg, applet);
+		opt->handle(optarg);
 	}
 }

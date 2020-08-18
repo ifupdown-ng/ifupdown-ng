@@ -23,31 +23,29 @@
 
 struct match_options match_opts = {};
 
-static void handle_match(int short_opt, const struct if_option *opt, const char *opt_arg, const struct if_applet *applet)
+static void
+set_auto(const char *opt_arg)
 {
-	(void) opt;
-	(void) applet;
+	(void) opt_arg;
+	match_opts.is_auto = true;
+}
 
-	switch (short_opt)
-	{
-	case 'a':
-		match_opts.is_auto = true;
-		break;
-	case 'I':
-		match_opts.include_pattern = opt_arg;
-		break;
-	case 'X':
-		match_opts.exclude_pattern = opt_arg;
-		break;
-	default:
-		break;
-	}
+static void
+set_include_pattern(const char *opt_arg)
+{
+	match_opts.include_pattern = opt_arg;
+}
+
+static void
+set_exclude_pattern(const char *opt_arg)
+{
+	match_opts.include_pattern = opt_arg;
 }
 
 static struct if_option match_options[] = {
-	{'a', "auto", NULL, "only match against interfaces hinted as 'auto'", false, handle_match},
-	{'I', "include", "include PATTERN", "only match against interfaces matching PATTERN", true, handle_match},
-	{'X', "exclude", "exclude PATTERN", "never match against interfaces matching PATTERN", true, handle_match},
+	{'a', "auto", NULL, "only match against interfaces hinted as 'auto'", false, set_auto},
+	{'I', "include", "include PATTERN", "only match against interfaces matching PATTERN", true, set_include_pattern},
+	{'X', "exclude", "exclude PATTERN", "never match against interfaces matching PATTERN", true, set_exclude_pattern},
 };
 
 struct if_option_group match_option_group = {

@@ -222,36 +222,45 @@ list_state(struct lif_dict *state, struct match_options *opts)
 static bool listing = false, listing_stat = false;
 
 static void
-handle_local(int short_opt, const struct if_option *opt, const char *opt_arg, const struct if_applet *applet)
+set_listing(const char *opt_arg)
 {
-	(void) opt;
-	(void) applet;
+	(void) opt_arg;
+	listing = true;
+}
 
-	switch (short_opt) {
-	case 'L':
-		listing = true;
-		break;
-	case 'P':
-		match_opts.pretty_print = true;
-		break;
-	case 's':
-		listing_stat = true;
-		break;
-	case 'D':
-		match_opts.dot = true;
-		break;
-	case 'p':
-		match_opts.property = opt_arg;
-		break;
-	}
+static void
+set_show_state(const char *opt_arg)
+{
+	(void) opt_arg;
+	listing_stat = true;
+}
+
+static void
+set_pretty_print(const char *opt_arg)
+{
+	(void) opt_arg;
+	match_opts.pretty_print = true;
+}
+
+static void
+set_output_dot(const char *opt_arg)
+{
+	(void) opt_arg;
+	match_opts.dot = true;
+}
+
+static void
+set_property(const char *opt_arg)
+{
+	match_opts.property = opt_arg;
 }
 
 static struct if_option local_options[] = {
-	{'s', "state", NULL, "show configured state", false, handle_local},
-	{'p', "property", "property PROPERTY", "print values of properties matching PROPERTY", true, handle_local},
-	{'D', "dot", NULL, "generate a dependency graph", false, handle_local},
-	{'L', "list", NULL, "list matching interfaces", false, handle_local},
-	{'P', "pretty-print", NULL, "pretty print the interfaces instead of just listing", false, handle_local},
+	{'s', "state", NULL, "show configured state", false, set_show_state},
+	{'p', "property", "property PROPERTY", "print values of properties matching PROPERTY", true, set_property},
+	{'D', "dot", NULL, "generate a dependency graph", false, set_output_dot},
+	{'L', "list", NULL, "list matching interfaces", false, set_listing},
+	{'P', "pretty-print", NULL, "pretty print the interfaces instead of just listing", false, set_pretty_print},
 };
 
 static struct if_option_group local_option_group = {
