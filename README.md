@@ -3,6 +3,8 @@
 ifupdown-ng is a network device manager that is largely compatible with Debian
 ifupdown, BusyBox ifupdown and Cumulus Networks' ifupdown2.
 
+For more information read the [admin guide](doc/ADMIN-GUIDE.md).
+
 ## Dependency Resolution
 
 ![Dependency resolution example](doc/img/dependency-resolution.png)
