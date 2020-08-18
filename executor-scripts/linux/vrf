@@ -23,6 +23,9 @@ post-down)
 	[ -n "$IF_VRF_TABLE" ] && handle_init "del"
 	exit 0
 	;;
+depend)
+	echo "$IF_VRF_MEMBER"
+	;;
 *)
 	exit 0
 	;;
