@@ -147,8 +147,8 @@ ifctrstat_main(int argc, char *argv[])
 }
 
 static struct if_option local_options[] = {
-	{'L', "list", NULL, "List available counters", false, ifctrstat_list_counters},
-	{'n', "no-label", NULL, "Print value without counter label", false, ifctrstat_set_nolabel}
+	{'L', "list", NULL, "list available counters", false, ifctrstat_list_counters},
+	{'n', "no-label", NULL, "print value without counter label", false, ifctrstat_set_nolabel}
 };
 
 static struct if_option_group local_option_group = {
