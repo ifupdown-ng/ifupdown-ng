@@ -62,6 +62,9 @@ generic_usage(const struct if_applet *applet, int result)
 		}
 	}
 
+	if (applet->manpage != NULL)
+		fprintf(stderr, "\nFor more information: man %s\n", applet->manpage);
+
 	exit(result);
 }
 
