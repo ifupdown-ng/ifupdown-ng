@@ -19,7 +19,9 @@ tests_init \
 	inheritance_0 \
 	inheritance_1 \
 	implicit_vlan \
-	vrf_dependency
+	vrf_dependency \
+	vrf_ifupdown2_rewrite \
+	vrf_ifupdown2_dependency
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -117,4 +119,14 @@ implicit_vlan_body() {
 vrf_dependency_body() {
 	atf_check -s exit:0 -o match:"requires vrf-red" \
 		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vrf.interfaces eth0
+}
+
+vrf_ifupdown2_rewrite_body() {
+	atf_check -s exit:0 -o match:"vrf-member vrf-red" \
+		ifquery -E $EXECUTORS -i $FIXTURES/vrf-ifupdown2.interfaces eth0
+}
+
+vrf_ifupdown2_dependency_body() {
+	atf_check -s exit:0 -o match:"requires vrf-red" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vrf-ifupdown2.interfaces eth0
 }
