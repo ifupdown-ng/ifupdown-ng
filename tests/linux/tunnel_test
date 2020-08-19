@@ -1,0 +1,30 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/tunnel"
+
+tests_init \
+	tunnel_bringup \
+	tunnel_teardown
+
+tunnel_bringup_body() {
+	export MOCK=echo IFACE=tun0 PHASE=pre-up IF_TUNNEL_TYPE=gre \
+		IF_TUNNEL_LOCAL=1.2.3.4 IF_TUNNEL_REMOTE=5.6.7.8 \
+		IF_TUNNEL_TTL=255
+	atf_check -s exit:0 \
+		-o match:"ip tunnel add tun0" \
+		-o match:"type 'gre'" \
+		-o match:"ttl '255'" \
+		-o match:"local '1.2.3.4'" \
+		-o match:"remote '5.6.7.8'" \
+		${EXECUTOR}
+}
+
+tunnel_teardown_body() {
+	export MOCK=echo IFACE=tun0 PHASE=post-down IF_TUNNEL_TYPE=gre \
+		IF_TUNNEL_LOCAL=1.2.3.4 IF_TUNNEL_REMOTE=5.6.7.8 \
+		IF_TUNNEL_TTL=255
+	atf_check -s exit:0 \
+		-o match:"ip tunnel del tun0" \
+		${EXECUTOR}
+}
