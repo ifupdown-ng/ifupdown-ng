@@ -1,0 +1,7 @@
+#!/bin/sh
+set -e
+[ -z "$IF_PPP_PROVIDER" ] && exit 0
+case "$PHASE" in
+pre-up)		${MOCK} pon $IF_PPP_PROVIDER ;;
+post-down)	${MOCK} poff $IF_PPP_PROVIDER ;;
+esac
