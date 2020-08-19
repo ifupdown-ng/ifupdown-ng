@@ -1,0 +1,4 @@
+auto ppp0
+iface ppp0
+    requires eth0
+    ppp-provider someisp
