@@ -19,10 +19,10 @@ PARAMS=$(set | sed -E '
 
 case "$PHASE" in
 pre-up)
-	eval ip tunnel add $IFACE $PARAMS
+	${MOCK} eval ip tunnel add $IFACE $PARAMS
 	;;
 post-down)
-	ip tunnel del $IFACE
+	${MOCK} ip tunnel del $IFACE
 	;;
 depend)
 	echo "$IF_TUNNEL_DEV"
