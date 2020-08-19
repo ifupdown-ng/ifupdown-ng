@@ -30,6 +30,7 @@ static const struct remap_token tokens[] = {
 	{"local", "tunnel-local"},			/* legacy ifupdown */
 	{"mode", "tunnel-mode"},			/* legacy ifupdown */
 	{"provider", "ppp-provider"},			/* legacy ifupdown, ifupdown2 */
+	{"ttl", "tunnel-ttl"},				/* legacy ifupdown */
 	{"tunnel-endpoint", "tunnel-remote"},		/* ifupdown2 */
 	{"tunnel-physdev", "tunnel-dev"},		/* ifupdown2 */
 	{"vrf", "vrf-member"},				/* ifupdown2 */
