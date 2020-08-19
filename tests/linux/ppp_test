@@ -1,0 +1,22 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/ppp"
+
+tests_init \
+	bringup \
+	teardown \
+
+bringup_body() {
+	export MOCK=echo IFACE=ppp0 PHASE=pre-up IF_PPP_PROVIDER=someisp
+	atf_check -s exit:0 \
+		-o match:'pon someisp' \
+		${EXECUTOR}
+}
+
+teardown_body() {
+	export MOCK=echo IFACE=ppp0 PHASE=post-down IF_PPP_PROVIDER=someisp
+	atf_check -s exit:0 \
+		-o match:'poff someisp' \
+		${EXECUTOR}
+}
