@@ -20,8 +20,6 @@
 
 #include "libifupdown/libifupdown.h"
 
-#define ARRAY_SIZE(x)   (sizeof(x) / sizeof(*x))
-
 struct if_applet;
 
 struct if_option {

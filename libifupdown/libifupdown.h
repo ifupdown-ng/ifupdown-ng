@@ -28,4 +28,8 @@
 #include "libifupdown/lifecycle.h"
 #include "libifupdown/tokenize.h"
 
+#ifndef ARRAY_SIZE
+# define ARRAY_SIZE(x)   (sizeof(x) / sizeof(*x))
+#endif
+
 #endif
