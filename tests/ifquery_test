@@ -18,7 +18,8 @@ tests_init \
 	learned_executor \
 	inheritance_0 \
 	inheritance_1 \
-	implicit_vlan
+	implicit_vlan \
+	vrf_dependency
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -111,4 +112,9 @@ implicit_vlan_body() {
 	atf_check -s exit:0 -o match:"requires eth0" \
 		-o match:"use vlan" \
 		ifquery -E $EXECUTORS -i $FIXTURES/vlan.interfaces eth0.8
+}
+
+vrf_dependency_body() {
+	atf_check -s exit:0 -o match:"requires vrf-red" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vrf.interfaces eth0
 }
