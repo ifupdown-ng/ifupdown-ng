@@ -1,0 +1,7 @@
+iface vrf-red
+    vrf-table 1
+
+auto eth0
+iface eth0
+    use dhcp
+    vrf vrf-red
