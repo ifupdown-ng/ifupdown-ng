@@ -135,7 +135,7 @@ iface eth0
     gateway 2001:db8:1000:2::1
 ```
 
-### Relationships
+## Relationships
 
 As previously mentioned, ifupdown-ng features a dependency
 resolver that allows for determining the interface configuration
@@ -146,7 +146,7 @@ order.
 In order to make use of this, dependencies can be managed in one
 of two ways:
 
-#### Explicit dependency management using `requires`
+### Explicit dependency management using `requires`
 
 The `requires` keyword can be used to manage explicit
 dependencies:
@@ -169,7 +169,7 @@ iface gre0
     gateway 203.0.113.193
 ```
 
-#### Implicit dependency management using executors
+### Implicit dependency management using executors
 
 Executors can declare implicit dependencies which work the same
 way as explicit dependencies, but are learned at run-time, for
@@ -194,6 +194,23 @@ iface bond0
     requires eth0 eth1
     [...]
 ```
+
+## Executors
+
+The ifupdown-ng system is expanded with additional features via
+executors.  Executors are selected on a per-interface basis using
+`use` statements, for example:
+
+```
+auto eth0
+iface eth0
+    use dhcp
+```
+
+Executors are run in the order specified by the `use` statements.
+Some executors are automatically added based on other statements
+in an interface definition.  To see the full list of executors
+used for an interface, use the ifquery(8) command.
 
 ## Questions
 
