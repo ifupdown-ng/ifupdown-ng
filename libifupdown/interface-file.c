@@ -16,9 +16,38 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#include "libifupdown/interface-file.h"
-#include "libifupdown/fgetline.h"
-#include "libifupdown/tokenize.h"
+#include "libifupdown/libifupdown.h"
+
+/* internally rewrite problematic ifupdown2 tokens to ifupdown-ng equivalents */
+struct remap_token {
+	const char *token;
+	const char *alternative;
+};
+
+static const struct remap_token tokens[] = {
+	{"vrf", "vrf-member"}
+};
+
+static int
+token_cmp(const void *a, const void *b)
+{
+	const char *key = a;
+	const struct remap_token *token = b;
+
+	return strcmp(key, token->token);
+}
+
+static char *
+maybe_remap_token(const char *token)
+{
+	const struct remap_token *tok = NULL;
+	static char tokbuf[4096];
+
+	tok = bsearch(token, tokens, ARRAY_SIZE(tokens), sizeof(*tokens), token_cmp);
+	strlcpy(tokbuf, tok != NULL ? tok->alternative : token, sizeof tokbuf);
+
+	return tokbuf;
+}
 
 bool
 lif_interface_file_parse(struct lif_dict *collection, const char *filename)
@@ -167,6 +196,8 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 		}
 		else if (cur_iface != NULL)
 		{
+			token = maybe_remap_token(token);
+
 			lif_dict_add(&cur_iface->vars, token, strdup(bufp));
 
 			/* Check if token looks like <word1>-<word*> and assume <word1> is an addon */
