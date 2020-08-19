@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Based on alpine's tunnel configuration script.
+# Copyright (c) 2017 Kaarle Ritvanen
+
+PARAMS=$(set | sed -E '
+	s/^IF_TUNNEL_([A-Z0-9_]+)=(.+)/\1\n\2/
+	ta
+	d
+	:a
+	h
+	y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/
+	P
+	g
+	s/.*\n//
+	')
+
+[ "$PARAMS" ] || exit 0
+
+case "$PHASE" in
+pre-up)
+	${MOCK} eval ip tunnel add $IFACE $PARAMS
+	;;
+post-down)
+	${MOCK} ip tunnel del $IFACE
+	;;
+depend)
+	echo "$IF_TUNNEL_DEV"
+	;;
+esac

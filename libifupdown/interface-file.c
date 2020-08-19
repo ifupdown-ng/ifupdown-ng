@@ -24,9 +24,16 @@ struct remap_token {
 	const char *alternative;
 };
 
+/* this list must be in alphabetical order for bsearch */
 static const struct remap_token tokens[] = {
+	{"endpoint", "tunnel-remote"},			/* legacy ifupdown */
+	{"local", "tunnel-local"},			/* legacy ifupdown */
+	{"mode", "tunnel-mode"},			/* legacy ifupdown */
 	{"provider", "ppp-provider"},			/* legacy ifupdown, ifupdown2 */
-	{"vrf", "vrf-member"},
+	{"ttl", "tunnel-ttl"},				/* legacy ifupdown */
+	{"tunnel-endpoint", "tunnel-remote"},		/* ifupdown2 */
+	{"tunnel-physdev", "tunnel-dev"},		/* ifupdown2 */
+	{"vrf", "vrf-member"},				/* ifupdown2 */
 };
 
 static int

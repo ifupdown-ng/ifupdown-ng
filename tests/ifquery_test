@@ -23,7 +23,12 @@ tests_init \
 	vrf_ifupdown2_rewrite \
 	vrf_ifupdown2_dependency \
 	ppp_dependency \
-	ppp_legacy_rewrite
+	ppp_legacy_rewrite \
+	tunnel_dependency \
+	tunnel_legacy_dependency \
+	tunnel_legacy_rewrite \
+	tunnel_ifupdown2_dependency \
+	tunnel_ifupdown2_rewrite
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -141,4 +146,37 @@ ppp_dependency_body() {
 ppp_legacy_rewrite_body() {
 	atf_check -s exit:0 -o match:"ppp-provider someisp" \
 		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/ppp-legacy.interfaces ppp0
+}
+
+tunnel_dependency_body() {
+	atf_check -s exit:0 -o match:"requires eth0" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel.interfaces tun0
+}
+
+tunnel_legacy_dependency_body() {
+	atf_check -s exit:0 -o match:"requires eth0" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-legacy.interfaces tun0
+}
+
+tunnel_ifupdown2_dependency_body() {
+	atf_check -s exit:0 -o match:"requires eth0" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-ifupdown2.interfaces tun0
+}
+
+tunnel_legacy_rewrite_body() {
+	atf_check -s exit:0 \
+		-o match:"tunnel-local 203.0.113.2" \
+		-o match:"tunnel-remote 203.0.113.1" \
+		-o match:"tunnel-mode gre" \
+		-o match:"tunnel-ttl 255" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-legacy.interfaces tun0
+}
+
+tunnel_ifupdown2_rewrite_body() {
+	atf_check -s exit:0 \
+		-o match:"tunnel-local 203.0.113.2" \
+		-o match:"tunnel-remote 203.0.113.1" \
+		-o match:"tunnel-mode gre" \
+		-o match:"tunnel-ttl 255" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-ifupdown2.interfaces tun0
 }

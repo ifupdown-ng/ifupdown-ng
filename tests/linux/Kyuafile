@@ -8,3 +8,4 @@ atf_test_program{name='dhcp_test'}
 atf_test_program{name='static_test'}
 atf_test_program{name='vrf_test'}
 atf_test_program{name='ppp_test'}
+atf_test_program{name='tunnel_test'}
