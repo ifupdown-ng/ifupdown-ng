@@ -21,7 +21,9 @@ tests_init \
 	implicit_vlan \
 	vrf_dependency \
 	vrf_ifupdown2_rewrite \
-	vrf_ifupdown2_dependency
+	vrf_ifupdown2_dependency \
+	ppp_dependency \
+	ppp_legacy_rewrite
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -129,4 +131,14 @@ vrf_ifupdown2_rewrite_body() {
 vrf_ifupdown2_dependency_body() {
 	atf_check -s exit:0 -o match:"requires vrf-red" \
 		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vrf-ifupdown2.interfaces eth0
+}
+
+ppp_dependency_body() {
+	atf_check -s exit:0 -o match:"requires eth0" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/ppp.interfaces ppp0
+}
+
+ppp_legacy_rewrite_body() {
+	atf_check -s exit:0 -o match:"ppp-provider someisp" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/ppp-legacy.interfaces ppp0
 }

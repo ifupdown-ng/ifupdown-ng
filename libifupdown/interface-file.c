@@ -25,7 +25,8 @@ struct remap_token {
 };
 
 static const struct remap_token tokens[] = {
-	{"vrf", "vrf-member"}
+	{"provider", "ppp-provider"},			/* legacy ifupdown, ifupdown2 */
+	{"vrf", "vrf-member"},
 };
 
 static int
@@ -118,6 +119,10 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 				{
 					cur_iface->is_dhcp = true;
 					lif_dict_add(&cur_iface->vars, "use", strdup("dhcp"));
+				}
+				else if (!strcmp(token, "ppp"))
+				{
+					lif_dict_add(&cur_iface->vars, "use", strdup("ppp"));
 				}
 				else if (!strcmp(token, "inherits"))
 				{
