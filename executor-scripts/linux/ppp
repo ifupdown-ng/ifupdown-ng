@@ -4,4 +4,5 @@ set -e
 case "$PHASE" in
 pre-up)		${MOCK} pon $IF_PPP_PROVIDER ;;
 post-down)	${MOCK} poff $IF_PPP_PROVIDER ;;
+depend)		echo "$IF_PPP_PHYSDEV" ;;
 esac
