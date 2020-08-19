@@ -168,6 +168,7 @@ tunnel_legacy_rewrite_body() {
 		-o match:"tunnel-local 203.0.113.2" \
 		-o match:"tunnel-remote 203.0.113.1" \
 		-o match:"tunnel-mode gre" \
+		-o match:"tunnel-ttl 255" \
 		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-legacy.interfaces tun0
 }
 
@@ -176,5 +177,6 @@ tunnel_ifupdown2_rewrite_body() {
 		-o match:"tunnel-local 203.0.113.2" \
 		-o match:"tunnel-remote 203.0.113.1" \
 		-o match:"tunnel-mode gre" \
+		-o match:"tunnel-ttl 255" \
 		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-ifupdown2.interfaces tun0
 }
