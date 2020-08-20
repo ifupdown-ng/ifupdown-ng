@@ -156,12 +156,6 @@ handle_generic(struct lif_dict *collection, const char *filename, size_t lineno,
 		char *addon = strndup(token, word_end - token);
 		lif_interface_use_executor(cur_iface, addon);
 		free(addon);
-
-		/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
-		if (!strcmp(addon, "bridge"))
-			cur_iface->is_bridge = true;
-		else if (!strcmp(addon, "bond"))
-			cur_iface->is_bond = true;
 	}
 
 	return true;
@@ -269,12 +263,6 @@ handle_use(struct lif_dict *collection, const char *filename, size_t lineno, cha
 		report_error(filename, lineno, "%s '%s' without interface", token, executor);
 		return false;
 	}
-
-	/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
-	if (!strcmp(executor, "bridge"))
-		cur_iface->is_bridge = true;
-	else if (!strcmp(executor, "bond"))
-		cur_iface->is_bond = true;
 
 	lif_interface_use_executor(cur_iface, executor);
 	return true;

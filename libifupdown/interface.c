@@ -137,6 +137,12 @@ lif_interface_use_executor(struct lif_interface *interface, const char *executor
 
 	if (lif_dict_add_once(&interface->vars, "use", exec_addon, (lif_dict_cmp_t) strcmp) == NULL)
 		free(exec_addon);
+
+	/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
+	if (!strcmp(executor, "bridge"))
+		interface->is_bridge = true;
+	else if (!strcmp(executor, "bond"))
+		interface->is_bond = true;
 }
 
 void
