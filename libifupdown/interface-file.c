@@ -117,8 +117,6 @@ keyword_cmp(const void *a, const void *b)
 bool
 lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 {
-	lif_interface_collection_init(collection);
-
 	FILE *f = fopen(filename, "r");
 	if (f == NULL)
 		return false;
