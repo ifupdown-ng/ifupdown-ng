@@ -192,6 +192,19 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 
 			lif_interface_address_add(cur_iface, addr);
 		}
+		else if (!strcmp(token, "gateway"))
+		{
+			char *addr = lif_next_token(&bufp);
+
+			if (cur_iface == NULL)
+			{
+				fprintf(stderr, "%s: gateway '%s' without interface\n", filename, addr);
+				goto parse_error;
+			}
+
+			lif_interface_use_executor(cur_iface, "static");
+			lif_dict_add(&cur_iface->vars, token, strdup(addr));
+		}
 		else if (cur_iface != NULL)
 		{
 			token = maybe_remap_token(token);
