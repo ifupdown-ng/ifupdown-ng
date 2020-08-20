@@ -125,11 +125,11 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 				if (!strcmp(token, "dhcp"))
 				{
 					cur_iface->is_dhcp = true;
-					lif_dict_add(&cur_iface->vars, "use", strdup("dhcp"));
+					lif_interface_use_executor(cur_iface, "dhcp");
 				}
 				else if (!strcmp(token, "ppp"))
 				{
-					lif_dict_add(&cur_iface->vars, "use", strdup("ppp"));
+					lif_interface_use_executor(cur_iface, "ppp");
 				}
 				else if (!strcmp(token, "inherits"))
 				{
@@ -176,7 +176,7 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 			else if (!strcmp(executor, "link"))
 				continue;
 
-			lif_dict_add(&cur_iface->vars, token, strdup(executor));
+			lif_interface_use_executor(cur_iface, executor);
 		}
 		else if (!strcmp(token, "inherit"))
 		{
@@ -214,12 +214,12 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 
 			/* Check if token looks like <word1>-<word*> and assume <word1> is an addon */
 			char *word_end = strchr(token, '-');
-			if (word_end)
+			if (word_end != NULL)
 			{
 				/* Copy word1 to not mangle *token */
 				char *addon = strndup(token, word_end - token);
-				if (lif_dict_add_once(&cur_iface->vars, "use", addon, (lif_dict_cmp_t) strcmp) == NULL)
-					free(addon);
+				lif_interface_use_executor(cur_iface, addon);
+				free(addon);
 
 				/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
 				if (!strcmp(addon, "dhcp"))
