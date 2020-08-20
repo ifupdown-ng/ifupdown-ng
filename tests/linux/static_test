@@ -4,7 +4,7 @@
 EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/static"
 FIXTURES="$(atf_get_srcdir)/../fixtures"
 
-tests_init up down vrf_up vrf_down
+tests_init up down vrf_up vrf_down metric_up metric_down
 
 up_body() {
 	export IFACE=eth0 PHASE=up MOCK=echo INTERFACES_FILE="$FIXTURES/static-eth0.interfaces"
@@ -39,5 +39,21 @@ vrf_down_body() {
 		IF_VRF_TABLE=1
 	atf_check -s exit:0 \
 		-o match:'route del default via 203.0.113.2 table 1' \
+		${EXECUTOR}
+}
+
+metric_up_body() {
+	export IFACE=vrf-red PHASE=up MOCK=echo INTERFACES_FILE="$FIXTURES/vrf.interfaces" \
+		IF_VRF_TABLE=1 IF_METRIC=20
+	atf_check -s exit:0 \
+		-o match:'route add default via 203.0.113.2 table 1 metric 20' \
+		${EXECUTOR}
+}
+
+metric_down_body() {
+	export IFACE=vrf-red PHASE=down MOCK=echo INTERFACES_FILE="$FIXTURES/vrf.interfaces" \
+		IF_VRF_TABLE=1 IF_METRIC=20
+	atf_check -s exit:0 \
+		-o match:'route del default via 203.0.113.2 table 1 metric 20' \
 		${EXECUTOR}
 }
