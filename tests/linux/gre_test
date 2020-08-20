@@ -1,0 +1,45 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/gre"
+
+tests_init \
+	basic_bringup \
+	basic_teardown \
+	flags_bringup
+
+basic_bringup_body() {
+	export MOCK=echo IFACE=tun0 PHASE=pre-up \
+		IF_GRE_LOCAL=1.2.3.4 IF_GRE_REMOTE=5.6.7.8 \
+		IF_GRE_TTL=255
+	atf_check -s exit:0 \
+		-o match:"ip -4 link add tun0" \
+		-o match:"mode gre" \
+		-o match:"ttl '255'" \
+		-o match:"local '1.2.3.4'" \
+		-o match:"remote '5.6.7.8'" \
+		${EXECUTOR}
+}
+
+basic_teardown_body() {
+	export MOCK=echo IFACE=tun0 PHASE=post-down \
+		IF_GRE_LOCAL=1.2.3.4 IF_GRE_REMOTE=5.6.7.8 \
+		IF_GRE_TTL=255
+	atf_check -s exit:0 \
+		-o match:"ip -4 link del tun0" \
+		${EXECUTOR}
+}
+
+flags_bringup_body() {
+	export MOCK=echo IFACE=tun0 PHASE=pre-up \
+		IF_GRE_LOCAL=1.2.3.4 IF_GRE_REMOTE=5.6.7.8 \
+		IF_GRE_TTL=255 IF_GRE_FLAGS="nopmtudisc ignore-df"
+	atf_check -s exit:0 \
+		-o match:"ip -4 link add tun0" \
+		-o match:"mode gre" \
+		-o match:"ttl '255'" \
+		-o match:"local '1.2.3.4'" \
+		-o match:"remote '5.6.7.8'" \
+		-o match:"nopmtudisc ignore-df" \
+		${EXECUTOR}
+}
