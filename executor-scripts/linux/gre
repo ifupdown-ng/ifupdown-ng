@@ -4,7 +4,7 @@
 
 [ -z "$IF_GRE_LOCAL" ] && exit 1
 [ -z "$IF_GRE_REMOTE" ] && exit 1
-[ -z "$IF_GRE_MODE" ] && exit 1
+[ -z "$IF_GRE_MODE" ] && IF_GRE_MODE="gre"
 
 COMMAND="link"
 FAMILY="-4"
@@ -24,6 +24,6 @@ post-down)
 	${MOCK} ip $FAMILY $COMMAND del $IFACE
 	;;
 depend)
-	echo "$IF_TUNNEL_DEV"
+	echo "$IF_GRE_DEV"
 	;;
 esac
