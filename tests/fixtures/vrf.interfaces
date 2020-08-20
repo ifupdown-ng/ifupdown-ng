@@ -1,5 +1,6 @@
 iface vrf-red
     vrf-table 1
+    gateway 203.0.113.2
 
 auto eth0
 iface eth0
