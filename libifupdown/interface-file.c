@@ -95,6 +95,28 @@ handle_auto(struct lif_dict *collection, const char *filename, size_t lineno, ch
 	return true;
 }
 
+static bool
+handle_source(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+{
+	(void) token;
+
+	char *source_filename = lif_next_token(&bufp);
+	if (!*source_filename)
+	{
+		report_error(filename, lineno, "missing filename to source");
+		return false;
+	}
+
+	if (!strcmp(filename, source_filename))
+	{
+		report_error(filename, lineno, "attempt to source %s would create infinite loop",
+			     source_filename);
+		return false;
+	}
+
+	return lif_interface_file_parse(collection, source_filename);
+}
+
 /* map keywords to parser functions */
 struct parser_keyword {
 	const char *token;
@@ -103,6 +125,7 @@ struct parser_keyword {
 
 static const struct parser_keyword keywords[] = {
 	{"auto", handle_auto},
+	{"source", handle_source},
 };
 
 static int
@@ -140,21 +163,6 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 		{
 			if (!parserkw->handle(collection, filename, lineno, token, bufp))
 				goto parse_error;
-		}
-		else if (!strcmp(token, "source"))
-		{
-			char *source_filename = lif_next_token(&bufp);
-			if (!*source_filename)
-				goto parse_error;
-
-			if (!strcmp(filename, source_filename))
-			{
-				report_error(filename, lineno, "attempt to source %s would create infinite loop",
-					     source_filename);
-				goto parse_error;
-			}
-
-			lif_interface_file_parse(collection, source_filename);
 		}
 		else if (!strcmp(token, "iface"))
 		{
