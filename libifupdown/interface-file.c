@@ -58,23 +58,8 @@ maybe_remap_token(const char *token)
 	return tokbuf;
 }
 
-/* map keywords to parser functions */
-struct parser_keyword {
-	const char *token;
-	bool (*handle)(struct lif_dict *collection, struct lif_interface *cur_iface, const char *filename, size_t lineno, char *token, char *bufp);
-};
-
-static const struct parser_keyword keywords[] = {
-};
-
-static int
-keyword_cmp(const void *a, const void *b)
-{
-	const char *key = a;
-	const struct parser_keyword *token = b;
-
-	return strcmp(key, token->token);
-}
+/* XXX: remove this global variable somehow */
+static struct lif_interface *cur_iface = NULL;
 
 static void
 report_error(const char *filename, size_t lineno, const char *errfmt, ...)
@@ -89,11 +74,50 @@ report_error(const char *filename, size_t lineno, const char *errfmt, ...)
 	fprintf(stderr, "%s:%zu: %s\n", filename, lineno, errbuf);
 }
 
+static bool
+handle_auto(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+{
+	(void) filename;
+	(void) lineno;
+	(void) token;
+
+	char *ifname = lif_next_token(&bufp);
+	if (!*ifname && cur_iface == NULL)
+		return false;
+	else
+	{
+		cur_iface = lif_interface_collection_find(collection, ifname);
+		if (cur_iface == NULL)
+			return false;
+	}
+
+	cur_iface->is_auto = true;
+	return true;
+}
+
+/* map keywords to parser functions */
+struct parser_keyword {
+	const char *token;
+	bool (*handle)(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp);
+};
+
+static const struct parser_keyword keywords[] = {
+	{"auto", handle_auto},
+};
+
+static int
+keyword_cmp(const void *a, const void *b)
+{
+	const char *key = a;
+	const struct parser_keyword *token = b;
+
+	return strcmp(key, token->token);
+}
+
 bool
 lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 {
 	lif_interface_collection_init(collection);
-	struct lif_interface *cur_iface = NULL;
 
 	FILE *f = fopen(filename, "r");
 	if (f == NULL)
@@ -116,7 +140,7 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 
 		if (parserkw != NULL)
 		{
-			if (!parserkw->handle(collection, cur_iface, filename, lineno, token, bufp))
+			if (!parserkw->handle(collection, filename, lineno, token, bufp))
 				goto parse_error;
 		}
 		else if (!strcmp(token, "source"))
@@ -133,20 +157,6 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 			}
 
 			lif_interface_file_parse(collection, source_filename);
-		}
-		else if (!strcmp(token, "auto"))
-		{
-			char *ifname = lif_next_token(&bufp);
-			if (!*ifname && cur_iface == NULL)
-				goto parse_error;
-			else
-			{
-				cur_iface = lif_interface_collection_find(collection, ifname);
-				if (cur_iface == NULL)
-					goto parse_error;
-			}
-
-			cur_iface->is_auto = true;
 		}
 		else if (!strcmp(token, "iface"))
 		{
