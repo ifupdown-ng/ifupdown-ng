@@ -75,6 +75,25 @@ report_error(const char *filename, size_t lineno, const char *errfmt, ...)
 }
 
 static bool
+handle_address(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+{
+	(void) collection;
+	(void) token;
+
+	char *addr = lif_next_token(&bufp);
+
+	if (cur_iface == NULL)
+	{
+		report_error(filename, lineno, "%s '%s' without interface", token, addr);
+		return false;
+	}
+
+	lif_interface_address_add(cur_iface, addr);
+
+	return true;
+}
+
+static bool
 handle_auto(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
 {
 	(void) filename;
@@ -92,6 +111,127 @@ handle_auto(struct lif_dict *collection, const char *filename, size_t lineno, ch
 	}
 
 	cur_iface->is_auto = true;
+	return true;
+}
+
+static bool
+handle_gateway(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+{
+	(void) collection;
+	(void) token;
+
+	char *addr = lif_next_token(&bufp);
+
+	if (cur_iface == NULL)
+	{
+		report_error(filename, lineno, "%s '%s' without interface", token, addr);
+		return false;
+	}
+
+	lif_interface_use_executor(cur_iface, "static");
+	lif_dict_add(&cur_iface->vars, token, strdup(addr));
+
+	return true;
+}
+
+static bool
+handle_generic(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+{
+	(void) collection;
+	(void) filename;
+	(void) lineno;
+
+	if (cur_iface == NULL)
+		return true;
+
+	token = maybe_remap_token(token);
+
+	lif_dict_add(&cur_iface->vars, token, strdup(bufp));
+
+	/* Check if token looks like <word1>-<word*> and assume <word1> is an addon */
+	char *word_end = strchr(token, '-');
+	if (word_end != NULL)
+	{
+		/* Copy word1 to not mangle *token */
+		char *addon = strndup(token, word_end - token);
+		lif_interface_use_executor(cur_iface, addon);
+		free(addon);
+
+		/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
+		if (!strcmp(addon, "bridge"))
+			cur_iface->is_bridge = true;
+		else if (!strcmp(addon, "bond"))
+			cur_iface->is_bond = true;
+	}
+
+	return true;
+}
+
+static bool handle_inherit(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp);
+
+static bool
+handle_iface(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+{
+	char *ifname = lif_next_token(&bufp);
+	if (!*ifname)
+	{
+		report_error(filename, lineno, "%s without any other tokens", token);
+		return false;
+	}
+
+	cur_iface = lif_interface_collection_find(collection, ifname);
+	if (cur_iface == NULL)
+	{
+		report_error(filename, lineno, "could not upsert interface %s", ifname);
+		return false;
+	}
+
+	/* in original ifupdown config, we can have "inet loopback"
+	 * or "inet dhcp" or such to designate hints.  lets pick up
+	 * those hints here.
+	 */
+	token = lif_next_token(&bufp);
+	while (*token)
+	{
+		if (!strcmp(token, "dhcp"))
+			lif_interface_use_executor(cur_iface, "dhcp");
+		else if (!strcmp(token, "ppp"))
+			lif_interface_use_executor(cur_iface, "ppp");
+		else if (!strcmp(token, "inherits"))
+		{
+			if (!handle_inherit(collection, filename, lineno, token, bufp))
+				return false;
+		}
+
+		token = lif_next_token(&bufp);
+	}
+
+	return true;
+}
+
+static bool
+handle_inherit(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+{
+	char *target = lif_next_token(&bufp);
+
+	if (cur_iface == NULL)
+	{
+		report_error(filename, lineno, "%s '%s' without interface", token, target);
+		return false;
+	}
+
+	if (!*target)
+	{
+		report_error(filename, lineno, "%s: unspecified interface");
+		return false;
+	}
+
+	if (!lif_interface_collection_inherit(cur_iface, collection, target))
+	{
+		report_error(filename, lineno, "could not inherit %s", target);
+		return false;
+	}
+
 	return true;
 }
 
@@ -117,6 +257,29 @@ handle_source(struct lif_dict *collection, const char *filename, size_t lineno, 
 	return lif_interface_file_parse(collection, source_filename);
 }
 
+static bool
+handle_use(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+{
+	(void) collection;
+
+	char *executor = lif_next_token(&bufp);
+
+	if (cur_iface == NULL)
+	{
+		report_error(filename, lineno, "%s '%s' without interface", token, executor);
+		return false;
+	}
+
+	/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
+	if (!strcmp(executor, "bridge"))
+		cur_iface->is_bridge = true;
+	else if (!strcmp(executor, "bond"))
+		cur_iface->is_bond = true;
+
+	lif_interface_use_executor(cur_iface, executor);
+	return true;
+}
+
 /* map keywords to parser functions */
 struct parser_keyword {
 	const char *token;
@@ -124,8 +287,13 @@ struct parser_keyword {
 };
 
 static const struct parser_keyword keywords[] = {
+	{"address", handle_address},
 	{"auto", handle_auto},
+	{"gateway", handle_gateway},
+	{"iface", handle_iface},
+	{"inherit", handle_inherit},
 	{"source", handle_source},
+	{"use", handle_use},
 };
 
 static int
@@ -164,128 +332,8 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 			if (!parserkw->handle(collection, filename, lineno, token, bufp))
 				goto parse_error;
 		}
-		else if (!strcmp(token, "iface"))
-		{
-			char *ifname = lif_next_token(&bufp);
-			if (!*ifname)
-				goto parse_error;
-
-			cur_iface = lif_interface_collection_find(collection, ifname);
-			if (cur_iface == NULL)
-				goto parse_error;
-
-			/* in original ifupdown config, we can have "inet loopback"
-			 * or "inet dhcp" or such to designate hints.  lets pick up
-			 * those hints here.
-			 */
-			char *token = lif_next_token(&bufp);
-			while (*token)
-			{
-				if (!strcmp(token, "dhcp"))
-					lif_interface_use_executor(cur_iface, "dhcp");
-				else if (!strcmp(token, "ppp"))
-					lif_interface_use_executor(cur_iface, "ppp");
-				else if (!strcmp(token, "inherits"))
-				{
-					token = lif_next_token(&bufp);
-
-					if (!*token)
-					{
-						report_error(filename, lineno, "inherits without interface");
-						goto parse_error;
-					}
-
-					if (!lif_interface_collection_inherit(cur_iface, collection, token))
-					{
-						report_error(filename, lineno, "could not inherit %s", token);
-						goto parse_error;
-					}
-				}
-
-				token = lif_next_token(&bufp);
-			}
-		}
-		else if (!strcmp(token, "use"))
-		{
-			char *executor = lif_next_token(&bufp);
-
-			if (cur_iface == NULL)
-			{
-				report_error(filename, lineno, "use '%s' without interface", executor);
-				goto parse_error;
-			}
-
-			/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
-			if (!strcmp(executor, "bridge"))
-				cur_iface->is_bridge = true;
-			else if (!strcmp(executor, "bond"))
-				cur_iface->is_bond = true;
-
-			lif_interface_use_executor(cur_iface, executor);
-		}
-		else if (!strcmp(token, "inherit"))
-		{
-			token = lif_next_token(&bufp);
-
-			if (!*token)
-			{
-				report_error(filename, lineno, "inherits without interface");
-				goto parse_error;
-			}
-
-			if (!lif_interface_collection_inherit(cur_iface, collection, token))
-			{
-				report_error(filename, lineno, "could not inherit %s", token);
-				goto parse_error;
-			}
-		}
-		else if (!strcmp(token, "address"))
-		{
-			char *addr = lif_next_token(&bufp);
-
-			if (cur_iface == NULL)
-			{
-				report_error(filename, lineno, "%s: address '%s' without interface", filename, addr);
-				goto parse_error;
-			}
-
-			lif_interface_address_add(cur_iface, addr);
-		}
-		else if (!strcmp(token, "gateway"))
-		{
-			char *addr = lif_next_token(&bufp);
-
-			if (cur_iface == NULL)
-			{
-				report_error(filename, lineno, "%s: gateway '%s' without interface", filename, addr);
-				goto parse_error;
-			}
-
-			lif_interface_use_executor(cur_iface, "static");
-			lif_dict_add(&cur_iface->vars, token, strdup(addr));
-		}
-		else if (cur_iface != NULL)
-		{
-			token = maybe_remap_token(token);
-
-			lif_dict_add(&cur_iface->vars, token, strdup(bufp));
-
-			/* Check if token looks like <word1>-<word*> and assume <word1> is an addon */
-			char *word_end = strchr(token, '-');
-			if (word_end != NULL)
-			{
-				/* Copy word1 to not mangle *token */
-				char *addon = strndup(token, word_end - token);
-				lif_interface_use_executor(cur_iface, addon);
-				free(addon);
-
-				/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
-				if (!strcmp(addon, "bridge"))
-					cur_iface->is_bridge = true;
-				else if (!strcmp(addon, "bond"))
-					cur_iface->is_bond = true;
-			}
-		}
+		else if (!handle_generic(collection, filename, lineno, token, bufp))
+			goto parse_error;
 	}
 
 	fclose(f);
