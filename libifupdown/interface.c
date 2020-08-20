@@ -63,10 +63,7 @@ lif_interface_init(struct lif_interface *interface, const char *ifname)
 
 	interface->ifname = strdup(ifname);
 
-	if (strchr(ifname, '.') == NULL)
-		lif_dict_add(&interface->vars, "use", strdup("link"));
-	else
-		lif_dict_add(&interface->vars, "use", strdup("vlan"));
+	lif_interface_use_executor(interface, strchr(ifname, '.') == NULL ? "link" : "vlan");
 }
 
 bool
@@ -80,11 +77,7 @@ lif_interface_address_add(struct lif_interface *interface, const char *address)
 		return false;
 	}
 
-	if (!interface->is_static)
-	{
-		lif_dict_add(&interface->vars, "use", strdup("static"));
-		interface->is_static = true;
-	}
+	lif_interface_use_executor(interface, "static");
 
 	lif_dict_add(&interface->vars, "address", addr);
 
@@ -138,6 +131,15 @@ lif_interface_fini(struct lif_interface *interface)
 }
 
 void
+lif_interface_use_executor(struct lif_interface *interface, const char *executor)
+{
+	char *exec_addon = strdup(executor);
+
+	if (lif_dict_add_once(&interface->vars, "use", exec_addon, (lif_dict_cmp_t) strcmp) == NULL)
+		free(exec_addon);
+}
+
+void
 lif_interface_collection_init(struct lif_dict *collection)
 {
 	struct lif_interface *if_lo;
@@ -147,7 +149,7 @@ lif_interface_collection_init(struct lif_dict *collection)
 	/* always enable loopback interface as part of a collection */
 	if_lo = lif_interface_collection_find(collection, "lo");
 	if_lo->is_auto = true;
-	lif_dict_add(&if_lo->vars, "use", strdup("loopback"));
+	lif_interface_use_executor(if_lo, "loopback");
 }
 
 void
@@ -228,8 +230,6 @@ lif_interface_collection_inherit(struct lif_interface *interface, struct lif_dic
 		return false;
 
 	lif_dict_add(&interface->vars, "inherit", strdup(ifname));
-	interface->is_static = parent->is_static;
-	interface->is_dhcp = parent->is_dhcp;
 	interface->is_bond = parent->is_bond;
 	interface->is_bridge = parent->is_bridge;
 

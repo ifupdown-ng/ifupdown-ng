@@ -47,11 +47,9 @@ extern bool lif_address_unparse(const struct lif_address *address, char *buf, si
 struct lif_interface {
 	char *ifname;
 
-	bool is_dhcp;
 	bool is_auto;
 	bool is_bridge;
 	bool is_bond;
-	bool is_static;
 
 	struct lif_dict vars;
 
@@ -68,6 +66,7 @@ extern void lif_interface_init(struct lif_interface *interface, const char *ifna
 extern bool lif_interface_address_add(struct lif_interface *interface, const char *address);
 extern void lif_interface_address_delete(struct lif_interface *interface, const char *address);
 extern void lif_interface_fini(struct lif_interface *interface);
+extern void lif_interface_use_executor(struct lif_interface *interface, const char *executor);
 
 extern void lif_interface_collection_init(struct lif_dict *collection);
 extern void lif_interface_collection_fini(struct lif_dict *collection);

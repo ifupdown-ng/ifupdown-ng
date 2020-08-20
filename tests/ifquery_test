@@ -22,6 +22,7 @@ tests_init \
 	vrf_dependency \
 	vrf_ifupdown2_rewrite \
 	vrf_ifupdown2_dependency \
+	vrf_implicit_static_gateway \
 	ppp_dependency \
 	ppp_legacy_rewrite \
 	tunnel_dependency \
@@ -137,6 +138,11 @@ vrf_ifupdown2_rewrite_body() {
 vrf_ifupdown2_dependency_body() {
 	atf_check -s exit:0 -o match:"requires vrf-red" \
 		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vrf-ifupdown2.interfaces eth0
+}
+
+vrf_implicit_static_gateway_body() {
+	atf_check -s exit:0 -o match:"use static" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vrf.interfaces vrf-red
 }
 
 ppp_dependency_body() {
