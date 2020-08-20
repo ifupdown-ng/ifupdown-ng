@@ -14,6 +14,7 @@
  */
 
 #include <ctype.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include "libifupdown/libifupdown.h"
@@ -57,6 +58,37 @@ maybe_remap_token(const char *token)
 	return tokbuf;
 }
 
+/* map keywords to parser functions */
+struct parser_keyword {
+	const char *token;
+	bool (*handle)(struct lif_dict *collection, struct lif_interface *cur_iface, const char *filename, size_t lineno, char *token, char *bufp);
+};
+
+static const struct parser_keyword keywords[] = {
+};
+
+static int
+keyword_cmp(const void *a, const void *b)
+{
+	const char *key = a;
+	const struct parser_keyword *token = b;
+
+	return strcmp(key, token->token);
+}
+
+static void
+report_error(const char *filename, size_t lineno, const char *errfmt, ...)
+{
+	char errbuf[4096];
+
+	va_list va;
+	va_start(va, errfmt);
+	vsnprintf(errbuf, sizeof errbuf, errfmt, va);
+	va_end(va);
+
+	fprintf(stderr, "%s:%zu: %s\n", filename, lineno, errbuf);
+}
+
 bool
 lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 {
@@ -68,15 +100,26 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 		return false;
 
 	char linebuf[4096];
+	size_t lineno = 0;
 	while (lif_fgetline(linebuf, sizeof linebuf, f) != NULL)
 	{
+		lineno++;
+
 		char *bufp = linebuf;
 		char *token = lif_next_token(&bufp);
 
 		if (!*token || !isalpha(*token))
 			continue;
 
-		if (!strcmp(token, "source"))
+		const struct parser_keyword *parserkw =
+			bsearch(token, keywords, ARRAY_SIZE(keywords), sizeof(*keywords), keyword_cmp);
+
+		if (parserkw != NULL)
+		{
+			if (!parserkw->handle(collection, cur_iface, filename, lineno, token, bufp))
+				goto parse_error;
+		}
+		else if (!strcmp(token, "source"))
 		{
 			char *source_filename = lif_next_token(&bufp);
 			if (!*source_filename)
@@ -84,8 +127,8 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 
 			if (!strcmp(filename, source_filename))
 			{
-				fprintf(stderr, "%s: attempt to source %s would create infinite loop\n",
-					filename, source_filename);
+				report_error(filename, lineno, "attempt to source %s would create infinite loop",
+					     source_filename);
 				goto parse_error;
 			}
 
@@ -132,13 +175,13 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 
 					if (!*token)
 					{
-						fprintf(stderr, "%s: inherits without interface\n", filename);
+						report_error(filename, lineno, "inherits without interface");
 						goto parse_error;
 					}
 
 					if (!lif_interface_collection_inherit(cur_iface, collection, token))
 					{
-						fprintf(stderr, "%s: could not inherit %s\n", filename, token);
+						report_error(filename, lineno, "could not inherit %s", token);
 						goto parse_error;
 					}
 				}
@@ -152,7 +195,7 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 
 			if (cur_iface == NULL)
 			{
-				fprintf(stderr, "%s: use '%s' without interface\n", filename, executor);
+				report_error(filename, lineno, "use '%s' without interface", executor);
 				goto parse_error;
 			}
 
@@ -170,13 +213,13 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 
 			if (!*token)
 			{
-				fprintf(stderr, "%s: inherits without interface\n", filename);
+				report_error(filename, lineno, "inherits without interface");
 				goto parse_error;
 			}
 
 			if (!lif_interface_collection_inherit(cur_iface, collection, token))
 			{
-				fprintf(stderr, "%s: could not inherit %s\n", filename, token);
+				report_error(filename, lineno, "could not inherit %s", token);
 				goto parse_error;
 			}
 		}
@@ -186,7 +229,7 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 
 			if (cur_iface == NULL)
 			{
-				fprintf(stderr, "%s: address '%s' without interface\n", filename, addr);
+				report_error(filename, lineno, "%s: address '%s' without interface", filename, addr);
 				goto parse_error;
 			}
 
@@ -198,7 +241,7 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 
 			if (cur_iface == NULL)
 			{
-				fprintf(stderr, "%s: gateway '%s' without interface\n", filename, addr);
+				report_error(filename, lineno, "%s: gateway '%s' without interface", filename, addr);
 				goto parse_error;
 			}
 
@@ -233,8 +276,6 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 	return true;
 
 parse_error:
-	fprintf(stderr, "libifupdown: %s: failed to parse line \"%s\"\n",
-		filename, linebuf);
 	fclose(f);
 	return false;
 }
