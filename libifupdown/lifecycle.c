@@ -104,10 +104,7 @@ build_environment(char **envp[], const struct lif_execute_opts *opts, struct lif
 	lif_environment_push(envp, "IFACE", lifname);
 	lif_environment_push(envp, "PHASE", phase);
 	lif_environment_push(envp, "MODE", mode);
-
-	/* try to provide $METHOD for ifupdown1 scripts if we can */
-	if (iface->is_dhcp)
-		lif_environment_push(envp, "METHOD", "dhcp");
+	lif_environment_push(envp, "METHOD", "none");
 
 	if (opts->verbose)
 		lif_environment_push(envp, "VERBOSE", "1");

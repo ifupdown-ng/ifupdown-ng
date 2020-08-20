@@ -47,7 +47,6 @@ extern bool lif_address_unparse(const struct lif_address *address, char *buf, si
 struct lif_interface {
 	char *ifname;
 
-	bool is_dhcp;
 	bool is_auto;
 	bool is_bridge;
 	bool is_bond;

@@ -123,14 +123,9 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 			while (*token)
 			{
 				if (!strcmp(token, "dhcp"))
-				{
-					cur_iface->is_dhcp = true;
 					lif_interface_use_executor(cur_iface, "dhcp");
-				}
 				else if (!strcmp(token, "ppp"))
-				{
 					lif_interface_use_executor(cur_iface, "ppp");
-				}
 				else if (!strcmp(token, "inherits"))
 				{
 					token = lif_next_token(&bufp);
@@ -162,14 +157,10 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 			}
 
 			/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
-			if (!strcmp(executor, "dhcp"))
-				cur_iface->is_dhcp = true;
-			else if (!strcmp(executor, "bridge"))
+			if (!strcmp(executor, "bridge"))
 				cur_iface->is_bridge = true;
 			else if (!strcmp(executor, "bond"))
 				cur_iface->is_bond = true;
-			else if (!strcmp(executor, "link"))
-				continue;
 
 			lif_interface_use_executor(cur_iface, executor);
 		}
@@ -217,9 +208,7 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 				free(addon);
 
 				/* pass requires as compatibility env vars to appropriate executors (bridge, bond) */
-				if (!strcmp(addon, "dhcp"))
-					cur_iface->is_dhcp = true;
-				else if (!strcmp(addon, "bridge"))
+				if (!strcmp(addon, "bridge"))
 					cur_iface->is_bridge = true;
 				else if (!strcmp(addon, "bond"))
 					cur_iface->is_bond = true;

@@ -230,7 +230,6 @@ lif_interface_collection_inherit(struct lif_interface *interface, struct lif_dic
 		return false;
 
 	lif_dict_add(&interface->vars, "inherit", strdup(ifname));
-	interface->is_dhcp = parent->is_dhcp;
 	interface->is_bond = parent->is_bond;
 	interface->is_bridge = parent->is_bridge;
 
