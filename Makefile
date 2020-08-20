@@ -78,11 +78,13 @@ EXECUTOR_SCRIPTS_CORE ?= \
 	ipv6-ra \
 	static \
 	link \
+	ppp
 
 EXECUTOR_SCRIPTS_OPT ?= \
 	bridge \
 	vrf \
-	tunnel
+	tunnel \
+	gre
 
 EXECUTOR_SCRIPTS ?= ${EXECUTOR_SCRIPTS_CORE} ${EXECUTOR_SCRIPTS_OPT}
 
