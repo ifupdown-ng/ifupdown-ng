@@ -28,7 +28,8 @@ tests_init \
 	tunnel_legacy_dependency \
 	tunnel_legacy_rewrite \
 	tunnel_ifupdown2_dependency \
-	tunnel_ifupdown2_rewrite
+	tunnel_ifupdown2_rewrite \
+	gre_dependency
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -179,4 +180,9 @@ tunnel_ifupdown2_rewrite_body() {
 		-o match:"tunnel-mode gre" \
 		-o match:"tunnel-ttl 255" \
 		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-ifupdown2.interfaces tun0
+}
+
+gre_dependency_body() {
+	atf_check -s exit:0 -o match:"requires eth0" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/gre.interfaces tun0
 }

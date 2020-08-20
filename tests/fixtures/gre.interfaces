@@ -1,0 +1,12 @@
+auto tun0
+iface tun0
+	gre-local 203.0.113.2
+	gre-remote 203.0.113.1
+	gre-dev eth0
+	gre-ttl 255
+	gre-flags nopmtudisc ignore-df
+	address 203.0.113.10/30
+	gateway 203.0.113.9
+
+iface eth0
+	address 203.0.113.2/30
