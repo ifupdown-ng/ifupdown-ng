@@ -32,7 +32,8 @@ tests_init \
 	tunnel_ifupdown2_rewrite \
 	gre_dependency \
 	vlan_explicit_learned_dependency \
-	vlan_guessed_learned_dependency
+	vlan_guessed_learned_dependency \
+	vlan_complex_learned_dependency
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -205,4 +206,15 @@ vlan_guessed_learned_dependency_body() {
 	atf_check -s exit:0 -o match:"requires eth0" \
 		-o match:"use vlan" \
 		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vlan.interfaces eth0.8
+}
+
+vlan_complex_learned_dependency_body() {
+	atf_check -s exit:0 -o match:"requires eth0" \
+		-o match:"use vlan" \
+		-o match:"address 1.2.10.4/24" \
+		-o match:"gateway 1.2.10.1" \
+		-o match:"address abcd:ef12:3456:10::4/64" \
+		-o match:"gateway abcd:ef12:3456:10::1" \
+		-o match:"vlan-raw-device eth0" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vlan-complex.interfaces servers
 }
