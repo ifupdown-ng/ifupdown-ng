@@ -1,9 +1,63 @@
 #!/bin/sh
-[ -z "$VERBOSE" ] || set -x
-OPTIONS=""
+
+[ -n "$VERBOSE" ] && set -x
+
+IF_LINK_OPTIONS="$IF_LINK_OPTIONS"
+[ -n "$IF_MTU" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS mtu $IF_MTU"
+
+is_vlan() {
+	case "$IFACE" in
+		*#*) return 1 ;;
+		*:*) return 1 ;;
+		vlan*.*) return 1 ;;
+		vlan*)
+			IF_VLAN_ID="${IFACE#vlan}"
+			[ -n "${IF_VLAN_RAW_DEVICE:-}" ] && return 0
+			return 1
+			;;
+		*.*)
+			IF_VLAN_RAW_DEVICE="${IFACE%.*}"
+			IF_VLAN_ID="${IFACE##*.}"
+			return 0
+			;;
+		*)
+			[ -z "${IF_VLAN_ID:-}" ] && return 1
+			[ -z "${IF_VLAN_RAW_DEVICE:-}" ] && return 1
+			return 0
+			;;
+	esac
+}
+
 case "$PHASE" in
 up|down)
-	[ -n "$IF_MTU" ] && OPTIONS="$OPTIONS mtu $IF_MTU"
-	${MOCK} ip link set $PHASE dev $IFACE $OPTIONS
+	if is_vlan; then
+		ADD_DEL="add"
+		[ "$PHASE" = "down" ] && ADD_DEL="delete"
+
+		if [ -e /sys/class/net/$IFACE ]; then
+			exit 0
+		fi
+
+		if [ -z "$MOCK" ]; then
+			if ! ip link show "$IF_VLAN_RAW_DEVICE" >/dev/null; then
+				echo "Device $IF_VLAN_RAW_DEVICE for $IFACE does not exist"
+				exit 1
+			fi
+		fi
+
+		if ! [ -d /proc/net/vlan ]; then
+			echo "Loading 8021q kernel module for VLAN support"
+			${MOCK} modprobe 8021q
+		fi
+
+		${MOCK} ip link $ADD_DEL link "$IF_VLAN_RAW_DEVICE" name "$IFACE" type vlan id "$IF_VLAN_ID"
+	else
+		${MOCK} ip link set $PHASE dev $IFACE $IF_LINK_OPTIONS
+	fi
+	;;
+depend)
+	if is_vlan; then
+		echo "$IF_VLAN_RAW_DEVICE"
+	fi
 	;;
 esac

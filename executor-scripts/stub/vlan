@@ -1,7 +1,0 @@
-#!/bin/sh
-case "$PHASE" in
-depend)
-	RAW_DEVICE="${IFACE%.*}"
-	echo "$RAW_DEVICE"
-	;;
-esac

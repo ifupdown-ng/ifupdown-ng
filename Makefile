@@ -111,7 +111,7 @@ clean:
 	rm -f ${MANPAGES}
 
 check: ${LIBIFUPDOWN_LIB} ${CMDS}
-	kyua test
+	kyua test || (kyua report --verbose && exit 1)
 
 install: all
 	install -D -m755 ${MULTICALL} ${DESTDIR}/sbin/${MULTICALL}

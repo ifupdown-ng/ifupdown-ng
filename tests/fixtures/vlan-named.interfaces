@@ -1,0 +1,4 @@
+iface servers
+	vlan-raw-device eth0
+	vlan-id 8
+	address 2001:db8:1000:2::2/64

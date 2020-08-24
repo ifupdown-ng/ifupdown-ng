@@ -30,7 +30,9 @@ tests_init \
 	tunnel_legacy_rewrite \
 	tunnel_ifupdown2_dependency \
 	tunnel_ifupdown2_rewrite \
-	gre_dependency
+	gre_dependency \
+	vlan_explicit_learned_dependency \
+	vlan_guessed_learned_dependency
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -191,4 +193,16 @@ tunnel_ifupdown2_rewrite_body() {
 gre_dependency_body() {
 	atf_check -s exit:0 -o match:"requires eth0" \
 		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/gre.interfaces tun0
+}
+
+vlan_explicit_learned_dependency_body() {
+	atf_check -s exit:0 -o match:"requires eth0" \
+		-o match:"use vlan" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vlan-named.interfaces servers
+}
+
+vlan_guessed_learned_dependency_body() {
+	atf_check -s exit:0 -o match:"requires eth0" \
+		-o match:"use vlan" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vlan.interfaces eth0.8
 }
