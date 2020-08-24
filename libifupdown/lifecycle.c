@@ -268,8 +268,9 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 		/* already up or down, skip */
 		if (up == iface->is_up)
 		{
-			fprintf(stderr, "ifupdown: skipping dependent interface %s (of %s)\n",
-				iface->ifname, parent->ifname);
+			if (opts->verbose)
+				fprintf(stderr, "ifupdown: skipping dependent interface %s (of %s)\n",
+					iface->ifname, parent->ifname);
 			continue;
 		}
 
