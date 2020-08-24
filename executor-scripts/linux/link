@@ -53,7 +53,9 @@ pre-up|post-down)
 		fi
 
 		${MOCK} ip link $ADD_DEL link "$IF_VLAN_RAW_DEVICE" name "$IFACE" type vlan id "$IF_VLAN_ID"
-		[ "$UP_DOWN" = "up" ] && ${MOCK} ip link set $UP_DOWN dev $IFACE $IF_LINK_OPTIONS
+		[ "$UP_DOWN" = "down" ] && exit 0
+
+		${MOCK} ip link set $UP_DOWN dev $IFACE $IF_LINK_OPTIONS
 	else
 		${MOCK} ip link set $UP_DOWN dev $IFACE $IF_LINK_OPTIONS
 	fi
