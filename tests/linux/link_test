@@ -10,7 +10,9 @@ tests_init \
 	vlan_explicit_up \
 	vlan_explicit_down \
 	vlan_guessed_up \
-	vlan_guessed_down
+	vlan_guessed_down \
+	vlan_explicit_depend \
+	vlan_guessed_depend
 
 up_body() {
 	export IFACE=lo PHASE=up MOCK=echo
@@ -53,5 +55,18 @@ vlan_guessed_up_body() {
 vlan_guessed_down_body() {
 	export IFACE=eth0.8 PHASE=down MOCK=echo
 	atf_check -s exit:0 -o match:'ip link delete link eth0 name eth0.8 type vlan id 8' \
+		${EXECUTOR}
+}
+
+vlan_explicit_depend_body() {
+	export IFACE=servers PHASE=up MOCK=echo \
+		IF_VLAN_RAW_DEVICE="eth0" IF_VLAN_ID="123"
+	atf_check -s exit:0 -o match:'eth0' \
+		${EXECUTOR}
+}
+
+vlan_guessed_depend_body() {
+	export IFACE=eth0.8 PHASE=depend
+	atf_check -s exit:0 -o match:'eth0' \
 		${EXECUTOR}
 }
