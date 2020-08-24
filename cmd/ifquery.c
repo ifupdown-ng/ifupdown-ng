@@ -275,6 +275,8 @@ ifquery_main(int argc, char *argv[])
 	struct lif_dict state = {};
 	struct lif_dict collection = {};
 
+	lif_interface_collection_init(&collection);
+
 	if (!lif_state_read_path(&state, exec_opts.state_file))
 	{
 		fprintf(stderr, "%s: could not parse %s\n", argv0, exec_opts.state_file);
