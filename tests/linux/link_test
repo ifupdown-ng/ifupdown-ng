@@ -3,7 +3,14 @@
 . $(atf_get_srcdir)/../test_env.sh
 EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/link"
 
-tests_init up down mtu
+tests_init \
+	up \
+	down \
+	mtu \
+	vlan_explicit_up \
+	vlan_explicit_down \
+	vlan_guessed_up \
+	vlan_guessed_down
 
 up_body() {
 	export IFACE=lo PHASE=up MOCK=echo
@@ -20,5 +27,31 @@ down_body() {
 mtu_body() {
 	export IFACE=eth0 PHASE=up MOCK=echo IF_MTU=1492
 	atf_check -s exit:0 -o match:'ip link set up dev eth0 mtu 1492' \
+		${EXECUTOR}
+}
+
+vlan_explicit_up_body() {
+	export IFACE=servers PHASE=up MOCK=echo \
+		IF_VLAN_RAW_DEVICE="eth0" IF_VLAN_ID="123"
+	atf_check -s exit:0 -o match:'ip link add link eth0 name servers type vlan id 123' \
+		${EXECUTOR}
+}
+
+vlan_explicit_down_body() {
+	export IFACE=servers PHASE=down MOCK=echo \
+		IF_VLAN_RAW_DEVICE="eth0" IF_VLAN_ID="123"
+	atf_check -s exit:0 -o match:'ip link delete link eth0 name servers type vlan id 123' \
+		${EXECUTOR}
+}
+
+vlan_guessed_up_body() {
+	export IFACE=eth0.8 PHASE=up MOCK=echo
+	atf_check -s exit:0 -o match:'ip link add link eth0 name eth0.8 type vlan id 8' \
+		${EXECUTOR}
+}
+
+vlan_guessed_down_body() {
+	export IFACE=eth0.8 PHASE=down MOCK=echo
+	atf_check -s exit:0 -o match:'ip link delete link eth0 name eth0.8 type vlan id 8' \
 		${EXECUTOR}
 }
