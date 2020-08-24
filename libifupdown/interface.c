@@ -63,7 +63,11 @@ lif_interface_init(struct lif_interface *interface, const char *ifname)
 
 	interface->ifname = strdup(ifname);
 
-	lif_interface_use_executor(interface, strchr(ifname, '.') == NULL ? "link" : "vlan");
+	lif_interface_use_executor(interface, "link");
+
+	/* keep the 'vlan' executor as a config hint for backwards compatibility */
+	if (strchr(ifname, '.') != NULL)
+		lif_interface_use_executor(interface, "vlan");
 }
 
 bool
