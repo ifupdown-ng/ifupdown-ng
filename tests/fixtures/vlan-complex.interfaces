@@ -1,0 +1,18 @@
+# From Alpine issue #11885.
+iface lo inet loopback
+
+auto eth0
+iface eth0
+    address 1.2.3.4/24
+    address abcd:ef12:3456:3::4/64
+    mtu 8000
+
+auto servers
+iface servers
+    address 1.2.10.4/24
+    gateway 1.2.10.1
+    address abcd:ef12:3456:10::4/64
+    gateway abcd:ef12:3456:10::1
+    mtu 8000
+    vlan-raw-device eth0
+    vlan_id 5

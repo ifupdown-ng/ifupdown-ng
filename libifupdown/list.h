@@ -42,4 +42,7 @@ extern void lif_node_delete(struct lif_node *node, struct lif_list *list);
 #define LIF_LIST_FOREACH_SAFE(iter, iter_next, head) \
 	for ((iter) = (head), (iter_next) = (iter)->next; (iter) != NULL; (iter) = (iter_next), (iter_next) = (iter) != NULL ? (iter)->next : NULL)
 
+#define LIF_LIST_FOREACH_REVERSE(iter, tail) \
+	for ((iter) = (tail); (iter) != NULL; (iter) = (iter)->prev)
+
 #endif

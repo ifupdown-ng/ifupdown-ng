@@ -1,5 +1,6 @@
 #!/bin/sh
 
+[ -z "$IF_METRIC" ] && IF_METRIC="1"
 [ -n "$IF_VRF_TABLE" ] && VRF_TABLE="table $IF_VRF_TABLE"
 [ -n "$IF_METRIC" ] && METRIC="metric $IF_METRIC"
 
