@@ -18,7 +18,8 @@ tests_init \
 	learned_dependency \
 	learned_dependency_2 \
 	learned_executor \
-	implicit_vlan
+	implicit_vlan \
+	regress_opt_f
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifdown -S/dev/null
@@ -139,4 +140,9 @@ implicit_vlan_body() {
 		-e match:"attempting to run vlan executor" \
 		-e match:"attempting to run link executor" \
 		ifdown -n -S $FIXTURES/vlan.ifstate -E $EXECUTORS -i $FIXTURES/vlan.interfaces eth0.8
+}
+
+regress_opt_f_body() {
+	atf_check -s exit:0 -o ignore -e ignore \
+		ifdown -n -S $FIXTURES/vlan.ifstate -E $EXECUTORS -i $FIXTURES/vlan.interfaces -f eth0.8
 }

@@ -74,7 +74,7 @@ no_op(const char *opt_arg)
 }
 
 static struct if_option exec_options[] = {
-	{'f', "force", NULL, "force (de)configuration", true, no_op},
+	{'f', "force", NULL, "force (de)configuration", false, no_op},
 	{'i', "interfaces", "interfaces FILE", "use FILE for interface definitions", true, set_interfaces_file},
 	{'l', "no-lock", NULL, "do not use a lockfile to serialize state changes", false, set_no_lock},
 	{'n', "no-act", NULL, "do not actually run any commands", false, set_no_act},
