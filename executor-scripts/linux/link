@@ -45,11 +45,11 @@ pre-up|post-down)
 				echo "Device $IF_VLAN_RAW_DEVICE for $IFACE does not exist"
 				exit 1
 			fi
-		fi
 
-		if ! [ -d /proc/net/vlan ]; then
-			echo "Loading 8021q kernel module for VLAN support"
-			${MOCK} modprobe 8021q
+			if ! [ -d /proc/net/vlan ]; then
+				echo "Loading 8021q kernel module for VLAN support"
+				${MOCK} modprobe 8021q
+			fi
 		fi
 
 		${MOCK} ip link $ADD_DEL link "$IF_VLAN_RAW_DEVICE" name "$IFACE" type vlan id "$IF_VLAN_ID"
