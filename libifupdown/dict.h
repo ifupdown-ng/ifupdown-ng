@@ -35,6 +35,9 @@ struct lif_dict_entry {
 #define LIF_DICT_FOREACH_SAFE(iter, iter_next, dict) \
 	LIF_LIST_FOREACH_SAFE((iter), (iter_next), (dict)->list.head)
 
+#define LIF_DICT_FOREACH_REVERSE(iter, dict) \
+	LIF_LIST_FOREACH_REVERSE((iter), (dict)->list.tail)
+
 typedef int (*lif_dict_cmp_t)(const void *, const void *);
 
 extern void lif_dict_init(struct lif_dict *dict);

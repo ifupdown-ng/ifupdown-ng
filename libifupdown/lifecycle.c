@@ -43,21 +43,33 @@ handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[
 	return true;
 }
 
+static inline bool
+handle_single_executor_for_phase(const struct lif_dict_entry *entry, const struct lif_execute_opts *opts, char *const envp[])
+{
+	if (strcmp(entry->key, "use"))
+		return true;
+
+	const char *cmd = entry->data;
+	if (!lif_maybe_run_executor(opts, envp, cmd))
+		return false;
+
+	return true;
+}
+
 static bool
-handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface)
+handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface, bool up)
 {
 	struct lif_node *iter;
 
-	LIF_DICT_FOREACH(iter, &iface->vars)
+	if (up)
 	{
-		struct lif_dict_entry *entry = iter->data;
-
-		if (strcmp(entry->key, "use"))
-			continue;
-
-		const char *cmd = entry->data;
-		if (!lif_maybe_run_executor(opts, envp, cmd))
-			return false;
+		LIF_DICT_FOREACH(iter, &iface->vars)
+			handle_single_executor_for_phase(iter->data, opts, envp);
+	}
+	else
+	{
+		LIF_DICT_FOREACH_REVERSE(iter, &iface->vars)
+			handle_single_executor_for_phase(iter->data, opts, envp);
 	}
 
 	return true;
@@ -219,7 +231,7 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 
 	build_environment(&envp, opts, iface, lifname, phase, up ? "start" : "stop");
 
-	if (!handle_executors_for_phase(opts, envp, iface))
+	if (!handle_executors_for_phase(opts, envp, iface, up))
 		goto handle_error;
 
 	if (!handle_commands_for_phase(opts, envp, iface, phase))
