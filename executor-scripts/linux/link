@@ -29,14 +29,12 @@ is_vlan() {
 }
 
 case "$PHASE" in
-pre-up|post-down)
-	UP_DOWN="${PHASE##*-}"
-
+up|down)
 	if is_vlan; then
 		ADD_DEL="add"
-		[ "$UP_DOWN" = "down" ] && ADD_DEL="delete"
+		[ "$PHASE" = "down" ] && ADD_DEL="delete"
 
-		if [ "$UP_DOWN" = "up" -a -e /sys/class/net/$IFACE ]; then
+		if [ "$PHASE" = "up" -a -e /sys/class/net/$IFACE ]; then
 			exit 0
 		fi
 
@@ -53,11 +51,11 @@ pre-up|post-down)
 		fi
 
 		${MOCK} ip link $ADD_DEL link "$IF_VLAN_RAW_DEVICE" name "$IFACE" type vlan id "$IF_VLAN_ID"
-		[ "$UP_DOWN" = "down" ] && exit 0
+		[ "$PHASE" = "down" ] && exit 0
 
-		${MOCK} ip link set $UP_DOWN dev $IFACE $IF_LINK_OPTIONS
+		${MOCK} ip link set $PHASE dev $IFACE $IF_LINK_OPTIONS
 	else
-		${MOCK} ip link set $UP_DOWN dev $IFACE $IF_LINK_OPTIONS
+		${MOCK} ip link set $PHASE dev $IFACE $IF_LINK_OPTIONS
 	fi
 	;;
 depend)
