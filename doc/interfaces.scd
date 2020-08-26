@@ -66,6 +66,10 @@ the system will only respond to certain keywords by default:
 	is for backwards compatibility and should not be used in new
 	deployments.
 
+*link-type* _link-type_
+	Denotes the link-type of the interface. When set to _dummy_,
+	the interface is created as a virtual dummy interfaces.
+
 *requires* _interfaces_...
 	Designates one or more required interfaces that must be
 	brought up before configuration of the parent interface.
@@ -165,3 +169,4 @@ iface eth0
 # AUTHORS
 
 Ariadne Conill <ariadne@dereferenced.org>
+Maximilian Wilhelm <max@sdn.clinic>

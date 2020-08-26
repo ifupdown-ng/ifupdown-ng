@@ -32,6 +32,11 @@ is_vlan() {
 }
 
 case "$PHASE" in
+pre-up)
+	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
+		ip link add "${IFACE}" type dummy
+	fi
+	;;
 up|down)
 	if is_vlan; then
 		ADD_DEL="add"
