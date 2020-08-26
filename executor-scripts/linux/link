@@ -62,7 +62,7 @@ up|down)
 		[ "$PHASE" = "down" ] && exit 0
 	fi
 
-		${MOCK} ip link set $PHASE dev $IFACE $IF_LINK_OPTIONS
+	${MOCK} ip link set $PHASE dev $IFACE $IF_LINK_OPTIONS
 	;;
 depend)
 	if is_vlan; then
