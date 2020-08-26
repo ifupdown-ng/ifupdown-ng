@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 start() {
 	${MOCK} /bin/sh -c "echo 1 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra"
 }
