@@ -44,39 +44,39 @@ handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[
 }
 
 static inline bool
-handle_single_executor_for_phase(const struct lif_dict_entry *entry, const struct lif_execute_opts *opts, char *const envp[])
+handle_single_executor_for_phase(const struct lif_dict_entry *entry, const struct lif_execute_opts *opts, char *const envp[], const char *phase)
 {
 	if (strcmp(entry->key, "use"))
 		return true;
 
 	const char *cmd = entry->data;
-	if (!lif_maybe_run_executor(opts, envp, cmd))
+	if (!lif_maybe_run_executor(opts, envp, cmd, phase))
 		return false;
 
 	return true;
 }
 
 static bool
-handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface, bool up)
+handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface, bool up, const char *phase)
 {
 	struct lif_node *iter;
 
 	if (up)
 	{
 		LIF_DICT_FOREACH(iter, &iface->vars)
-			handle_single_executor_for_phase(iter->data, opts, envp);
+			handle_single_executor_for_phase(iter->data, opts, envp, phase);
 	}
 	else
 	{
 		LIF_DICT_FOREACH_REVERSE(iter, &iface->vars)
-			handle_single_executor_for_phase(iter->data, opts, envp);
+			handle_single_executor_for_phase(iter->data, opts, envp, phase);
 	}
 
 	return true;
 }
 
 static bool
-query_dependents_from_executors(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface, char *buf, size_t bufsize)
+query_dependents_from_executors(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface, char *buf, size_t bufsize, const char *phase)
 {
 	struct lif_node *iter;
 
@@ -94,7 +94,7 @@ query_dependents_from_executors(const struct lif_execute_opts *opts, char *const
 			continue;
 
 		const char *cmd = entry->data;
-		if (!lif_maybe_run_executor_with_result(&exec_opts, envp, cmd, resbuf, sizeof resbuf))
+		if (!lif_maybe_run_executor_with_result(&exec_opts, envp, cmd, resbuf, sizeof resbuf, phase))
 			return false;
 
 		if (!*resbuf)
@@ -196,7 +196,7 @@ lif_lifecycle_query_dependents(const struct lif_execute_opts *opts, struct lif_i
 	if (entry != NULL)
 		strlcpy(deps, entry->data, sizeof deps);
 
-	if (!query_dependents_from_executors(opts, envp, iface, deps, sizeof deps))
+	if (!query_dependents_from_executors(opts, envp, iface, deps, sizeof deps, "depend"))
 		return false;
 
 	char *p = deps;
@@ -231,7 +231,7 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 
 	build_environment(&envp, opts, iface, lifname, phase, up ? "start" : "stop");
 
-	if (!handle_executors_for_phase(opts, envp, iface, up))
+	if (!handle_executors_for_phase(opts, envp, iface, up, phase))
 		goto handle_error;
 
 	if (!handle_commands_for_phase(opts, envp, iface, phase))
