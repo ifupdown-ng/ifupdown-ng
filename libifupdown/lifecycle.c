@@ -15,6 +15,9 @@
 
 #include <ctype.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "libifupdown/environment.h"
 #include "libifupdown/execute.h"
@@ -237,8 +240,17 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 	if (!handle_commands_for_phase(opts, envp, iface, phase))
 		goto handle_error;
 
+	/* Check if scripts dir for this phase is present and bail out if it isn't */
+	struct stat dir_stat;
+	char dir_path[4096];
+	snprintf (dir_path, 4096, "/etc/network/if-%s.d", phase);
+
+	if (stat (dir_path, &dir_stat) != 0 || S_ISDIR (dir_stat.st_mode) == 0) {
+		goto handle_error;
+	}
+
 	/* we should do error handling here, but ifupdown1 doesn't */
-	lif_execute_fmt(opts, envp, "/bin/run-parts /etc/network/if-%s.d", phase);
+	lif_execute_fmt(opts, envp, "/bin/run-parts %s", dir_path);
 
 	lif_environment_free(&envp);
 	return true;
