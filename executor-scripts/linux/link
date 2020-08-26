@@ -4,6 +4,7 @@
 
 IF_LINK_OPTIONS="$IF_LINK_OPTIONS"
 [ -n "$IF_MTU" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS mtu $IF_MTU"
+[ -n "$IF_HWADDRESS" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS address $IF_HWADDRESS"
 
 is_vlan() {
 	case "$IFACE" in
