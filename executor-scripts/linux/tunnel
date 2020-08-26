@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 # Based on alpine's tunnel configuration script.
 # Copyright (c) 2017 Kaarle Ritvanen
 # Copyright (c) 2020 Ariadne Conill (extended for ifupdown-ng)
