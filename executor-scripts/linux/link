@@ -55,11 +55,9 @@ up|down)
 
 		${MOCK} ip link $ADD_DEL link "$IF_VLAN_RAW_DEVICE" name "$IFACE" type vlan id "$IF_VLAN_ID"
 		[ "$PHASE" = "down" ] && exit 0
+	fi
 
 		${MOCK} ip link set $PHASE dev $IFACE $IF_LINK_OPTIONS
-	else
-		${MOCK} ip link set $PHASE dev $IFACE $IF_LINK_OPTIONS
-	fi
 	;;
 depend)
 	if is_vlan; then
