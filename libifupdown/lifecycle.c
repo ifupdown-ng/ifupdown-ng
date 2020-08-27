@@ -246,12 +246,13 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 	snprintf (dir_path, 4096, "/etc/network/if-%s.d", phase);
 
 	if (stat (dir_path, &dir_stat) != 0 || S_ISDIR (dir_stat.st_mode) == 0) {
-		goto handle_error;
+		goto out_free;
 	}
 
 	/* we should do error handling here, but ifupdown1 doesn't */
 	lif_execute_fmt(opts, envp, "/bin/run-parts %s", dir_path);
 
+out_free:
 	lif_environment_free(&envp);
 	return true;
 
