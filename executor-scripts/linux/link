@@ -34,6 +34,13 @@ is_vlan() {
 case "$PHASE" in
 pre-up)
 	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
+		if [ -d "/sys/class/net/${IFACE}" ]; then
+			iface_type=$(ip -d link show dev "${IFACE}" | head -n3 | tail -n1 | awk '{ print $1 }')
+			if [ "${iface_type}" = 'dummy' ]; then
+				exit 0
+			fi
+		fi
+
 		ip link add "${IFACE}" type dummy
 	fi
 	;;
@@ -63,6 +70,13 @@ up|down)
 	fi
 
 	${MOCK} ip link set $PHASE dev $IFACE $IF_LINK_OPTIONS
+	;;
+post-down)
+	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
+		if [ -d "/sys/class/net/${IFACE}" ]; then
+			ip link del "${IFACE}"
+		fi
+	fi
 	;;
 depend)
 	if is_vlan; then
