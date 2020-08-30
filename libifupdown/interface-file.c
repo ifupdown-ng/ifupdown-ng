@@ -146,6 +146,10 @@ handle_generic(struct lif_dict *collection, const char *filename, size_t lineno,
 
 	token = maybe_remap_token(token);
 
+	/* Skip any leading whitespaces in value for <token> */
+	while (isspace (*bufp))
+		bufp++;
+
 	lif_dict_add(&cur_iface->vars, token, strdup(bufp));
 
 	/* Check if token looks like <word1>-<word*> and assume <word1> is an addon */
