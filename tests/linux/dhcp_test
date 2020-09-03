@@ -3,7 +3,12 @@
 . $(atf_get_srcdir)/../test_env.sh
 EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/dhcp"
 
-tests_init udhcpc_up dhcpcd_up dhcpcd_down dhclient_up
+tests_init udhcpc_up \
+	dhcpcd_up \
+	dhcpcd_down \
+	dhclient_up \
+	udhcpc_opts_up \
+	udhcpc_opts_up_subshell
 
 udhcpc_up_body() {
 	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=udhcpc
@@ -26,5 +31,17 @@ dhcpcd_down_body() {
 dhclient_up_body() {
 	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=dhclient
 	atf_check -s exit:0 -o match:'/usr/sbin/dhclient -pf /var/run/dhclient.eth0.pid eth0' \
+		${EXECUTOR}
+}
+
+udhcpc_opts_up_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=udhcpc IF_UDHCPC_OPTS="-O search"
+	atf_check -s exit:0 -o match:'/sbin/udhcpc -b -R -p /var/run/udhcpc.eth0.pid -i eth0 -O search' \
+		${EXECUTOR}
+}
+
+udhcpc_opts_up_subshell_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=udhcpc IF_UDHCPC_OPTS="-O search -x hostname:\$(echo test)"
+	atf_check -s exit:0 -o match:'/sbin/udhcpc -b -R -p /var/run/udhcpc.eth0.pid -i eth0 -O search -x hostname:test' \
 		${EXECUTOR}
 }

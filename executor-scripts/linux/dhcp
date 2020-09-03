@@ -24,7 +24,8 @@ start() {
 		${MOCK} /usr/sbin/dhclient -pf /var/run/dhclient.$IFACE.pid $IFACE
 		;;
 	udhcpc)
-		${MOCK} /sbin/udhcpc -b -R -p /var/run/udhcpc.$IFACE.pid -i $IFACE
+		UDHCPC_OPTS=$(eval echo $IF_UDHCPC_OPTS)
+		${MOCK} /sbin/udhcpc -b -R -p /var/run/udhcpc.$IFACE.pid -i $IFACE $UDHCPC_OPTS
 		;;
 	*)
 		;;
