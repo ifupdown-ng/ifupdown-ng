@@ -70,6 +70,11 @@ up|down)
 	fi
 
 	${MOCK} ip link set $PHASE dev $IFACE $IF_LINK_OPTIONS
+
+	# Set alias is configured
+	if [ "${IF_ALIAS}" ]; then
+		${MOCK} ip link set alias "${IF_ALIAS}" dev "${IFACE}"
+	fi
 	;;
 post-down)
 	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
