@@ -4,10 +4,6 @@ set -e
 
 [ -n "$VERBOSE" ] && set -x
 
-IF_LINK_OPTIONS="$IF_LINK_OPTIONS"
-[ -n "$IF_MTU" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS mtu $IF_MTU"
-[ -n "$IF_HWADDRESS" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS address $IF_HWADDRESS"
-
 is_vlan() {
 	case "$IFACE" in
 		*#*) return 1 ;;
@@ -36,26 +32,23 @@ pre-up)
 	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
 		if [ -d "/sys/class/net/${IFACE}" ]; then
 			iface_type=$(ip -d link show dev "${IFACE}" | head -n3 | tail -n1 | awk '{ print $1 }')
-			if [ "${iface_type}" = 'dummy' ]; then
-				exit 0
+			if [ "${iface_type}" != 'dummy' ]; then
+				echo "Interface ${IFACE} exists but is of type ${iface_type} instead of dummy"
+				exit 1
 			fi
 		fi
 
-		ip link add "${IFACE}" type dummy
+		${MOCK} ip link add "${IFACE}" type dummy
 	fi
-	;;
-up|down)
-	if is_vlan; then
-		ADD_DEL="add"
-		[ "$PHASE" = "down" ] && ADD_DEL="delete"
 
-		if [ "$PHASE" = "up" -a -e /sys/class/net/$IFACE ]; then
+	if is_vlan; then
+		if [ -d "/sys/class/net/${IFACE}" ]; then
 			exit 0
 		fi
 
-		if [ -z "$MOCK" ]; then
-			if ! ip link show "$IF_VLAN_RAW_DEVICE" >/dev/null; then
-				echo "Device $IF_VLAN_RAW_DEVICE for $IFACE does not exist"
+		if [ -z "${MOCK}" ]; then
+			if [ ! -d "/sys/class/net/${IF_VLAN_RAW_DEVICE}" ]; then
+				echo "Underlay device ${IF_VLAN_RAW_DEVICE} for ${IFACE} does not exist"
 				exit 1
 			fi
 
@@ -65,22 +58,31 @@ up|down)
 			fi
 		fi
 
-		${MOCK} ip link $ADD_DEL link "$IF_VLAN_RAW_DEVICE" name "$IFACE" type vlan id "$IF_VLAN_ID"
-		[ "$PHASE" = "down" ] && exit 0
+		${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" type vlan id "${IF_VLAN_ID}"
 	fi
+	;;
+up)
+	IF_LINK_OPTIONS="$IF_LINK_OPTIONS"
+	[ -n "$IF_MTU" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS mtu $IF_MTU"
+	[ -n "$IF_HWADDRESS" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS address $IF_HWADDRESS"
 
-	${MOCK} ip link set $PHASE dev $IFACE $IF_LINK_OPTIONS
+	${MOCK} ip link set up dev "${IFACE}" ${IF_LINK_OPTIONS}
 
 	# Set alias is configured
 	if [ "${IF_ALIAS}" ]; then
 		${MOCK} ip link set alias "${IF_ALIAS}" dev "${IFACE}"
 	fi
 	;;
+down)
+	${MOCK} ip link set down dev "${IFACE}"
+	;;
 post-down)
-	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
-		if [ -d "/sys/class/net/${IFACE}" ]; then
-			ip link del "${IFACE}"
+	if [ "${IF_LINK_TYPE}" = "dummy" ] || is_vlan; then
+		if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
+			exit 0
 		fi
+
+		${MOCK} ip link del "${IFACE}"
 	fi
 	;;
 depend)
