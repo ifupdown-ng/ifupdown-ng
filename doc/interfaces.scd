@@ -70,6 +70,9 @@ the system will only respond to certain keywords by default:
 	Denotes the link-type of the interface. When set to _dummy_,
 	the interface is created as a virtual dummy interfaces.
 
+*alias* _alias_
+	Sets the given alias on the interface.
+
 *requires* _interfaces_...
 	Designates one or more required interfaces that must be
 	brought up before configuration of the parent interface.
