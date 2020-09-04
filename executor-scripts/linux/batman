@@ -71,7 +71,10 @@ case "${PHASE}" in
 	pre-up)
 		# Main B.A.T.M.A.N. adv. interface
 		if [ "${IF_BATMAN_IFACES}" ]; then
-			batctl "${mesh_if_param}" "${IFACE}" interface create || true
+			if [ ! -d "/sys/class/net/${IFACE}" ]; then
+				batctl "${mesh_if_param}" "${IFACE}" interface create || true
+			fi
+
 			batctl_if add
 			set_batmam_params
 
@@ -82,7 +85,7 @@ case "${PHASE}" in
 		;;
 
 	post-down)
-		if [ "${IF_BATMAN_IFACES}" ]; then
+		if [ "${IF_BATMAN_IFACES}" -a -d "/sys/class/net/${IFACE}" ]; then
 			# Newer versions of batctl provide the "interface destroy" API, try to use it
 			if ! batctl "${mesh_if_param}" "${IFACE}" interface destroy 2>/dev/null; then
 				# Fall back to old style member interface removal
@@ -91,6 +94,7 @@ case "${PHASE}" in
 		fi
 		;;
 
-	*)	exit 0
+	*)
+		exit 0
 		;;
 esac
