@@ -13,7 +13,8 @@ tests_init \
 	vlan_guessed_pre_up \
 	vlan_guessed_post_down \
 	vlan_explicit_depend \
-	vlan_guessed_depend
+	vlan_guessed_depend \
+	dummy_pre_up
 
 up_body() {
 	export IFACE=lo PHASE=up MOCK=echo
@@ -75,5 +76,11 @@ vlan_explicit_depend_body() {
 vlan_guessed_depend_body() {
 	export IFACE=eth0.8 PHASE=depend
 	atf_check -s exit:0 -o match:'eth0' \
+		${EXECUTOR}
+}
+
+dummy_pre_up_body() {
+	export IFACE=yolo IF_LINK_TYPE=dummy PHASE=pre-up MOCK=echo
+	atf_check -s exit:0 -o match:'ip link add yolo type dummy' \
 		${EXECUTOR}
 }
