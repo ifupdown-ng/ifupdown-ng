@@ -4,10 +4,6 @@ set -e
 
 [ -n "$VERBOSE" ] && set -x
 
-IF_LINK_OPTIONS="$IF_LINK_OPTIONS"
-[ -n "$IF_MTU" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS mtu $IF_MTU"
-[ -n "$IF_HWADDRESS" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS address $IF_HWADDRESS"
-
 is_vlan() {
 	case "$IFACE" in
 		*#*) return 1 ;;
@@ -64,13 +60,20 @@ pre-up)
 		${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" type vlan id "${IF_VLAN_ID}"
 	fi
 	;;
-up|down)
-	${MOCK} ip link set $PHASE dev $IFACE $IF_LINK_OPTIONS
+up)
+	IF_LINK_OPTIONS="$IF_LINK_OPTIONS"
+	[ -n "$IF_MTU" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS mtu $IF_MTU"
+	[ -n "$IF_HWADDRESS" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS address $IF_HWADDRESS"
+
+	${MOCK} ip link set up dev "${IFACE}" ${IF_LINK_OPTIONS}
 
 	# Set alias is configured
 	if [ "${IF_ALIAS}" ]; then
 		${MOCK} ip link set alias "${IF_ALIAS}" dev "${IFACE}"
 	fi
+	;;
+down)
+	${MOCK} ip link set down dev "${IFACE}"
 	;;
 post-down)
 	if [ "${IF_LINK_TYPE}" = "dummy" -o is_vlan ]; then
