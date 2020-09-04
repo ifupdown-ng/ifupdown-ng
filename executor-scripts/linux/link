@@ -32,8 +32,9 @@ pre-up)
 	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
 		if [ -d "/sys/class/net/${IFACE}" ]; then
 			iface_type=$(ip -d link show dev "${IFACE}" | head -n3 | tail -n1 | awk '{ print $1 }')
-			if [ "${iface_type}" = 'dummy' ]; then
-				exit 0
+			if [ "${iface_type}" != 'dummy' ]; then
+				echo "Interface ${IFACE} exists but is of type ${iface_type} instead of dummy"
+				exit 1
 			fi
 		fi
 
