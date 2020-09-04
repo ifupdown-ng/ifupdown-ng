@@ -84,7 +84,8 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	bridge \
 	vrf \
 	tunnel \
-	gre
+	gre \
+	wireguard
 
 EXECUTOR_SCRIPTS ?= ${EXECUTOR_SCRIPTS_CORE} ${EXECUTOR_SCRIPTS_OPT}
 
