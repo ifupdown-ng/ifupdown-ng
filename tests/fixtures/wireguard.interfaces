@@ -1,0 +1,9 @@
+iface eth0
+	address 203.0.113.2/24
+	gateway 203.0.113.1
+
+auto wg0
+iface wg0
+	use wireguard
+	address 1.2.3.4/24
+	requires eth0

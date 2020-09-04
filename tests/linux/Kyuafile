@@ -10,3 +10,4 @@ atf_test_program{name='vrf_test'}
 atf_test_program{name='ppp_test'}
 atf_test_program{name='tunnel_test'}
 atf_test_program{name='gre_test'}
+atf_test_program{name='wireguard_test'}
