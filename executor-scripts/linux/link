@@ -82,7 +82,7 @@ post-down)
 			exit 0
 		fi
 
-		ip link del "${IFACE}"
+		${MOCK} ip link del "${IFACE}"
 	fi
 	;;
 depend)
