@@ -77,10 +77,12 @@ down)
 	${MOCK} ip link set down dev "${IFACE}"
 	;;
 post-down)
-	if [ "${IF_LINK_TYPE}" = "dummy" -o is_vlan ]; then
-		if [ -d "/sys/class/net/${IFACE}" ]; then
-			ip link del "${IFACE}"
+	if [ "${IF_LINK_TYPE}" = "dummy" ] || is_vlan; then
+		if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
+			exit 0
 		fi
+
+		ip link del "${IFACE}"
 	fi
 	;;
 depend)
