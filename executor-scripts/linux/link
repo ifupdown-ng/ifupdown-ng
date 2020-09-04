@@ -38,7 +38,7 @@ pre-up)
 			fi
 		fi
 
-		ip link add "${IFACE}" type dummy
+		${MOCK} ip link add "${IFACE}" type dummy
 	fi
 
 	if is_vlan; then
