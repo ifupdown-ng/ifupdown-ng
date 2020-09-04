@@ -66,7 +66,7 @@ vlan_guessed_post_down_body() {
 }
 
 vlan_explicit_depend_body() {
-	export IFACE=servers PHASE=up MOCK=echo \
+	export IFACE=servers PHASE=depend \
 		IF_VLAN_RAW_DEVICE="eth0" IF_VLAN_ID="123"
 	atf_check -s exit:0 -o match:'eth0' \
 		${EXECUTOR}
