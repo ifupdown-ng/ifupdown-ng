@@ -1,0 +1,16 @@
+#!/bin/sh
+
+set -e
+
+[ -n "$VERBOSE" ] && set -x
+[ -z "$IF_WIREGUARD_CONFIG_PATH" ] && IF_WIREGUARD_CONFIG_PATH="/etc/wireguard/$IFACE.conf"
+
+case "$PHASE" in
+pre-up)
+	${MOCK} ip link add $IFACE type wireguard
+	${MOCK} wg setconf $IFACE $IF_WIREGUARD_CONFIG_PATH
+	;;
+post-down)
+	${MOCK} ip link delete dev $IFACE
+	;;
+esac

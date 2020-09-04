@@ -33,7 +33,8 @@ tests_init \
 	gre_dependency \
 	vlan_explicit_learned_dependency \
 	vlan_guessed_learned_dependency \
-	vlan_complex_learned_dependency
+	vlan_complex_learned_dependency \
+	wireguard
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -217,4 +218,11 @@ vlan_complex_learned_dependency_body() {
 		-o match:"gateway abcd:ef12:3456:10::1" \
 		-o match:"vlan-raw-device eth0" \
 		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vlan-complex.interfaces servers
+}
+
+wireguard_body() {
+	atf_check -s exit:0 \
+		-o match:"requires eth0" \
+		-o match:"use wireguard" \
+		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/wireguard.interfaces wg0
 }
