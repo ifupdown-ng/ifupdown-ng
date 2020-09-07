@@ -27,13 +27,13 @@
 #include "libifupdown/tokenize.h"
 
 static bool
-handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface, const char *phase)
+handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[], const struct lif_interface *iface, const char *phase)
 {
-	struct lif_node *iter;
+	const struct lif_node *iter;
 
 	LIF_DICT_FOREACH(iter, &iface->vars)
 	{
-		struct lif_dict_entry *entry = iter->data;
+		const struct lif_dict_entry *entry = iter->data;
 
 		if (strcmp(entry->key, phase))
 			continue;
@@ -60,9 +60,9 @@ handle_single_executor_for_phase(const struct lif_dict_entry *entry, const struc
 }
 
 static bool
-handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface, bool up, const char *phase)
+handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp[], const struct lif_interface *iface, bool up, const char *phase)
 {
-	struct lif_node *iter;
+	const struct lif_node *iter;
 
 	if (up)
 	{
@@ -79,14 +79,14 @@ handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp
 }
 
 static bool
-query_dependents_from_executors(const struct lif_execute_opts *opts, char *const envp[], struct lif_interface *iface, char *buf, size_t bufsize, const char *phase)
+query_dependents_from_executors(const struct lif_execute_opts *opts, char *const envp[], const struct lif_interface *iface, char *buf, size_t bufsize, const char *phase)
 {
-	struct lif_node *iter;
+	const struct lif_node *iter;
 
 	LIF_DICT_FOREACH(iter, &iface->vars)
 	{
 		char resbuf[1024] = {};
-		struct lif_dict_entry *entry = iter->data;
+		const struct lif_dict_entry *entry = iter->data;
 		struct lif_execute_opts exec_opts = {
 			.verbose = opts->verbose,
 			.executor_path = opts->executor_path,
@@ -111,7 +111,7 @@ query_dependents_from_executors(const struct lif_execute_opts *opts, char *const
 }
 
 static void
-build_environment(char **envp[], const struct lif_execute_opts *opts, struct lif_interface *iface, const char *lifname, const char *phase, const char *mode)
+build_environment(char **envp[], const struct lif_execute_opts *opts, const struct lif_interface *iface, const char *lifname, const char *phase, const char *mode)
 {
 	if (lifname == NULL)
 		lifname = iface->ifname;
@@ -127,12 +127,12 @@ build_environment(char **envp[], const struct lif_execute_opts *opts, struct lif
 	if (opts->interfaces_file)
 		lif_environment_push(envp, "INTERFACES_FILE", opts->interfaces_file);
 
-	struct lif_node *iter;
+	const struct lif_node *iter;
 	bool did_address = false, did_gateway = false;
 
 	LIF_DICT_FOREACH(iter, &iface->vars)
 	{
-		struct lif_dict_entry *entry = iter->data;
+		const struct lif_dict_entry *entry = iter->data;
 
 		if (!strcmp(entry->key, "address"))
 		{
