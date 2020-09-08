@@ -73,6 +73,9 @@ lif_state_ref_if(struct lif_dict *state, const char *ifname, struct lif_interfac
 void
 lif_state_unref_if(struct lif_dict *state, const char *ifname, struct lif_interface *iface)
 {
+	if (iface->refcount == 0)
+		return;
+
 	iface->refcount--;
 
 	if (iface->refcount)
