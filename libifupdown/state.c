@@ -66,6 +66,8 @@ lif_state_read_path(struct lif_dict *state, const char *path)
 void
 lif_state_upsert(struct lif_dict *state, const char *ifname, struct lif_interface *iface)
 {
+	lif_state_delete(state, ifname);
+
 	struct lif_state_record *rec = calloc(1, sizeof(*rec));
 
 	rec->mapped_if = strdup(iface->ifname);
