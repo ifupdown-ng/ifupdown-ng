@@ -274,12 +274,17 @@ handle_refcounting(struct lif_dict *state, struct lif_interface *iface, bool up)
 	else
 		lif_state_unref_if(state, iface->ifname, iface);
 
+#ifdef DEBUG_REFCOUNTING
+	fprintf(stderr, "handle_refcounting(): orig_refcount=%zu, refcount=%zu, direction=%s\n",
+		orig_refcount, iface->refcount, up ? "UP" : "DOWN");
+#endif
+
 	/* if going up and orig_refcount > 0 -- we're already configured. */
 	if (up && orig_refcount > 0)
 		return true;
 
-	/* if going down and iface->refcount > 0 -- we still have other dependents. */
-	if (!up && iface->refcount > 0)
+	/* if going down and iface->refcount > 1 -- we still have other dependents. */
+	if (!up && iface->refcount > 1)
 		return true;
 
 	/* we can change this interface -- no blocking dependents. */
