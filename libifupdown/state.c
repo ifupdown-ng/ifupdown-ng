@@ -16,14 +16,17 @@
 #include <string.h>
 #include "libifupdown/state.h"
 #include "libifupdown/fgetline.h"
+#include "libifupdown/tokenize.h"
 
 bool
 lif_state_read(struct lif_dict *state, FILE *fd)
 {
 	char linebuf[4096];
+	char *bufp = linebuf;
+
 	while (lif_fgetline(linebuf, sizeof linebuf, fd))
 	{
-		char *ifname = linebuf;
+		char *ifname = lif_next_token(&bufp);
 		char *equals_p = strchr(linebuf, '=');
 
 		if (equals_p == NULL)
