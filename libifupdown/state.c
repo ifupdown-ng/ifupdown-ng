@@ -22,10 +22,10 @@ bool
 lif_state_read(struct lif_dict *state, FILE *fd)
 {
 	char linebuf[4096];
-	char *bufp = linebuf;
 
 	while (lif_fgetline(linebuf, sizeof linebuf, fd))
 	{
+		char *bufp = linebuf;
 		char *ifname = lif_next_token(&bufp);
 		char *refcount = lif_next_token(&bufp);
 		size_t rc = 1;
