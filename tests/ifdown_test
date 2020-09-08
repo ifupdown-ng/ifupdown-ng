@@ -19,6 +19,9 @@ tests_init \
 	learned_dependency_2 \
 	learned_executor \
 	implicit_vlan \
+	deferred_teardown_1 \
+	deferred_teardown_2 \
+	deferred_teardown_3 \
 	regress_opt_f
 
 noargs_body() {
@@ -140,6 +143,33 @@ implicit_vlan_body() {
 		-e match:"attempting to run vlan executor" \
 		-e match:"attempting to run link executor" \
 		ifdown -n -S $FIXTURES/vlan.ifstate -E $EXECUTORS -i $FIXTURES/vlan.interfaces eth0.8
+}
+
+deferred_teardown_1_body() {
+	atf_check -s exit:0 -o ignore \
+		-e match:"skipping dependent interface eth0 \\(of bond0\\) -- transient dependencies still exist" \
+		-e match:"changing state of dependent interface eth1 \\(of bond0\\) to down" \
+		ifdown -n -S $FIXTURES/deferred-teardown-1.ifstate -E $EXECUTORS \
+			-i $FIXTURES/deferred-teardown-1.interfaces br0
+}
+
+deferred_teardown_2_body() {
+	atf_check -s exit:0 -o ignore \
+		-e match:"skipping dependent interface eth0 \\(of tun0\\) -- transient dependencies still exist" \
+		-e match:"skipping dependent interface eth0 \\(of tun1\\) -- transient dependencies still exist" \
+		-e match:"skipping dependent interface eth0 \\(of tun2\\) -- transient dependencies still exist" \
+		ifdown -n -S $FIXTURES/deferred-teardown-2.ifstate -E $EXECUTORS \
+			-i $FIXTURES/deferred-teardown-2.interfaces tun0 tun1 tun2
+}
+
+deferred_teardown_3_body() {
+	atf_check -s exit:0 -o ignore \
+		-e match:"skipping dependent interface eth0 \\(of tun0\\) -- transient dependencies still exist" \
+		-e match:"skipping dependent interface eth0 \\(of tun1\\) -- transient dependencies still exist" \
+		-e match:"skipping dependent interface eth0 \\(of tun2\\) -- transient dependencies still exist" \
+		-e match:"changing state of dependent interface eth0 \\(of tun3\\) to down" \
+		ifdown -n -S $FIXTURES/deferred-teardown-2.ifstate -E $EXECUTORS \
+			-i $FIXTURES/deferred-teardown-2.interfaces tun0 tun1 tun2 tun3
 }
 
 regress_opt_f_body() {

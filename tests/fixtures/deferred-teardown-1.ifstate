@@ -1,0 +1,6 @@
+lo=lo 1
+br0=br0 1
+bond0=bond0 2
+eth0=eth0 3
+eth1=eth1 2
+tun0=tun0 1
