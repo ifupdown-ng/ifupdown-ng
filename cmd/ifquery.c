@@ -215,7 +215,8 @@ list_state(struct lif_dict *state, struct match_options *opts)
 		    fnmatch(opts->include_pattern, entry->key, 0))
 			continue;
 
-		printf("%s=%s\n", entry->key, (const char *) entry->data);
+		struct lif_state_record *rec = entry->data;
+		printf("%s=%s %zu\n", entry->key, rec->mapped_if, rec->refcount);
 	}
 }
 
