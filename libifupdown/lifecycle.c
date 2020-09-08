@@ -279,7 +279,7 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 		struct lif_interface *iface = lif_interface_collection_find(collection, tokenp);
 
 		/* already up or down, skip */
-		if (up == iface->is_up)
+		if (up && iface->refcount > 0)
 		{
 			if (opts->verbose)
 				fprintf(stderr, "ifupdown: skipping dependent interface %s (of %s)\n",
@@ -328,7 +328,7 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 
 		lif_state_upsert(state, lifname, iface);
 
-		iface->is_up = true;
+		iface->refcount++;
 	}
 	else
 	{
@@ -347,7 +347,7 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 
 		lif_state_delete(state, lifname);
 
-		iface->is_up = false;
+		iface->refcount--;
 	}
 
 	return true;
