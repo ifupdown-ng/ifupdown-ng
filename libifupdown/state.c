@@ -64,6 +64,24 @@ lif_state_read_path(struct lif_dict *state, const char *path)
 }
 
 void
+lif_state_ref_if(struct lif_dict *state, const char *ifname, struct lif_interface *iface)
+{
+	iface->refcount++;
+	lif_state_upsert(state, ifname, iface);
+}
+
+void
+lif_state_unref_if(struct lif_dict *state, const char *ifname, struct lif_interface *iface)
+{
+	iface->refcount--;
+
+	if (iface->refcount)
+		lif_state_upsert(state, ifname, iface);
+	else
+		lif_state_delete(state, ifname);
+}
+
+void
 lif_state_upsert(struct lif_dict *state, const char *ifname, struct lif_interface *iface)
 {
 	lif_state_delete(state, ifname);
