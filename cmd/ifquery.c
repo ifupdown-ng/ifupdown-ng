@@ -67,9 +67,9 @@ print_interface_dot(struct lif_dict *collection, struct lif_interface *iface, st
 		return;
 
 	if (parent != NULL)
-		printf("\"%s\" -> ", parent->ifname);
+		printf("\"%s (%zu)\" -> ", parent->ifname, parent->rdepends_count);
 
-	printf("\"%s\"", iface->ifname);
+	printf("\"%s (%zu)\"", iface->ifname, iface->rdepends_count);
 
 	printf("\n");
 
