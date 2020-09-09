@@ -12,7 +12,7 @@ protocol documented in this man page.
 
 # PHASES
 
-Executors are run to react to seven different phases and are not
+Executors are run to react to nine different phases and are not
 required to take any specific action.  These phases are:
 
 *depend*
@@ -23,6 +23,10 @@ required to take any specific action.  These phases are:
 	into the dependency graph.  If an executor does not have
 	any dependencies, it may simply exit 0 without doing
 	anything.
+
+*create*
+	Called before *pre-up*, to explicitly allow for interface
+	creation if necessary.
 
 *pre-up*
 	Called before the interface is going to be brought up.
@@ -41,6 +45,10 @@ required to take any specific action.  These phases are:
 
 *post-down*
 	Called after the interface was successfully taken down.
+
+*destroy*
+	Called after *post-down* to allow for explicitly
+	destroying an interface if necessary.
 
 # ENVIRONMENT
 
