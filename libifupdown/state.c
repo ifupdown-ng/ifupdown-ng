@@ -32,7 +32,12 @@ lif_state_read(struct lif_dict *state, FILE *fd)
 		char *equals_p = strchr(linebuf, '=');
 
 		if (*refcount)
+		{
 			rc = strtoul(refcount, NULL, 10);
+
+			if (rc == 0 || rc == ULONG_MAX)
+				rc = 1;
+		}
 
 		if (equals_p == NULL)
 		{
