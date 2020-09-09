@@ -352,6 +352,9 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 		 * but, right now neither debian ifupdown or busybox ifupdown do any recovery,
 		 * so we wont right now.
 		 */
+		if (!lif_lifecycle_run_phase(opts, iface, "create", lifname, up))
+			return false;
+
 		if (!lif_lifecycle_run_phase(opts, iface, "pre-up", lifname, up))
 			return false;
 
@@ -374,6 +377,9 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 			return false;
 
 		if (!lif_lifecycle_run_phase(opts, iface, "post-down", lifname, up))
+			return false;
+
+		if (!lif_lifecycle_run_phase(opts, iface, "destroy", lifname, up))
 			return false;
 
 		/* when going up, dependents go down last. */
