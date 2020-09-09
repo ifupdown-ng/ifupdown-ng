@@ -47,13 +47,13 @@ handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[
 }
 
 static inline bool
-handle_single_executor_for_phase(const struct lif_dict_entry *entry, const struct lif_execute_opts *opts, char *const envp[], const char *phase)
+handle_single_executor_for_phase(const struct lif_dict_entry *entry, const struct lif_execute_opts *opts, char *const envp[], const char *phase, const char *lifname)
 {
 	if (strcmp(entry->key, "use"))
 		return true;
 
 	const char *cmd = entry->data;
-	if (!lif_maybe_run_executor(opts, envp, cmd, phase))
+	if (!lif_maybe_run_executor(opts, envp, cmd, phase, lifname))
 		return false;
 
 	return true;
@@ -67,12 +67,12 @@ handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp
 	if (up)
 	{
 		LIF_DICT_FOREACH(iter, &iface->vars)
-			handle_single_executor_for_phase(iter->data, opts, envp, phase);
+			handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname);
 	}
 	else
 	{
 		LIF_DICT_FOREACH_REVERSE(iter, &iface->vars)
-			handle_single_executor_for_phase(iter->data, opts, envp, phase);
+			handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname);
 	}
 
 	return true;
@@ -97,7 +97,7 @@ query_dependents_from_executors(const struct lif_execute_opts *opts, char *const
 			continue;
 
 		const char *cmd = entry->data;
-		if (!lif_maybe_run_executor_with_result(&exec_opts, envp, cmd, resbuf, sizeof resbuf, phase))
+		if (!lif_maybe_run_executor_with_result(&exec_opts, envp, cmd, resbuf, sizeof resbuf, phase, iface->ifname))
 			return false;
 
 		if (!*resbuf)
