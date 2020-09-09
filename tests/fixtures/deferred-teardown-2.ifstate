@@ -1,0 +1,5 @@
+eth0=eth0 5
+tun0=tun0 1
+tun1=tun1 1
+tun2=tun2 1
+tun3=tun3 1

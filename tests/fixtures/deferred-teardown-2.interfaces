@@ -1,0 +1,11 @@
+iface tun0
+	requires eth0
+
+iface tun1
+	requires eth0
+
+iface tun2
+	requires eth0
+
+iface tun3
+	requires eth0

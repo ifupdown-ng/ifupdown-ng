@@ -261,6 +261,36 @@ handle_error:
 	return false;
 }
 
+/* this function returns true if we can skip processing the interface for now,
+ * otherwise false.
+ */
+static bool
+handle_refcounting(struct lif_dict *state, struct lif_interface *iface, bool up)
+{
+	size_t orig_refcount = iface->refcount;
+
+	if (up)
+		lif_state_ref_if(state, iface->ifname, iface);
+	else
+		lif_state_unref_if(state, iface->ifname, iface);
+
+#ifdef DEBUG_REFCOUNTING
+	fprintf(stderr, "handle_refcounting(): orig_refcount=%zu, refcount=%zu, direction=%s\n",
+		orig_refcount, iface->refcount, up ? "UP" : "DOWN");
+#endif
+
+	/* if going up and orig_refcount > 0 -- we're already configured. */
+	if (up && orig_refcount > 0)
+		return true;
+
+	/* if going down and iface->refcount > 1 -- we still have other dependents. */
+	if (!up && iface->refcount > 1)
+		return true;
+
+	/* we can change this interface -- no blocking dependents. */
+	return false;
+}
+
 static bool
 handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *parent, struct lif_dict *collection, struct lif_dict *state, bool up)
 {
@@ -278,12 +308,17 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 	{
 		struct lif_interface *iface = lif_interface_collection_find(collection, tokenp);
 
-		/* already up or down, skip */
-		if (up == iface->is_up)
+		/* if handle_refcounting returns true, it means we've already
+		 * configured the interface, or it is too soon to deconfigure
+		 * the interface.
+		 */
+		if (handle_refcounting(state, iface, up))
 		{
 			if (opts->verbose)
-				fprintf(stderr, "ifupdown: skipping dependent interface %s (of %s)\n",
-					iface->ifname, parent->ifname);
+				fprintf(stderr, "ifupdown: skipping dependent interface %s (of %s) -- %s\n",
+					iface->ifname, parent->ifname,
+					up ? "already configured" : "transient dependencies still exist");
+
 			continue;
 		}
 
@@ -328,7 +363,7 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 
 		lif_state_upsert(state, lifname, iface);
 
-		iface->is_up = true;
+		lif_state_ref_if(state, lifname, iface);
 	}
 	else
 	{
@@ -345,9 +380,7 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 		if (!handle_dependents(opts, iface, collection, state, up))
 			return false;
 
-		lif_state_delete(state, lifname);
-
-		iface->is_up = false;
+		lif_state_unref_if(state, lifname, iface);
 	}
 
 	return true;

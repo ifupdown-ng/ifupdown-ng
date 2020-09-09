@@ -94,6 +94,29 @@ acquire_state_lock(const char *state_path, const char *lifname)
 }
 
 bool
+skip_interface(struct lif_interface *iface, const char *ifname)
+{
+	if (exec_opts.force)
+		return false;
+
+	if (up && iface->refcount > 0)
+	{
+		fprintf(stderr, "%s: skipping %s (already configured), use --force to force configuration\n",
+			argv0, ifname);
+		return true;
+	}
+
+	if (!up && iface->refcount == 0)
+	{
+		fprintf(stderr, "%s: skipping %s (already deconfigured), use --force to force deconfiguration\n",
+			argv0, ifname);
+		return true;
+	}
+
+	return false;
+}
+
+bool
 change_interface(struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *ifname)
 {
 	int lockfd = acquire_state_lock(exec_opts.state_file, ifname);
@@ -102,6 +125,14 @@ change_interface(struct lif_interface *iface, struct lif_dict *collection, struc
 	{
 		fprintf(stderr, "%s: could not acquire exclusive lock for %s: %s\n", argv0, ifname, strerror(errno));
 		return false;
+	}
+
+	if (skip_interface(iface, ifname))
+	{
+		if (lockfd != -1)
+			close(lockfd);
+
+		return true;
 	}
 
 	if (exec_opts.verbose)
@@ -156,6 +187,27 @@ change_auto_interfaces(struct lif_dict *collection, struct lif_dict *state, stru
 }
 
 int
+update_state_file_and_exit(int rc, struct lif_dict *state)
+{
+	if (exec_opts.mock)
+	{
+		exit(rc);
+		return rc;
+	}
+
+	if (!lif_state_write_path(state, exec_opts.state_file))
+	{
+		fprintf(stderr, "%s: could not update %s\n", argv0, exec_opts.state_file);
+
+		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
+	}
+
+	exit(rc);
+	return rc;
+}
+
+int
 ifupdown_main(int argc, char *argv[])
 {
 	up = !is_ifdown();
@@ -186,9 +238,9 @@ ifupdown_main(int argc, char *argv[])
 	if (match_opts.is_auto)
 	{
 		if (!change_auto_interfaces(&collection, &state, &match_opts))
-			return EXIT_FAILURE;
+			return update_state_file_and_exit(EXIT_FAILURE, &state);
 
-		return EXIT_SUCCESS;
+		return update_state_file_and_exit(EXIT_SUCCESS, &state);
 	}
 	else if (optind >= argc)
 		generic_usage(self_applet, EXIT_FAILURE);
@@ -217,23 +269,17 @@ ifupdown_main(int argc, char *argv[])
 			if (entry == NULL)
 			{
 				fprintf(stderr, "%s: unknown interface %s\n", argv0, argv[idx]);
-				return EXIT_FAILURE;
+				return update_state_file_and_exit(EXIT_FAILURE, &state);
 			}
 
 			iface = entry->data;
 		}
 
 		if (!change_interface(iface, &collection, &state, ifname))
-			return EXIT_FAILURE;
+			return update_state_file_and_exit(EXIT_FAILURE, &state);
 	}
 
-	if (!exec_opts.mock && !lif_state_write_path(&state, exec_opts.state_file))
-	{
-		fprintf(stderr, "%s: could not update %s\n", argv0, exec_opts.state_file);
-		return EXIT_FAILURE;
-	}
-
-	return EXIT_SUCCESS;
+	return update_state_file_and_exit(EXIT_SUCCESS, &state);
 }
 
 struct if_applet ifup_applet = {

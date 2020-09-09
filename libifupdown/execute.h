@@ -23,6 +23,7 @@ struct lif_execute_opts {
 	bool verbose;
 	bool mock;
 	bool no_lock;
+	bool force;
 	const char *executor_path;
 	const char *interfaces_file;
 	const char *state_file;

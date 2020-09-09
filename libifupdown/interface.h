@@ -53,7 +53,7 @@ struct lif_interface {
 
 	struct lif_dict vars;
 
-	bool is_up;
+	size_t refcount;	/* >= 0 if up, else 0 */
 };
 
 #define LIF_INTERFACE_COLLECTION_FOREACH(iter, collection) \

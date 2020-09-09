@@ -1,0 +1,9 @@
+auto br0
+iface br0
+	requires bond0
+
+iface bond0
+	requires eth0 eth1
+
+iface tun0
+	requires eth0
