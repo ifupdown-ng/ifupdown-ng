@@ -68,13 +68,18 @@ case "${PHASE}" in
 		fi
 		;;
 
-	pre-up)
+	create)
 		# Main B.A.T.M.A.N. adv. interface
 		if [ "${IF_BATMAN_IFACES}" ]; then
 			if [ ! -d "/sys/class/net/${IFACE}" ]; then
 				batctl "${mesh_if_param}" "${IFACE}" interface create || true
 			fi
+		fi
+		;;
 
+	pre-up)
+		# Main B.A.T.M.A.N. adv. interface
+		if [ "${IF_BATMAN_IFACES}" ]; then
 			batctl_if add
 			set_batmam_params
 
@@ -84,7 +89,7 @@ case "${PHASE}" in
 		fi
 		;;
 
-	post-down)
+	destroy)
 		if [ "${IF_BATMAN_IFACES}" -a -d "/sys/class/net/${IFACE}" ]; then
 			# Newer versions of batctl provide the "interface destroy" API, try to use it
 			if ! batctl "${mesh_if_param}" "${IFACE}" interface destroy 2>/dev/null; then
