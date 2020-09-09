@@ -135,6 +135,9 @@ esac
 [ -z "$PORTS" ] && ! env | grep -q "^IF_BRIDGE" && exit
 
 case "$PHASE" in
+depend)
+	echo "$PORTS"
+	;;
 create)
 	if [ ! -d "/sys/class/net/${IFACE}" ]; then
 		brctl addbr "${IFACE}"
