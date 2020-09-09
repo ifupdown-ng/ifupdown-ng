@@ -6,7 +6,7 @@
 # This executor is responsible for setting up the main B.A.T.M.A.N. adv. interface (eg. bat0)
 # as well as managing settings of the underlying interfaces (hardifs).
 #
-# Know options for the main interface are:
+# Known options for the main interface are:
 #  IF_BATMAN_IFACES			Space separated list of interfaces to be part of this B.A.T.M.A.N. adv. instance
 #  IF_BATMAN_IFACES_IGNORE_REGEX	Interfaces to ignore when verifying configuration (regexp)
 #  IF_BATMAN_DISTRIBUTED_ARP_TABLE	'enable' or 'disable' DAT of this B.A.T.M.A.N. adv. instance
@@ -47,7 +47,7 @@ batctl_if () {
 	done
 }
 
-set_batmam_params () {
+set_batman_params () {
 	[ "${IF_BATMAN_DISTRIBUTED_ARP_TABLE}" ] && ${MOCK} batctl "${mesh_if_param}" "${IFACE}" distributed_arp_table "${IF_BATMAN_DISTRIBUTED_ARP_TABLE}"
 	[ "${IF_BATMAN_MULTICAST_MODE}" ]        && ${MOCK} batctl "${mesh_if_param}" "${IFACE}" multicast_mode "${IF_BATMAN_MULTICAST_MODE}"
 	[ "${IF_BATMAN_HOP_PENALTY}" ]           && ${MOCK} batctl "${mesh_if_param}" "${IFACE}" hop_penalty "${IF_BATMAN_HOP_PENALTY}"
@@ -81,7 +81,7 @@ case "${PHASE}" in
 		# Main B.A.T.M.A.N. adv. interface
 		if [ "${IF_BATMAN_IFACES}" ]; then
 			batctl_if add
-			set_batmam_params
+			set_batman_params
 
 		# B.A.T.M.A.N. adv. underlying interface
 		elif [ "${IF_BATMAN_IFACE_PENALTY}" ]; then
