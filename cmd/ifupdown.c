@@ -229,6 +229,12 @@ ifupdown_main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	if (!lif_lifecycle_count_rdepends(&exec_opts, &collection))
+	{
+		fprintf(stderr, "%s: could not validate dependency tree\n", argv0);
+		return EXIT_FAILURE;
+	}
+
 	if (!lif_state_sync(&state, &collection))
 	{
 		fprintf(stderr, "%s: could not sync state\n", argv0);
