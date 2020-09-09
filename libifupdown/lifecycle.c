@@ -364,8 +364,6 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 		if (!lif_lifecycle_run_phase(opts, iface, "post-up", lifname, up))
 			return false;
 
-		lif_state_upsert(state, lifname, iface);
-
 		lif_state_ref_if(state, lifname, iface);
 	}
 	else
