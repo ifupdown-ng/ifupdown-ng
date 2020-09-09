@@ -9,7 +9,7 @@ tests_init \
 	flags_bringup
 
 basic_bringup_body() {
-	export MOCK=echo IFACE=tun0 PHASE=pre-up \
+	export MOCK=echo IFACE=tun0 PHASE=create \
 		IF_GRE_LOCAL=1.2.3.4 IF_GRE_REMOTE=5.6.7.8 \
 		IF_GRE_TTL=255
 	atf_check -s exit:0 \
@@ -22,7 +22,7 @@ basic_bringup_body() {
 }
 
 basic_teardown_body() {
-	export MOCK=echo IFACE=tun0 PHASE=post-down \
+	export MOCK=echo IFACE=tun0 PHASE=destroy \
 		IF_GRE_LOCAL=1.2.3.4 IF_GRE_REMOTE=5.6.7.8 \
 		IF_GRE_TTL=255
 	atf_check -s exit:0 \
@@ -31,7 +31,7 @@ basic_teardown_body() {
 }
 
 flags_bringup_body() {
-	export MOCK=echo IFACE=tun0 PHASE=pre-up \
+	export MOCK=echo IFACE=tun0 PHASE=create \
 		IF_GRE_LOCAL=1.2.3.4 IF_GRE_REMOTE=5.6.7.8 \
 		IF_GRE_TTL=255 IF_GRE_FLAGS="nopmtudisc ignore-df"
 	atf_check -s exit:0 \

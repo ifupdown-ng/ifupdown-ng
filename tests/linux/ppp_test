@@ -8,14 +8,14 @@ tests_init \
 	teardown \
 
 bringup_body() {
-	export MOCK=echo IFACE=ppp0 PHASE=pre-up IF_PPP_PROVIDER=someisp
+	export MOCK=echo IFACE=ppp0 PHASE=create IF_PPP_PROVIDER=someisp
 	atf_check -s exit:0 \
 		-o match:'pon someisp' \
 		${EXECUTOR}
 }
 
 teardown_body() {
-	export MOCK=echo IFACE=ppp0 PHASE=post-down IF_PPP_PROVIDER=someisp
+	export MOCK=echo IFACE=ppp0 PHASE=destroy IF_PPP_PROVIDER=someisp
 	atf_check -s exit:0 \
 		-o match:'poff someisp' \
 		${EXECUTOR}

@@ -4,14 +4,21 @@
 EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/wireguard"
 
 tests_init \
+	create \
 	pre_up \
 	pre_up_specified_config \
-	post_down
+	destroy
+
+create_body() {
+	export IFACE=wg0 PHASE=create MOCK=echo
+	atf_check -s exit:0 \
+		-o match:'ip link add wg0 type wireguard' \
+		${EXECUTOR}
+}
 
 pre_up_body() {
 	export IFACE=wg0 PHASE=pre-up MOCK=echo
 	atf_check -s exit:0 \
-		-o match:'ip link add wg0 type wireguard' \
 		-o match:'wg setconf wg0 /etc/wireguard/wg0.conf' \
 		${EXECUTOR}
 }
@@ -20,13 +27,12 @@ pre_up_specified_config_body() {
 	export IFACE=wg0 PHASE=pre-up MOCK=echo \
 		IF_WIREGUARD_CONFIG_PATH=/etc/wireguard/vpn.conf
 	atf_check -s exit:0 \
-		-o match:'ip link add wg0 type wireguard' \
 		-o match:'wg setconf wg0 /etc/wireguard/vpn.conf' \
 		${EXECUTOR}
 }
 
-post_down_body() {
-	export IFACE=wg0 PHASE=post-down MOCK=echo
+destroy_body() {
+	export IFACE=wg0 PHASE=destroy MOCK=echo
 	atf_check -s exit:0 \
 		-o match:'ip link delete dev wg0' \
 		${EXECUTOR}

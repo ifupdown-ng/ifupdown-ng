@@ -9,7 +9,7 @@ tests_init \
 	member_bringup
 
 leader_bringup_body() {
-	export MOCK=echo IFACE=vrf-red PHASE=pre-up IF_VRF_TABLE=1 IF_VRF_MEMBER=
+	export MOCK=echo IFACE=vrf-red PHASE=create IF_VRF_TABLE=1 IF_VRF_MEMBER=
 	atf_check -s exit:0 \
 		-o match:'ip link add vrf-red type vrf table 1' \
 		-o match:'ip rule add iif vrf-red table 1' \
@@ -18,7 +18,7 @@ leader_bringup_body() {
 }
 
 leader_teardown_body() {
-	export MOCK=echo IFACE=vrf-red PHASE=post-down IF_VRF_TABLE=1 IF_VRF_MEMBER=
+	export MOCK=echo IFACE=vrf-red PHASE=destroy IF_VRF_TABLE=1 IF_VRF_MEMBER=
 	atf_check -s exit:0 \
 		-o match:'ip link del vrf-red type vrf table 1' \
 		-o match:'ip rule del iif vrf-red table 1' \

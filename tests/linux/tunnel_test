@@ -8,7 +8,7 @@ tests_init \
 	tunnel_teardown
 
 tunnel_bringup_body() {
-	export MOCK=echo IFACE=tun0 PHASE=pre-up IF_TUNNEL_MODE=gre \
+	export MOCK=echo IFACE=tun0 PHASE=create IF_TUNNEL_MODE=gre \
 		IF_TUNNEL_LOCAL=1.2.3.4 IF_TUNNEL_REMOTE=5.6.7.8 \
 		IF_TUNNEL_TTL=255
 	atf_check -s exit:0 \
@@ -21,7 +21,7 @@ tunnel_bringup_body() {
 }
 
 tunnel_teardown_body() {
-	export MOCK=echo IFACE=tun0 PHASE=post-down IF_TUNNEL_MODE=gre \
+	export MOCK=echo IFACE=tun0 PHASE=destroy IF_TUNNEL_MODE=gre \
 		IF_TUNNEL_LOCAL=1.2.3.4 IF_TUNNEL_REMOTE=5.6.7.8 \
 		IF_TUNNEL_TTL=255
 	atf_check -s exit:0 \
