@@ -37,10 +37,10 @@ PARAMS=$(set | sed -E '
 [ "$PARAMS" ] || exit 0
 
 case "$PHASE" in
-pre-up)
+create)
 	${MOCK} eval ip $FAMILY $COMMAND add $IFACE $PARAMS
 	;;
-post-down)
+destroy)
 	${MOCK} ip $FAMILY $COMMAND del $IFACE
 	;;
 depend)

@@ -14,14 +14,14 @@ handle_member() {
 [ -n "$VERBOSE" ] && set -x
 
 case "$PHASE" in
-pre-up)
+create)
 	[ -n "$IF_VRF_TABLE" ] && handle_init "add"
-	[ -n "$IF_VRF_MEMBER" ] && handle_member
-	exit 0
 	;;
-post-down)
+pre-up)
+	[ -n "$IF_VRF_MEMBER" ] && handle_member
+	;;
+destroy)
 	[ -n "$IF_VRF_TABLE" ] && handle_init "del"
-	exit 0
 	;;
 depend)
 	echo "$IF_VRF_MEMBER"
