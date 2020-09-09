@@ -339,9 +339,6 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 	if (lifname == NULL)
 		lifname = iface->ifname;
 
-	if (!lif_lifecycle_query_dependents(opts, iface, lifname))
-		return false;
-
 	if (up)
 	{
 		/* when going up, dependents go up first. */
