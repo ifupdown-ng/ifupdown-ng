@@ -13,6 +13,7 @@
  * from the use of this software.
  */
 
+#include <limits.h>
 #include <string.h>
 #include "libifupdown/state.h"
 #include "libifupdown/fgetline.h"
