@@ -94,6 +94,26 @@ acquire_state_lock(const char *state_path, const char *lifname)
 }
 
 bool
+skip_interface(struct lif_interface *iface, const char *ifname)
+{
+	if (up && iface->refcount > 0)
+	{
+		fprintf(stderr, "%s: skipping %s (already configured), use --force to force configuration\n",
+			argv0, ifname);
+		return true;
+	}
+
+	if (!up && iface->refcount == 0)
+	{
+		fprintf(stderr, "%s: skipping %s (already deconfigured), use --force to force deconfiguration\n",
+			argv0, ifname);
+		return true;
+	}
+
+	return false;
+}
+
+bool
 change_interface(struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *ifname)
 {
 	int lockfd = acquire_state_lock(exec_opts.state_file, ifname);
@@ -102,6 +122,14 @@ change_interface(struct lif_interface *iface, struct lif_dict *collection, struc
 	{
 		fprintf(stderr, "%s: could not acquire exclusive lock for %s: %s\n", argv0, ifname, strerror(errno));
 		return false;
+	}
+
+	if (skip_interface(iface, ifname))
+	{
+		if (lockfd != -1)
+			close(lockfd);
+
+		return true;
 	}
 
 	if (exec_opts.verbose)
