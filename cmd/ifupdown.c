@@ -96,6 +96,9 @@ acquire_state_lock(const char *state_path, const char *lifname)
 bool
 skip_interface(struct lif_interface *iface, const char *ifname)
 {
+	if (exec_opts.force)
+		return false;
+
 	if (up && iface->refcount > 0)
 	{
 		fprintf(stderr, "%s: skipping %s (already configured), use --force to force configuration\n",
