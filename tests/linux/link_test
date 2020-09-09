@@ -8,13 +8,13 @@ tests_init \
 	down \
 	mtu \
 	hwaddress \
-	vlan_explicit_pre_up \
-	vlan_explicit_post_down \
-	vlan_guessed_pre_up \
-	vlan_guessed_post_down \
+	vlan_explicit_create \
+	vlan_explicit_destroy \
+	vlan_guessed_create \
+	vlan_guessed_destroy \
 	vlan_explicit_depend \
 	vlan_guessed_depend \
-	dummy_pre_up
+	dummy_create
 
 up_body() {
 	export IFACE=lo PHASE=up MOCK=echo
@@ -40,28 +40,28 @@ hwaddress_body() {
 		${EXECUTOR}
 }
 
-vlan_explicit_pre_up_body() {
-	export IFACE=servers PHASE=pre-up MOCK=echo \
+vlan_explicit_create_body() {
+	export IFACE=servers PHASE=create MOCK=echo \
 		IF_VLAN_RAW_DEVICE="eth0" IF_VLAN_ID="123"
 	atf_check -s exit:0 -o match:'ip link add link eth0 name servers type vlan id 123' \
 		${EXECUTOR}
 }
 
-vlan_explicit_post_down_body() {
-	export IFACE=servers PHASE=post-down MOCK=echo \
+vlan_explicit_destroy_body() {
+	export IFACE=servers PHASE=destroy MOCK=echo \
 		IF_VLAN_RAW_DEVICE="eth0" IF_VLAN_ID="123"
 	atf_check -s exit:0 -o match:'ip link del servers' \
 		${EXECUTOR}
 }
 
-vlan_guessed_pre_up_body() {
-	export IFACE=eth0.8 PHASE=pre-up MOCK=echo
+vlan_guessed_create_body() {
+	export IFACE=eth0.8 PHASE=create MOCK=echo
 	atf_check -s exit:0 -o match:'ip link add link eth0 name eth0.8 type vlan id 8' \
 		${EXECUTOR}
 }
 
-vlan_guessed_post_down_body() {
-	export IFACE=eth0.8 PHASE=post-down MOCK=echo
+vlan_guessed_destroy_body() {
+	export IFACE=eth0.8 PHASE=destroy MOCK=echo
 	atf_check -s exit:0 -o match:'ip link del eth0.8' \
 		${EXECUTOR}
 }
@@ -79,8 +79,8 @@ vlan_guessed_depend_body() {
 		${EXECUTOR}
 }
 
-dummy_pre_up_body() {
-	export IFACE=yolo IF_LINK_TYPE=dummy PHASE=pre-up MOCK=echo
+dummy_create_body() {
+	export IFACE=yolo IF_LINK_TYPE=dummy PHASE=create MOCK=echo
 	atf_check -s exit:0 -o match:'ip link add yolo type dummy' \
 		${EXECUTOR}
 }

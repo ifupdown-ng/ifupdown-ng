@@ -19,10 +19,10 @@ PARAMS="mode $IF_GRE_MODE local '$IF_GRE_LOCAL' remote '$IF_GRE_REMOTE'"
 [ -n "$PARAMS" ] || exit 0
 
 case "$PHASE" in
-pre-up)
+create)
 	${MOCK} eval ip $FAMILY $COMMAND add $IFACE $PARAMS
 	;;
-post-down)
+destroy)
 	${MOCK} ip $FAMILY $COMMAND del $IFACE
 	;;
 depend)
