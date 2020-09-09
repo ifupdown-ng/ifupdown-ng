@@ -140,10 +140,10 @@ lif_file_is_executable(const char *path)
 }
 
 bool
-lif_maybe_run_executor(const struct lif_execute_opts *opts, char *const envp[], const char *executor, const char *phase)
+lif_maybe_run_executor(const struct lif_execute_opts *opts, char *const envp[], const char *executor, const char *phase, const char *lifname)
 {
 	if (opts->verbose)
-		fprintf(stderr, "ifupdown: attempting to run %s executor for phase %s\n", executor, phase);
+		fprintf(stderr, "ifupdown: %s: attempting to run %s executor for phase %s\n", lifname, executor, phase);
 
 	char pathbuf[4096];
 
@@ -156,10 +156,10 @@ lif_maybe_run_executor(const struct lif_execute_opts *opts, char *const envp[], 
 }
 
 bool
-lif_maybe_run_executor_with_result(const struct lif_execute_opts *opts, char *const envp[], const char *executor, char *buf, size_t bufsize, const char *phase)
+lif_maybe_run_executor_with_result(const struct lif_execute_opts *opts, char *const envp[], const char *executor, char *buf, size_t bufsize, const char *phase, const char *lifname)
 {
 	if (opts->verbose)
-		fprintf(stderr, "ifupdown: attempting to run %s executor for phase %s\n", executor, phase);
+		fprintf(stderr, "ifupdown: %s: attempting to run %s executor for phase %s\n", lifname, executor, phase);
 
 	char pathbuf[4096];
 
