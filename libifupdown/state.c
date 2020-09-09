@@ -166,7 +166,7 @@ lif_state_sync(struct lif_dict *state, struct lif_dict *if_collection)
 	{
 		struct lif_dict_entry *entry = iter->data;
 		struct lif_state_record *rec = entry->data;
-		struct lif_interface *iface = lif_interface_collection_find(if_collection, entry->key);
+		struct lif_interface *iface = lif_interface_collection_find(if_collection, rec->mapped_if);
 
 		iface->refcount = rec->refcount;
 	}
