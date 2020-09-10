@@ -67,9 +67,9 @@ print_interface_dot(struct lif_dict *collection, struct lif_interface *iface, st
 		return;
 
 	if (parent != NULL)
-		printf("\"%s\" -> ", parent->ifname);
+		printf("\"%s (%zu)\" -> ", parent->ifname, parent->rdepends_count);
 
-	printf("\"%s\"", iface->ifname);
+	printf("\"%s (%zu)\"", iface->ifname, iface->rdepends_count);
 
 	printf("\n");
 
@@ -287,6 +287,12 @@ ifquery_main(int argc, char *argv[])
 	if (!lif_interface_file_parse(&collection, exec_opts.interfaces_file))
 	{
 		fprintf(stderr, "%s: could not parse %s\n", argv0, exec_opts.interfaces_file);
+		return EXIT_FAILURE;
+	}
+
+	if (lif_lifecycle_count_rdepends(&exec_opts, &collection) == -1)
+	{
+		fprintf(stderr, "%s: could not validate dependency tree\n", argv0);
 		return EXIT_FAILURE;
 	}
 

@@ -53,7 +53,8 @@ struct lif_interface {
 
 	struct lif_dict vars;
 
-	size_t refcount;	/* >= 0 if up, else 0 */
+	size_t refcount;	/* > 0 if up, else 0 */
+	size_t rdepends_count;	/* > 0 if any reverse dependency */
 };
 
 #define LIF_INTERFACE_COLLECTION_FOREACH(iter, collection) \

@@ -339,9 +339,6 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 	if (lifname == NULL)
 		lifname = iface->ifname;
 
-	if (!lif_lifecycle_query_dependents(opts, iface, lifname))
-		return false;
-
 	if (up)
 	{
 		/* when going up, dependents go up first. */
@@ -388,4 +385,103 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 	}
 
 	return true;
+}
+
+static bool
+count_interface_rdepends(const struct lif_execute_opts *opts, struct lif_dict *collection, struct lif_interface *parent, size_t depth)
+{
+	/* query our dependents if we don't have them already */
+	if (!lif_lifecycle_query_dependents(opts, parent, parent->ifname))
+		return false;
+
+	/* set rdepends_count to depth, dependents will be depth + 1 */
+	parent->rdepends_count = depth;
+
+	struct lif_dict_entry *requires = lif_dict_find(&parent->vars, "requires");
+
+	/* no dependents, nothing to worry about */
+	if (requires == NULL)
+		return true;
+
+	/* walk any dependents */
+	char require_ifs[4096] = {};
+	strlcpy(require_ifs, requires->data, sizeof require_ifs);
+	char *bufp = require_ifs;
+
+	for (char *tokenp = lif_next_token(&bufp); *tokenp; tokenp = lif_next_token(&bufp))
+	{
+		struct lif_interface *iface = lif_interface_collection_find(collection, tokenp);
+
+		if (!count_interface_rdepends(opts, collection, iface, depth + 1))
+			return false;
+	}
+
+	return true;
+}
+
+ssize_t
+lif_lifecycle_count_rdepends(const struct lif_execute_opts *opts, struct lif_dict *collection)
+{
+	struct lif_node *iter;
+
+	LIF_DICT_FOREACH(iter, collection)
+	{
+		struct lif_dict_entry *entry = iter->data;
+		struct lif_interface *iface = entry->data;
+
+		/* start depth at interface's rdepends_count, which will be 0 for the root,
+		 * but will be more if additional rdepends are found...
+		 */
+		if (!count_interface_rdepends(opts, collection, iface, iface->rdepends_count))
+		{
+			fprintf(stderr, "ifupdown: dependency graph is broken for interface %s\n", iface->ifname);
+			return -1;
+		}
+	}
+
+	/* figure out the max depth */
+	size_t maxdepth = 0;
+
+	LIF_DICT_FOREACH(iter, collection)
+	{
+		struct lif_dict_entry *entry = iter->data;
+		struct lif_interface *iface = entry->data;
+
+		if (iface->rdepends_count > maxdepth)
+			maxdepth = iface->rdepends_count;
+	}
+
+	/* move the collection to a temporary list so we can reorder it */
+	struct lif_list temp_list = {};
+	struct lif_node *iter_next;
+
+	LIF_LIST_FOREACH_SAFE(iter, iter_next, collection->list.head)
+	{
+		void *data = iter->data;
+
+		lif_node_delete(iter, &collection->list);
+		memset(iter, 0, sizeof *iter);
+
+		lif_node_insert(iter, data, &temp_list);
+	}
+
+	/* walk backwards from maxdepth to 0, readding nodes */
+	for (ssize_t curdepth = maxdepth; curdepth > -1; curdepth--)
+	{
+		LIF_LIST_FOREACH_SAFE(iter, iter_next, temp_list.head)
+		{
+			struct lif_dict_entry *entry = iter->data;
+			struct lif_interface *iface = entry->data;
+
+			if ((ssize_t) iface->rdepends_count != curdepth)
+				continue;
+
+			lif_node_delete(iter, &temp_list);
+			memset(iter, 0, sizeof *iter);
+
+			lif_node_insert(iter, entry, &collection->list);
+		}
+	}
+
+	return maxdepth;
 }
