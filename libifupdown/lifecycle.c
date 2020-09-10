@@ -451,5 +451,37 @@ lif_lifecycle_count_rdepends(const struct lif_execute_opts *opts, struct lif_dic
 			maxdepth = iface->rdepends_count;
 	}
 
+	/* move the collection to a temporary list so we can reorder it */
+	struct lif_list temp_list = {};
+	struct lif_node *iter_next;
+
+	LIF_LIST_FOREACH_SAFE(iter, iter_next, collection->list.head)
+	{
+		void *data = iter->data;
+
+		lif_node_delete(iter, &collection->list);
+		memset(iter, 0, sizeof *iter);
+
+		lif_node_insert(iter, data, &temp_list);
+	}
+
+	/* walk backwards from maxdepth to 0, readding nodes */
+	for (ssize_t curdepth = maxdepth; curdepth > -1; curdepth--)
+	{
+		LIF_LIST_FOREACH_SAFE(iter, iter_next, temp_list.head)
+		{
+			struct lif_dict_entry *entry = iter->data;
+			struct lif_interface *iface = entry->data;
+
+			if ((ssize_t) iface->rdepends_count != curdepth)
+				continue;
+
+			lif_node_delete(iter, &temp_list);
+			memset(iter, 0, sizeof *iter);
+
+			lif_node_insert(iter, entry, &collection->list);
+		}
+	}
+
 	return maxdepth;
 }
