@@ -419,7 +419,7 @@ count_interface_rdepends(const struct lif_execute_opts *opts, struct lif_dict *c
 	return true;
 }
 
-bool
+ssize_t
 lif_lifecycle_count_rdepends(const struct lif_execute_opts *opts, struct lif_dict *collection)
 {
 	struct lif_node *iter;
@@ -435,9 +435,21 @@ lif_lifecycle_count_rdepends(const struct lif_execute_opts *opts, struct lif_dic
 		if (!count_interface_rdepends(opts, collection, iface, iface->rdepends_count))
 		{
 			fprintf(stderr, "ifupdown: dependency graph is broken for interface %s\n", iface->ifname);
-			return false;
+			return -1;
 		}
 	}
 
-	return true;
+	/* figure out the max depth */
+	size_t maxdepth = 0;
+
+	LIF_DICT_FOREACH(iter, collection)
+	{
+		struct lif_dict_entry *entry = iter->data;
+		struct lif_interface *iface = entry->data;
+
+		if (iface->rdepends_count > maxdepth)
+			maxdepth = iface->rdepends_count;
+	}
+
+	return maxdepth;
 }
