@@ -1,0 +1,13 @@
+auto dummy
+iface dummy
+	link-type dummy
+
+auto bat
+iface bat
+	link-type dummy
+	requires dummy
+
+auto br
+iface br
+	link-type dummy
+	requires bat

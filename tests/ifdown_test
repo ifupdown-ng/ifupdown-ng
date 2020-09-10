@@ -22,6 +22,7 @@ tests_init \
 	deferred_teardown_1 \
 	deferred_teardown_2 \
 	deferred_teardown_3 \
+	teardown_dep_ordering \
 	regress_opt_f
 
 noargs_body() {
@@ -170,6 +171,14 @@ deferred_teardown_3_body() {
 		-e match:"changing state of dependent interface eth0 \\(of tun3\\) to down" \
 		ifdown -n -S $FIXTURES/deferred-teardown-2.ifstate -E $EXECUTORS \
 			-i $FIXTURES/deferred-teardown-2.interfaces tun0 tun1 tun2 tun3
+}
+
+teardown_dep_ordering_body() {
+	atf_check -s exit:0 -o ignore \
+		-e match:"skipping auto interface bat" \
+		-e match:"skipping auto interface dummy" \
+		ifdown -n -i $FIXTURES/teardown-dep-ordering.interfaces \
+			-S $FIXTURES/teardown-dep-ordering.ifstate -E $EXECUTORS -a
 }
 
 regress_opt_f_body() {

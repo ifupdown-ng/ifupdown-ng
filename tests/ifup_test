@@ -18,7 +18,8 @@ tests_init \
 	learned_dependency \
 	learned_dependency_2 \
 	learned_executor \
-	implicit_vlan
+	implicit_vlan \
+	teardown_dep_ordering
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifup -S/dev/null
@@ -130,4 +131,11 @@ implicit_vlan_body() {
 		-e match:"attempting to run vlan executor" \
 		-e match:"attempting to run link executor" \
 		ifup -n -S/dev/null -E $EXECUTORS -i $FIXTURES/vlan.interfaces eth0.8
+}
+
+teardown_dep_ordering_body() {
+	atf_check -s exit:0 -o ignore \
+		-e match:"skipping auto interface bat" \
+		-e match:"skipping auto interface dummy" \
+		ifup -n -i $FIXTURES/teardown-dep-ordering.interfaces -E $EXECUTORS -a
 }
