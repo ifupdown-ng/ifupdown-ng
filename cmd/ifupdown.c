@@ -101,15 +101,17 @@ skip_interface(struct lif_interface *iface, const char *ifname)
 
 	if (up && iface->refcount > 0)
 	{
-		fprintf(stderr, "%s: skipping %s (already configured), use --force to force configuration\n",
-			argv0, ifname);
+		if (exec_opts.verbose)
+			fprintf(stderr, "%s: skipping auto interface %s (already configured), use --force to force configuration\n",
+				argv0, ifname);
 		return true;
 	}
 
 	if (!up && iface->refcount == 0)
 	{
-		fprintf(stderr, "%s: skipping %s (already deconfigured), use --force to force deconfiguration\n",
-			argv0, ifname);
+		if (exec_opts.verbose)
+			fprintf(stderr, "%s: skipping auto interface %s (already deconfigured), use --force to force deconfiguration\n",
+				argv0, ifname);
 		return true;
 	}
 
