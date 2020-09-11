@@ -2,6 +2,9 @@
 
 set -e
 
+# some users provide a shell fragment for the hostname property.
+[ -n "$IF_HOSTNAME" ] && IF_HOSTNAME=$(eval echo $IF_HOSTNAME)
+
 determine_implementation() {
 	[ -n "$IF_DHCP_PROGRAM" ] && echo "$IF_DHCP_PROGRAM" && return
 	[ -x /sbin/dhcpcd ] && echo "dhcpcd" && return
