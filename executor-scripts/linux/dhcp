@@ -24,8 +24,11 @@ start() {
 		${MOCK} /usr/sbin/dhclient -pf /var/run/dhclient.$IFACE.pid $IFACE
 		;;
 	udhcpc)
-		UDHCPC_OPTS=$(eval echo $IF_UDHCPC_OPTS)
-		${MOCK} /sbin/udhcpc -b -R -p /var/run/udhcpc.$IFACE.pid -i $IFACE $UDHCPC_OPTS
+		optargs=$(eval echo $IF_UDHCPC_OPTS)
+		[ -n "$IF_HOSTNAME" ] && optargs="$optargs -x hostname:$IF_HOSTNAME"
+		[ -n "$IF_CLIENT" ] && optargs="$optargs -c $IF_CLIENT"
+		[ -n "$IF_SCRIPT" ] && optargs="$optargs -s $IF_SCRIPT"
+		${MOCK} /sbin/udhcpc -b -R -p /var/run/udhcpc.$IFACE.pid -i $IFACE $optargs
 		;;
 	*)
 		;;
