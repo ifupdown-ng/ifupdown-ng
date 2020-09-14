@@ -25,6 +25,7 @@
 #include "libifupdown/lifecycle.h"
 #include "libifupdown/state.h"
 #include "libifupdown/tokenize.h"
+#include "libifupdown/config-file.h"
 
 static bool
 handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[], const struct lif_interface *iface, const char *phase)
@@ -239,6 +240,10 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 
 	if (!handle_commands_for_phase(opts, envp, iface, phase))
 		goto handle_error;
+
+	/* if we don't need to support /etc/if-X.d we're done here */
+	if (!lif_config.allow_addon_scripts)
+		goto out_free;
 
 	/* Check if scripts dir for this phase is present and bail out if it isn't */
 	struct stat dir_stat;
