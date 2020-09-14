@@ -40,8 +40,8 @@ lif_config_parse_file(FILE *fd, const char *filename, struct lif_config_handler 
 	while (lif_fgetline(linebuf, sizeof linebuf, fd))
 	{
 		char *bufp = linebuf;
-		char *key = lif_next_token(&bufp);
-		char *value = lif_next_token(&bufp);
+		char *key = lif_next_token_eq(&bufp);
+		char *value = lif_next_token_eq(&bufp);
 
 		lineno++;
 

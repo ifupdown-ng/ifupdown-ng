@@ -19,7 +19,7 @@
 #include <ctype.h>
 
 static inline char *
-lif_next_token(char **buf)
+lif_next_token_eq(char **buf)
 {
 	char *out = *buf;
 
@@ -28,6 +28,24 @@ lif_next_token(char **buf)
 
 	char *end = out;
 	while (*end && !isspace(*end) && *end != '=')
+		end++;
+
+	*end++ = '\0';
+	*buf = end;
+
+	return out;
+}
+
+static inline char *
+lif_next_token(char **buf)
+{
+	char *out = *buf;
+
+	while (*out && isspace(*out))
+		out++;
+
+	char *end = out;
+	while (*end && !isspace(*end))
 		end++;
 
 	*end++ = '\0';
