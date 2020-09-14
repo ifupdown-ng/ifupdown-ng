@@ -72,6 +72,8 @@ main(int argc, char *argv[])
 	argv0 = basename(argv[0]);
 	const struct if_applet **app;
 
+	lif_config_load(CONFIG_FILE);
+
 	app = bsearch(argv0, applet_table,
 		      ARRAY_SIZE(applet_table), sizeof(*applet_table),
 		      applet_cmp);
