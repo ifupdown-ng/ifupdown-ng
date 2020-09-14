@@ -27,7 +27,7 @@ lif_next_token(char **buf)
 		out++;
 
 	char *end = out;
-	while (*end && !isspace(*end) && *out != '=')
+	while (*end && !isspace(*end) && *end != '=')
 		end++;
 
 	*end++ = '\0';
