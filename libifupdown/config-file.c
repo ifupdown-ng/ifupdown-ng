@@ -52,8 +52,10 @@ lif_config_load(const char *filename)
 
 	if (fd == NULL)
 	{
+#if 0
 		fprintf(stderr, "ifupdown-ng: cannot open config %s: %s\n",
 			filename, strerror(errno));
+#endif
 		return false;
 	}
 
