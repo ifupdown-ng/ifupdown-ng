@@ -48,6 +48,9 @@ lif_config_parse_file(FILE *fd, const char *filename, struct lif_config_handler 
 		if (!*key || !*value)
 			continue;
 
+		if (*key == '#')
+			continue;
+
 		struct lif_config_handler *hdl = bsearch(key, handlers, handler_count, sizeof(*handlers),
 			handler_cmp);
 
