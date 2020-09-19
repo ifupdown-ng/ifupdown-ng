@@ -10,6 +10,7 @@ PACKAGE_BUGREPORT := https://github.com/ifupdown-ng/ifupdown-ng/issues/new
 
 INTERFACES_FILE := /etc/network/interfaces
 STATE_FILE := /run/ifstate
+CONFIG_FILE := /etc/network/ifupdown-ng.conf
 EXECUTOR_PATH := /usr/libexec/ifupdown-ng
 
 CFLAGS ?= -ggdb3 -Os
@@ -18,6 +19,7 @@ CFLAGS += ${LIBBSD_CFLAGS}
 CPPFLAGS = -I.
 CPPFLAGS += -DINTERFACES_FILE=\"${INTERFACES_FILE}\"
 CPPFLAGS += -DSTATE_FILE=\"${STATE_FILE}\"
+CPPFLAGS += -DCONFIG_FILE=\"${CONFIG_FILE}\"
 CPPFLAGS += -DPACKAGE_NAME=\"${PACKAGE_NAME}\"
 CPPFLAGS += -DPACKAGE_VERSION=\"${PACKAGE_VERSION}\"
 CPPFLAGS += -DPACKAGE_BUGREPORT=\"${PACKAGE_BUGREPORT}\"
@@ -34,7 +36,9 @@ LIBIFUPDOWN_SRC = \
 	libifupdown/state.c \
 	libifupdown/environment.c \
 	libifupdown/execute.c \
-	libifupdown/lifecycle.c
+	libifupdown/lifecycle.c \
+	libifupdown/config-parser.c \
+	libifupdown/config-file.c
 
 LIBIFUPDOWN_OBJ = ${LIBIFUPDOWN_SRC:.c=.o}
 LIBIFUPDOWN_LIB = libifupdown.a
@@ -125,6 +129,7 @@ install: all
 	for i in ${EXECUTOR_SCRIPTS_STUB}; do \
 		install -D -m755 executor-scripts/stub/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
 	done
+	install -D -m644 dist/ifupdown-ng.conf.example ${DESTDIR}${CONFIG_FILE}.example
 
 .scd.1 .scd.2 .scd.3 .scd.4 .scd.5 .scd.6 .scd.7 .scd.8:
 	${SCDOC} < $< > $@

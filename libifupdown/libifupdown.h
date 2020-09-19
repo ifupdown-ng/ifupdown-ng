@@ -27,6 +27,8 @@
 #include "libifupdown/execute.h"
 #include "libifupdown/lifecycle.h"
 #include "libifupdown/tokenize.h"
+#include "libifupdown/config-file.h"
+#include "libifupdown/config-parser.h"
 
 #ifndef ARRAY_SIZE
 # define ARRAY_SIZE(x)   (sizeof(x) / sizeof(*x))
