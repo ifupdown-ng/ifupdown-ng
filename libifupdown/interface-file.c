@@ -27,13 +27,38 @@ struct remap_token {
 
 /* this list must be in alphabetical order for bsearch */
 static const struct remap_token tokens[] = {
+	{"driver-message-level", "ethtool-msglvl"},	/* Debian ethtool integration */
 	{"endpoint", "tunnel-remote"},			/* legacy ifupdown */
+	{"ethernet-autoneg", "ethtool-ethernet-autoneg"},	/* Debian ethtool integration */
+	{"ethernet-pause-autoneg", "ethtool-pause-autoneg"},	/* Debian ethtool integration */
+	{"ethernet-pause-rx", "ethtool-pause-rx"},	/* Debian ethtool integration */
+	{"ethernet-pause-tx", "ethtool-pause-tx"},	/* Debian ethtool integration */
+	{"ethernet-port", "ethtool-ethernet-port"},	/* Debian ethtool integration */
+	{"ethernet-wol", "ethtool-ethernet-wol"},	/* Debian ethtool integration */
+	{"gro-offload", "ethtool-offload-gro"},		/* ifupdown2 */
+	{"gso-offload", "ethtool-offload-gso"},		/* ifupdown2 */
+	{"link-duplex", "ethtool-link-duplex"},		/* Debian ethtool integration */
+	{"link-fec", "ethtool-link-fec"},		/* ifupdown2 */
+	{"link-speed", "ethtool-link-speed"},		/* Debian ethtool integration */
 	{"local", "tunnel-local"},			/* legacy ifupdown */
+	{"lro-offload", "ethtool-offload-lro"},		/* ifupdown2 */
 	{"mode", "tunnel-mode"},			/* legacy ifupdown */
+	{"offload-gro", "ethtool-offload-gro"},		/* Debian ethtool integration */
+	{"offload-gso", "ethtool-offload-gso"},		/* Debian ethtool integration */
+	{"offload-lro", "ethtool-offload-lro"},		/* Debian ethtool integration */
+	{"offload-rx", "ethtool-offload-rx"},		/* Debian ethtool integration */
+	{"offload-sg", "ethtool-offload-sg"},		/* Debian ethtool integration */
+	{"offload-tso", "ethtool-offload-tso"},		/* Debian ethtool integration */
+	{"offload-tx", "ethtool-offload-tx"},		/* Debian ethtool integration */
+	{"offload-ufo", "ethtool-offload-ufo"},		/* Debian ethtool integration */
 	{"provider", "ppp-provider"},			/* legacy ifupdown, ifupdown2 */
+	{"rx-offload", "ethtool-offload-rx"},		/* ifupdown2 */
+	{"tso-offload", "ethtool-offload-tso"},		/* ifupdown2 */
 	{"ttl", "tunnel-ttl"},				/* legacy ifupdown */
 	{"tunnel-endpoint", "tunnel-remote"},		/* ifupdown2 */
 	{"tunnel-physdev", "tunnel-dev"},		/* ifupdown2 */
+	{"tx-offload", "ethtool-offload-tx"},		/* ifupdown2 */
+	{"ufo-offload", "ethtool-offload-ufo"},		/* ifupdown2 */
 	{"vrf", "vrf-member"},				/* ifupdown2 */
 };
 
