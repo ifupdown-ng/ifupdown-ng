@@ -98,11 +98,11 @@ iface eth0
     gateway 203.0.113.1
 ```
 
-### Multi-homing
+### Multiple Addresses
 
-A typical scenario on servers is multi-homing, where a server
-has multiple IP addresses on a single interface.  In this case
-you simply add additional `address` lines like this:
+A typical scenario on servers is where a server has multiple
+IP addresses on a single interface.  In this case you simply
+add additional `address` lines like this:
 
 ```
 auto eth0
