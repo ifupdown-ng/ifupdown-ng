@@ -37,6 +37,7 @@ static const struct remap_token tokens[] = {
 	{"ethernet-wol", "ethtool-ethernet-wol"},	/* Debian ethtool integration */
 	{"gro-offload", "ethtool-offload-gro"},		/* ifupdown2 */
 	{"gso-offload", "ethtool-offload-gso"},		/* ifupdown2 */
+	{"link-autoneg", "ethtool-ethernet-autoneg"},	/* ifupdown2 */
 	{"link-duplex", "ethtool-link-duplex"},		/* Debian ethtool integration */
 	{"link-fec", "ethtool-link-fec"},		/* ifupdown2 */
 	{"link-speed", "ethtool-link-speed"},		/* Debian ethtool integration */
