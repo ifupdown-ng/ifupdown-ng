@@ -50,5 +50,8 @@ up)
 
 	offload_settings=$(gather_params ETHTOOL_OFFLOAD)
 	[ -z "$offload_settings" ] || $MOCK ethtool --offload "$IFACE" $offload_settings
+
+	dma_settings=$(gather_params ETHTOOL_DMA_RING)
+	[ -z "$dma_settings" ] || $MOCK ethtool --set-ring "$IFACE" $dma_settings
 	;;
 esac
