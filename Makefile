@@ -90,7 +90,8 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	tunnel \
 	gre \
 	wireguard \
-	ethtool
+	ethtool \
+	batman
 
 EXECUTOR_SCRIPTS ?= ${EXECUTOR_SCRIPTS_CORE} ${EXECUTOR_SCRIPTS_OPT}
 
