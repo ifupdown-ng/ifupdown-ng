@@ -1,6 +1,20 @@
 #!/bin/sh
 set -e
 
+# gather params for a given prefix, based on executor-scripts/linux/tunnel.
+gather_params() {
+	set | sed -E "
+		s/^IF_${1}_([A-Z0-9_]+)=(.+)/\1\n\2/
+		ta
+		d
+		:a
+		h
+		y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/
+		P
+		g
+	        s/.*\n//"
+}
+
 case "$PHASE" in
 pre-up)
 	settings="\
@@ -32,5 +46,10 @@ up)
 
 	[ -z "$link_settings" ] || $MOCK ethtool --change "$IFACE" $link_settings
 
+	pause_settings=$(gather_params IF_ETHTOOL_ETHERNET_PAUSE)
+	[ -z "$pause_settings" ] || $MOCK ethtool --pause "$IFACE" $pause_settings
+
+	offload_settings=$(gather_params IF_ETHTOOL_OFFLOAD)
+	[ -z "$offload_settings" ] || $MOCK ethtool --offload "$IFACE" $offload_settings
 	;;
 esac
