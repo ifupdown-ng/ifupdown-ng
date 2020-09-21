@@ -46,7 +46,7 @@ up)
 
 	[ -z "$link_settings" ] || $MOCK ethtool --change "$IFACE" $link_settings
 
-	pause_settings=$(gather_params IF_ETHTOOL_ETHERNET_PAUSE)
+	pause_settings=$(gather_params IF_ETHTOOL_PAUSE)
 	[ -z "$pause_settings" ] || $MOCK ethtool --pause "$IFACE" $pause_settings
 
 	offload_settings=$(gather_params IF_ETHTOOL_OFFLOAD)
