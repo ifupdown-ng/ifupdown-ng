@@ -41,6 +41,28 @@ static const struct remap_token tokens[] = {
 	{"hardware-dma-ring-rx-jumbo", "ethtool-dma-ring-rx-jumbo"},	/* Debian ethtool integration */
 	{"hardware-dma-ring-rx-mini", "ethtool-dma-ring-rx-mini"},	/* Debian ethtool integration */
 	{"hardware-dma-ring-tx", "ethtool-dma-ring-tx"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-adaptive-rx", "ethtool-coalesce-adaptive-rx"},			/* Debian ethtool integration */
+	{"hardware-irq-coalesce-adaptive-tx", "ethtool-coalesce-adaptive-tx"},			/* Debian ethtool integration */
+	{"hardware-irq-coalesce-pkt-rate-high", "ethtool-coalesce-pkt-rate-high"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-pkt-rate-low", "ethtool-coalesce-pkt-rate-low"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-rx-frames", "ethtool-coalesce-rx-frames"},			/* Debian ethtool integration */
+	{"hardware-irq-coalesce-rx-frames-high", "ethtool-coalesce-rx-frames-high"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-rx-frames-irq", "ethtool-coalesce-rx-frames-irq"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-rx-frames-low", "ethtool-coalesce-rx-frames-low"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-rx-usecs", "ethtool-coalesce-rx-usecs"},			/* Debian ethtool integration */
+	{"hardware-irq-coalesce-rx-usecs-high", "ethtool-coalesce-rx-usecs-high"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-rx-usecs-irq", "ethtool-coalesce-rx-usecs-irq"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-rx-usecs-low", "ethtool-coalesce-rx-usecs-low"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-sample-interval", "ethtool-coalesce-sample-interval"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-stats-block-usecs", "ethtool-coalesce-stats-block-usecs"},	/* Debian ethtool integration */
+	{"hardware-irq-coalesce-tx-frames", "ethtool-coalesce-tx-frames"},			/* Debian ethtool integration */
+	{"hardware-irq-coalesce-tx-frames-high", "ethtool-coalesce-tx-frames-high"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-tx-frames-irq", "ethtool-coalesce-tx-frames-irq"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-tx-frames-low", "ethtool-coalesce-tx-frames-low"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-tx-usecs", "ethtool-coalesce-tx-usecs"},			/* Debian ethtool integration */
+	{"hardware-irq-coalesce-tx-usecs-high", "ethtool-coalesce-tx-usecs-high"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-tx-usecs-irq", "ethtool-coalesce-tx-usecs-irq"},		/* Debian ethtool integration */
+	{"hardware-irq-coalesce-tx-usecs-low", "ethtool-coalesce-tx-usecs-low"},		/* Debian ethtool integration */
 	{"link-autoneg", "ethtool-ethernet-autoneg"},	/* ifupdown2 */
 	{"link-duplex", "ethtool-link-duplex"},		/* Debian ethtool integration */
 	{"link-fec", "ethtool-link-fec"},		/* ifupdown2 */
