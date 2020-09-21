@@ -13,6 +13,7 @@
 #  IF_BATMAN_MULTICAST_MODE		'enable' or 'disable' the multicast mode of this B.A.T.M.A.N. adv. instance
 #  IF_BATMAN_GW_MODE			Set the gateway mode of this B.A.T.M.A.N. adv. instance
 #  IF_BATMAN_HOP_PENALTY		Set the hop penalty of this B.A.T.M.A.N. adv. instance
+#  IF_BATMAN_ROUTING_ALGO		Set the B.A.T.M.A.N. adv. routing algorithm (BATMAN_IV, BATMAN_V)
 #
 # Known options for underlying interfaces are:
 #  IF_BATMAN_IFACE_PENALTY		Set the hop penalty of this B.A.T.M.A.N. adv. interface
@@ -54,6 +55,15 @@ set_batman_params () {
 	[ "${IF_BATMAN_GW_MODE}" ]               && ${MOCK} batctl "${mesh_if_param}" "${IFACE}" gw_mode "${IF_BATMAN_GW_MODE}"
 }
 
+set_routing_algo () {
+	if [ "${IF_BATMAN_ROUTING_ALGO}" != "BATMAN_IV" -a "${IF_BATMAN_ROUTING_ALGO}" != "BATMAN_V" ]; then
+		echo "Invalid routing algorithm \"$1\"."
+		return
+	fi
+
+	batctl ra "${IF_BATMAN_ROUTING_ALGO}"
+}
+
 #
 # Functions to manage B.A.T.M.A.N. adv. underlying interfaces
 set_iface_penalty () {
@@ -71,6 +81,10 @@ case "${PHASE}" in
 	create)
 		# Main B.A.T.M.A.N. adv. interface
 		if [ "${IF_BATMAN_IFACES}" ]; then
+			if [ "${IF_BATMAN_ROUTING_ALGO}" ]; then
+				set_routing_algo
+			fi
+
 			if [ ! -d "/sys/class/net/${IFACE}" ]; then
 				batctl "${mesh_if_param}" "${IFACE}" interface create || true
 			fi
