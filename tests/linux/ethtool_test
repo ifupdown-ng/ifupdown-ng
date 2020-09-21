@@ -1,0 +1,84 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/ethtool"
+
+tests_init \
+	pre_up_msglvl \
+	pre_up_ethernet_port \
+	up_speed \
+	up_duplex \
+	up_wol \
+	up_wol_sopass \
+	up_autoneg_simple \
+	up_autoneg_mask
+
+pre_up_msglvl_body() {
+	export IFACE="eth0" PHASE="pre-up" IF_ETHTOOL_MSGLVL="debug on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --change eth0' \
+		-o match:'msglvl debug on' \
+		${EXECUTOR}
+}
+
+pre_up_ethernet_port_body() {
+	export IFACE="eth0" PHASE="pre-up" IF_ETHTOOL_ETHERNET_PORT="4" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --change eth0' \
+		-o match:'port 4' \
+		${EXECUTOR}
+}
+
+up_speed_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_LINK_SPEED="1000" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --change eth0' \
+		-o match:'speed 1000' \
+		${EXECUTOR}
+}
+
+up_duplex_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_LINK_DUPLEX="full" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --change eth0' \
+		-o match:'duplex full' \
+		${EXECUTOR}
+}
+
+up_wol_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_ETHERNET_WOL="g" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --change eth0' \
+		-o match:'wol g' \
+		${EXECUTOR}
+}
+
+up_wol_sopass_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_ETHERNET_WOL="s abc123" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --change eth0' \
+		-o match:'wol s sopass abc123' \
+		${EXECUTOR}
+}
+
+up_autoneg_simple_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_ETHERNET_AUTONEG="on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --change eth0' \
+		-o match:'autoneg on' \
+		${EXECUTOR}
+
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_ETHERNET_AUTONEG="off" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --change eth0' \
+		-o match:'autoneg off' \
+		${EXECUTOR}
+}
+
+up_autoneg_mask_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_ETHERNET_AUTONEG="1000/full" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --change eth0' \
+		-o match:'autoneg on advertise 1000/full' \
+		${EXECUTOR}
+}
