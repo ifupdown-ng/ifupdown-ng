@@ -11,7 +11,10 @@ tests_init \
 	up_wol \
 	up_wol_sopass \
 	up_autoneg_simple \
-	up_autoneg_mask
+	up_autoneg_mask \
+	up_pause_autoneg \
+	up_pause_tx \
+	up_pause_rx
 
 pre_up_msglvl_body() {
 	export IFACE="eth0" PHASE="pre-up" IF_ETHTOOL_MSGLVL="debug on" MOCK="echo"
@@ -80,5 +83,47 @@ up_autoneg_mask_body() {
 	atf_check -s exit:0 \
 		-o match:'ethtool --change eth0' \
 		-o match:'autoneg on advertise 1000/full' \
+		${EXECUTOR}
+}
+
+up_pause_autoneg_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_PAUSE_AUTONEG="on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --pause eth0' \
+		-o match:"autoneg 'on'" \
+		${EXECUTOR}
+
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_PAUSE_AUTONEG="off" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --pause eth0' \
+		-o match:"autoneg 'off'" \
+		${EXECUTOR}
+}
+
+up_pause_tx_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_PAUSE_TX="on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --pause eth0' \
+		-o match:"tx 'on'" \
+		${EXECUTOR}
+
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_PAUSE_TX="off" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --pause eth0' \
+		-o match:"tx 'off'" \
+		${EXECUTOR}
+}
+
+up_pause_rx_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_PAUSE_RX="on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --pause eth0' \
+		-o match:"rx 'on'" \
+		${EXECUTOR}
+
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_PAUSE_RX="off" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --pause eth0' \
+		-o match:"rx 'off'" \
 		${EXECUTOR}
 }
