@@ -12,7 +12,7 @@ gather_params() {
 		y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/
 		P
 		g
-	        s/.*\n//"
+	        s/.*\n//" | sed -E "s/_/-/g"
 }
 
 case "$PHASE" in

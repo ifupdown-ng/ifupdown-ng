@@ -22,7 +22,11 @@ tests_init \
 	up_offload_sg \
 	up_offload_tso \
 	up_offload_tx \
-	up_offload_ufo
+	up_offload_ufo \
+	up_dma_ring_rx \
+	up_dma_ring_rx_jumbo \
+	up_dma_ring_rx_mini \
+	up_dma_ring_tx
 
 pre_up_msglvl_body() {
 	export IFACE="eth0" PHASE="pre-up" IF_ETHTOOL_MSGLVL="debug on" MOCK="echo"
@@ -245,5 +249,37 @@ up_offload_ufo_body() {
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
 		-o match:"ufo 'off'" \
+		${EXECUTOR}
+}
+
+up_dma_ring_rx_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_DMA_RING_RX="1024" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --set-ring eth0' \
+		-o match:"rx '1024'" \
+		${EXECUTOR}
+}
+
+up_dma_ring_rx_jumbo_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_DMA_RING_RX_JUMBO="1024" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --set-ring eth0' \
+		-o match:"rx-jumbo '1024'" \
+		${EXECUTOR}
+}
+
+up_dma_ring_rx_mini_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_DMA_RING_RX_MINI="1024" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --set-ring eth0' \
+		-o match:"rx-mini '1024'" \
+		${EXECUTOR}
+}
+
+up_dma_ring_tx_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_DMA_RING_TX="1024" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --set-ring eth0' \
+		-o match:"tx '1024'" \
 		${EXECUTOR}
 }
