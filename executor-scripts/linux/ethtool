@@ -3,11 +3,34 @@ set -e
 
 case "$PHASE" in
 pre-up)
-	settings=
-	[ -n "$IF_ETHTOOL_ETHERNET_PORT" ] && settings="port $IF_ETHTOOL_ETHERNET_PORT"
-	[ -n "$IF_ETHTOOL_MSGLVL" ] && settings="msglvl $IF_ETHTOOL_MSGLVL"
-	[ -z "$settings" ] || ethtool --change "$IFACE" $settings
+	settings="\
+	${IF_ETHTOOL_ETHERNET_PORT:+ port $IF_ETHTOOL_ETHERNET_PORT}
+	${IF_ETHTOOL_MSGLVL:+ msglvl $IF_ETHTOOL_MSGLVL}
+	"
+	[ -z "$settings" ] || $MOCK ethtool --change "$IFACE" $settings
 	;;
 up)
+	# first do the link settings.
+	link_settings="\
+	${IF_ETHTOOL_LINK_SPEED:+ speed $IF_ETHTOOL_LINK_SPEED}
+	${IF_ETHTOOL_LINK_DUPLEX:+ duplex $IF_ETHTOOL_LINK_DUPLEX}
+	"
+
+	# ethernet-wol can have a second arg (key), split into $1 and $2
+	set -- $IF_ETHTOOL_ETHERNET_WOL
+	link_settings="$link_settings${1:+ wol $1}${2:+ sopass $2}"
+
+	# handle ethtool-ethernet-autoneg like Debian would
+	case "$IF_ETHTOOL_ETHERNET_AUTONEG" in
+	on|off)
+		link_settings="$link_settings autoneg $IF_ETHTOOL_ETHERNET_AUTONEG"
+		;;
+	*)
+		link_settings="$link_settings autoneg on advertise $IF_ETHTOOL_ETHERNET_AUTONEG"
+		;;
+	esac
+
+	[ -z "$link_settings" ] || $MOCK ethtool --change "$IFACE" $link_settings
+
 	;;
 esac
