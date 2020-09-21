@@ -14,7 +14,15 @@ tests_init \
 	up_autoneg_mask \
 	up_pause_autoneg \
 	up_pause_tx \
-	up_pause_rx
+	up_pause_rx \
+	up_offload_gro \
+	up_offload_gso \
+	up_offload_lro \
+	up_offload_rx \
+	up_offload_sg \
+	up_offload_tso \
+	up_offload_tx \
+	up_offload_ufo
 
 pre_up_msglvl_body() {
 	export IFACE="eth0" PHASE="pre-up" IF_ETHTOOL_MSGLVL="debug on" MOCK="echo"
@@ -125,5 +133,117 @@ up_pause_rx_body() {
 	atf_check -s exit:0 \
 		-o match:'ethtool --pause eth0' \
 		-o match:"rx 'off'" \
+		${EXECUTOR}
+}
+
+up_offload_gro_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_GRO="on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"gro 'on'" \
+		${EXECUTOR}
+
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_GRO="off" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"gro 'off'" \
+		${EXECUTOR}
+}
+
+up_offload_gso_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_GSO="on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"gso 'on'" \
+		${EXECUTOR}
+
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_GSO="off" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"gso 'off'" \
+		${EXECUTOR}
+}
+
+up_offload_lro_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_LRO="on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"lro 'on'" \
+		${EXECUTOR}
+
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_LRO="off" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"lro 'off'" \
+		${EXECUTOR}
+}
+
+up_offload_rx_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_RX="on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"rx 'on'" \
+		${EXECUTOR}
+
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_RX="off" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"rx 'off'" \
+		${EXECUTOR}
+}
+
+up_offload_sg_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_SG="on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"sg 'on'" \
+		${EXECUTOR}
+
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_SG="off" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"sg 'off'" \
+		${EXECUTOR}
+}
+
+up_offload_tso_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_TSO="on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"tso 'on'" \
+		${EXECUTOR}
+
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_TSO="off" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"tso 'off'" \
+		${EXECUTOR}
+}
+
+up_offload_tx_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_TX="on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"tx 'on'" \
+		${EXECUTOR}
+
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_TX="off" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"tx 'off'" \
+		${EXECUTOR}
+}
+
+up_offload_ufo_body() {
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_UFO="on" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"ufo 'on'" \
+		${EXECUTOR}
+
+	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_UFO="off" MOCK="echo"
+	atf_check -s exit:0 \
+		-o match:'ethtool --offload eth0' \
+		-o match:"ufo 'off'" \
 		${EXECUTOR}
 }
