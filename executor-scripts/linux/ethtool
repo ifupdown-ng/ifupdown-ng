@@ -1,2 +1,13 @@
 #!/bin/sh
 set -e
+
+case "$PHASE" in
+pre-up)
+	settings=
+	[ -n "$IF_ETHTOOL_ETHERNET_PORT" ] && settings="port $IF_ETHTOOL_ETHERNET_PORT"
+	[ -n "$IF_ETHTOOL_MSGLVL" ] && settings="msglvl $IF_ETHTOOL_MSGLVL"
+	[ -z "$settings" ] || ethtool --change "$IFACE" $settings
+	;;
+up)
+	;;
+esac
