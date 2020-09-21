@@ -25,10 +25,7 @@ pre-up)
 	;;
 up)
 	# first do the link settings.
-	link_settings="\
-	${IF_ETHTOOL_LINK_SPEED:+ speed $IF_ETHTOOL_LINK_SPEED}
-	${IF_ETHTOOL_LINK_DUPLEX:+ duplex $IF_ETHTOOL_LINK_DUPLEX}
-	"
+	link_settings="${IF_ETHTOOL_LINK_SPEED:+ speed $IF_ETHTOOL_LINK_SPEED}${IF_ETHTOOL_LINK_DUPLEX:+ duplex $IF_ETHTOOL_LINK_DUPLEX}"
 
 	# ethernet-wol can have a second arg (key), split into $1 and $2
 	set -- $IF_ETHTOOL_ETHERNET_WOL
@@ -36,6 +33,8 @@ up)
 
 	# handle ethtool-ethernet-autoneg like Debian would
 	case "$IF_ETHTOOL_ETHERNET_AUTONEG" in
+	'')
+		;;
 	on|off)
 		link_settings="$link_settings autoneg $IF_ETHTOOL_ETHERNET_AUTONEG"
 		;;
@@ -46,10 +45,10 @@ up)
 
 	[ -z "$link_settings" ] || $MOCK ethtool --change "$IFACE" $link_settings
 
-	pause_settings=$(gather_params IF_ETHTOOL_PAUSE)
+	pause_settings=$(gather_params ETHTOOL_PAUSE)
 	[ -z "$pause_settings" ] || $MOCK ethtool --pause "$IFACE" $pause_settings
 
-	offload_settings=$(gather_params IF_ETHTOOL_OFFLOAD)
+	offload_settings=$(gather_params ETHTOOL_OFFLOAD)
 	[ -z "$offload_settings" ] || $MOCK ethtool --offload "$IFACE" $offload_settings
 	;;
 esac
