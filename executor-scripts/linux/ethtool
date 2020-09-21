@@ -53,5 +53,8 @@ up)
 
 	dma_settings=$(gather_params ETHTOOL_DMA_RING)
 	[ -z "$dma_settings" ] || $MOCK ethtool --set-ring "$IFACE" $dma_settings
+
+	coalesce_settings=$(gather_params ETHTOOL_COALESCE)
+	[ -z "$coalesce_settings" ] || $MOCK ethtool --coalesce "$IFACE" $coalesce_settings
 	;;
 esac
