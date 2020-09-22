@@ -1,0 +1,60 @@
+#!/bin/sh
+set -e
+
+# gather params for a given prefix, based on executor-scripts/linux/tunnel.
+gather_params() {
+	env | sed -E "
+		s/^IF_${1}_([A-Z0-9_]+)=(.+)/\1\n\2/
+		ta
+		d
+		:a
+		h
+		y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/
+		P
+		g
+	        s/.*\n//" | sed -E "s/_/-/g"
+}
+
+case "$PHASE" in
+pre-up)
+	settings="\
+	${IF_ETHTOOL_ETHERNET_PORT:+ port $IF_ETHTOOL_ETHERNET_PORT}
+	${IF_ETHTOOL_MSGLVL:+ msglvl $IF_ETHTOOL_MSGLVL}
+	"
+	[ -z "$settings" ] || $MOCK ethtool --change "$IFACE" $settings
+	;;
+up)
+	# first do the link settings.
+	link_settings="${IF_ETHTOOL_LINK_SPEED:+ speed $IF_ETHTOOL_LINK_SPEED}${IF_ETHTOOL_LINK_DUPLEX:+ duplex $IF_ETHTOOL_LINK_DUPLEX}"
+
+	# ethernet-wol can have a second arg (key), split into $1 and $2
+	set -- $IF_ETHTOOL_ETHERNET_WOL
+	link_settings="$link_settings${1:+ wol $1}${2:+ sopass $2}"
+
+	# handle ethtool-ethernet-autoneg like Debian would
+	case "$IF_ETHTOOL_ETHERNET_AUTONEG" in
+	'')
+		;;
+	on|off)
+		link_settings="$link_settings autoneg $IF_ETHTOOL_ETHERNET_AUTONEG"
+		;;
+	*)
+		link_settings="$link_settings autoneg on advertise $IF_ETHTOOL_ETHERNET_AUTONEG"
+		;;
+	esac
+
+	[ -z "$link_settings" ] || $MOCK ethtool --change "$IFACE" $link_settings
+
+	pause_settings=$(gather_params ETHTOOL_PAUSE)
+	[ -z "$pause_settings" ] || $MOCK ethtool --pause "$IFACE" $pause_settings
+
+	offload_settings=$(gather_params ETHTOOL_OFFLOAD)
+	[ -z "$offload_settings" ] || $MOCK ethtool --offload "$IFACE" $offload_settings
+
+	dma_settings=$(gather_params ETHTOOL_DMA_RING)
+	[ -z "$dma_settings" ] || $MOCK ethtool --set-ring "$IFACE" $dma_settings
+
+	coalesce_settings=$(gather_params ETHTOOL_COALESCE)
+	[ -z "$coalesce_settings" ] || $MOCK ethtool --coalesce "$IFACE" $coalesce_settings
+	;;
+esac
