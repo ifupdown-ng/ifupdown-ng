@@ -3,7 +3,7 @@ set -e
 
 # gather params for a given prefix, based on executor-scripts/linux/tunnel.
 gather_params() {
-	set | sed -E "
+	env | sed -E "
 		s/^IF_${1}_([A-Z0-9_]+)=(.+)/\1\n\2/
 		ta
 		d
