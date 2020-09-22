@@ -124,13 +124,13 @@ up_pause_autoneg_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_PAUSE_AUTONEG="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --pause eth0' \
-		-o match:"autoneg 'on'" \
+		-o match:"autoneg on" \
 		${EXECUTOR}
 
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_PAUSE_AUTONEG="off" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --pause eth0' \
-		-o match:"autoneg 'off'" \
+		-o match:"autoneg off" \
 		${EXECUTOR}
 }
 
@@ -138,13 +138,13 @@ up_pause_tx_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_PAUSE_TX="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --pause eth0' \
-		-o match:"tx 'on'" \
+		-o match:"tx on" \
 		${EXECUTOR}
 
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_PAUSE_TX="off" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --pause eth0' \
-		-o match:"tx 'off'" \
+		-o match:"tx off" \
 		${EXECUTOR}
 }
 
@@ -152,13 +152,13 @@ up_pause_rx_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_PAUSE_RX="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --pause eth0' \
-		-o match:"rx 'on'" \
+		-o match:"rx on" \
 		${EXECUTOR}
 
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_PAUSE_RX="off" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --pause eth0' \
-		-o match:"rx 'off'" \
+		-o match:"rx off" \
 		${EXECUTOR}
 }
 
@@ -166,13 +166,13 @@ up_offload_gro_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_GRO="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"gro 'on'" \
+		-o match:"gro on" \
 		${EXECUTOR}
 
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_GRO="off" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"gro 'off'" \
+		-o match:"gro off" \
 		${EXECUTOR}
 }
 
@@ -180,13 +180,13 @@ up_offload_gso_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_GSO="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"gso 'on'" \
+		-o match:"gso on" \
 		${EXECUTOR}
 
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_GSO="off" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"gso 'off'" \
+		-o match:"gso off" \
 		${EXECUTOR}
 }
 
@@ -194,13 +194,13 @@ up_offload_lro_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_LRO="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"lro 'on'" \
+		-o match:"lro on" \
 		${EXECUTOR}
 
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_LRO="off" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"lro 'off'" \
+		-o match:"lro off" \
 		${EXECUTOR}
 }
 
@@ -208,13 +208,13 @@ up_offload_rx_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_RX="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"rx 'on'" \
+		-o match:"rx on" \
 		${EXECUTOR}
 
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_RX="off" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"rx 'off'" \
+		-o match:"rx off" \
 		${EXECUTOR}
 }
 
@@ -222,13 +222,13 @@ up_offload_sg_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_SG="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"sg 'on'" \
+		-o match:"sg on" \
 		${EXECUTOR}
 
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_SG="off" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"sg 'off'" \
+		-o match:"sg off" \
 		${EXECUTOR}
 }
 
@@ -236,13 +236,13 @@ up_offload_tso_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_TSO="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"tso 'on'" \
+		-o match:"tso on" \
 		${EXECUTOR}
 
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_TSO="off" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"tso 'off'" \
+		-o match:"tso off" \
 		${EXECUTOR}
 }
 
@@ -250,13 +250,13 @@ up_offload_tx_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_TX="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"tx 'on'" \
+		-o match:"tx on" \
 		${EXECUTOR}
 
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_TX="off" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"tx 'off'" \
+		-o match:"tx off" \
 		${EXECUTOR}
 }
 
@@ -264,13 +264,13 @@ up_offload_ufo_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_UFO="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"ufo 'on'" \
+		-o match:"ufo on" \
 		${EXECUTOR}
 
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_OFFLOAD_UFO="off" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --offload eth0' \
-		-o match:"ufo 'off'" \
+		-o match:"ufo off" \
 		${EXECUTOR}
 }
 
@@ -278,7 +278,7 @@ up_dma_ring_rx_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_DMA_RING_RX="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --set-ring eth0' \
-		-o match:"rx '1024'" \
+		-o match:"rx 1024" \
 		${EXECUTOR}
 }
 
@@ -286,7 +286,7 @@ up_dma_ring_rx_jumbo_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_DMA_RING_RX_JUMBO="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --set-ring eth0' \
-		-o match:"rx-jumbo '1024'" \
+		-o match:"rx-jumbo 1024" \
 		${EXECUTOR}
 }
 
@@ -294,7 +294,7 @@ up_dma_ring_rx_mini_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_DMA_RING_RX_MINI="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --set-ring eth0' \
-		-o match:"rx-mini '1024'" \
+		-o match:"rx-mini 1024" \
 		${EXECUTOR}
 }
 
@@ -302,7 +302,7 @@ up_dma_ring_tx_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_DMA_RING_TX="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --set-ring eth0' \
-		-o match:"tx '1024'" \
+		-o match:"tx 1024" \
 		${EXECUTOR}
 }
 
@@ -310,7 +310,7 @@ up_coalesce_adaptive_rx_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_ADAPTIVE_RX="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"adaptive-rx 'on'" \
+		-o match:"adaptive-rx on" \
 		${EXECUTOR}
 }
 
@@ -318,7 +318,7 @@ up_coalesce_adaptive_tx_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_ADAPTIVE_TX="on" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"adaptive-tx 'on'" \
+		-o match:"adaptive-tx on" \
 		${EXECUTOR}
 }
 
@@ -326,7 +326,7 @@ up_coalesce_pkt_rate_low_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_PKT_RATE_LOW="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"pkt-rate-low '1024'" \
+		-o match:"pkt-rate-low 1024" \
 		${EXECUTOR}
 }
 
@@ -334,7 +334,7 @@ up_coalesce_pkt_rate_high_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_PKT_RATE_HIGH="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"pkt-rate-high '1024'" \
+		-o match:"pkt-rate-high 1024" \
 		${EXECUTOR}
 }
 
@@ -342,7 +342,7 @@ up_coalesce_sample_interval_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_SAMPLE_INTERVAL="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"sample-interval '1024'" \
+		-o match:"sample-interval 1024" \
 		${EXECUTOR}
 }
 
@@ -350,7 +350,7 @@ up_coalesce_stats_block_usecs_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_STATS_BLOCK_USECS="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"stats-block-usecs '1024'" \
+		-o match:"stats-block-usecs 1024" \
 		${EXECUTOR}
 }
 
@@ -358,7 +358,7 @@ up_coalesce_rx_frames_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_RX_FRAMES="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"rx-frames '1024'" \
+		-o match:"rx-frames 1024" \
 		${EXECUTOR}
 }
 
@@ -366,7 +366,7 @@ up_coalesce_rx_frames_low_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_RX_FRAMES_LOW="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"rx-frames-low '1024'" \
+		-o match:"rx-frames-low 1024" \
 		${EXECUTOR}
 }
 
@@ -374,7 +374,7 @@ up_coalesce_rx_frames_irq_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_RX_FRAMES_IRQ="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"rx-frames-irq '1024'" \
+		-o match:"rx-frames-irq 1024" \
 		${EXECUTOR}
 }
 
@@ -382,7 +382,7 @@ up_coalesce_rx_frames_high_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_RX_FRAMES_HIGH="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"rx-frames-high '1024'" \
+		-o match:"rx-frames-high 1024" \
 		${EXECUTOR}
 }
 
@@ -390,7 +390,7 @@ up_coalesce_rx_usecs_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_RX_USECS="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"rx-usecs '1024'" \
+		-o match:"rx-usecs 1024" \
 		${EXECUTOR}
 }
 
@@ -398,7 +398,7 @@ up_coalesce_rx_usecs_low_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_RX_USECS_LOW="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"rx-usecs-low '1024'" \
+		-o match:"rx-usecs-low 1024" \
 		${EXECUTOR}
 }
 
@@ -406,7 +406,7 @@ up_coalesce_rx_usecs_irq_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_RX_USECS_IRQ="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"rx-usecs-irq '1024'" \
+		-o match:"rx-usecs-irq 1024" \
 		${EXECUTOR}
 }
 
@@ -414,7 +414,7 @@ up_coalesce_rx_usecs_high_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_RX_USECS_HIGH="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"rx-usecs-high '1024'" \
+		-o match:"rx-usecs-high 1024" \
 		${EXECUTOR}
 }
 
@@ -422,7 +422,7 @@ up_coalesce_tx_frames_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_TX_FRAMES="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"tx-frames '1024'" \
+		-o match:"tx-frames 1024" \
 		${EXECUTOR}
 }
 
@@ -430,7 +430,7 @@ up_coalesce_tx_frames_low_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_TX_FRAMES_LOW="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"tx-frames-low '1024'" \
+		-o match:"tx-frames-low 1024" \
 		${EXECUTOR}
 }
 
@@ -438,7 +438,7 @@ up_coalesce_tx_frames_irq_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_TX_FRAMES_IRQ="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"tx-frames-irq '1024'" \
+		-o match:"tx-frames-irq 1024" \
 		${EXECUTOR}
 }
 
@@ -446,7 +446,7 @@ up_coalesce_tx_frames_high_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_TX_FRAMES_HIGH="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"tx-frames-high '1024'" \
+		-o match:"tx-frames-high 1024" \
 		${EXECUTOR}
 }
 
@@ -454,7 +454,7 @@ up_coalesce_tx_usecs_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_TX_USECS="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"tx-usecs '1024'" \
+		-o match:"tx-usecs 1024" \
 		${EXECUTOR}
 }
 
@@ -462,7 +462,7 @@ up_coalesce_tx_usecs_low_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_TX_USECS_LOW="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"tx-usecs-low '1024'" \
+		-o match:"tx-usecs-low 1024" \
 		${EXECUTOR}
 }
 
@@ -470,7 +470,7 @@ up_coalesce_tx_usecs_irq_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_TX_USECS_IRQ="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"tx-usecs-irq '1024'" \
+		-o match:"tx-usecs-irq 1024" \
 		${EXECUTOR}
 }
 
@@ -478,6 +478,6 @@ up_coalesce_tx_usecs_high_body() {
 	export IFACE="eth0" PHASE="up" IF_ETHTOOL_COALESCE_TX_USECS_HIGH="1024" MOCK="echo"
 	atf_check -s exit:0 \
 		-o match:'ethtool --coalesce eth0' \
-		-o match:"tx-usecs-high '1024'" \
+		-o match:"tx-usecs-high 1024" \
 		${EXECUTOR}
 }
