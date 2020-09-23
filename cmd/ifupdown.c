@@ -97,7 +97,10 @@ bool
 skip_interface(struct lif_interface *iface, const char *ifname)
 {
 	if (iface->is_template)
+	{
 		fprintf(stderr, "%s: cannot change state on %s (template interface)\n", argv0, ifname);
+		return false;
+	}
 
 	if (exec_opts.force)
 		return false;
