@@ -30,7 +30,7 @@ print_interface(struct lif_interface *iface)
 	if (iface->is_auto)
 		printf("auto %s\n", iface->ifname);
 
-	printf("iface %s\n", iface->ifname);
+	printf("%s %s\n", iface->is_template ? "template" : "iface", iface->ifname);
 
 	struct lif_node *iter;
 	LIF_DICT_FOREACH(iter, &iface->vars)
