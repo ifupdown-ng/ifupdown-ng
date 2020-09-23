@@ -162,7 +162,9 @@ handle_auto(struct lif_dict *collection, const char *filename, size_t lineno, ch
 			return false;
 	}
 
-	cur_iface->is_auto = true;
+	if (!cur_iface->is_template)
+		cur_iface->is_auto = true;
+
 	return true;
 }
 
@@ -240,7 +242,10 @@ handle_iface(struct lif_dict *collection, const char *filename, size_t lineno, c
 	 * is used.
 	 */
 	if (!strcmp(token, "template"))
+	{
+		cur_iface->is_auto = false;
 		cur_iface->is_template = true;
+	}
 
 	/* in original ifupdown config, we can have "inet loopback"
 	 * or "inet dhcp" or such to designate hints.  lets pick up
