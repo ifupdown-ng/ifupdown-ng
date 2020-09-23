@@ -8,3 +8,10 @@
 # compatibility with legacy setups, and may be disabled for performance
 # improvements in setups where only ifupdown-ng executors are used.
 allow_addon_scripts = 1
+
+# allow_any_iface_as_template:
+# Enable any interface to act as a template for another interface.
+# This is presently the default, but is deprecated.  An admin may choose
+# to disable this setting in order to require inheritance from specified
+# templates.
+allow_any_iface_as_template = 1

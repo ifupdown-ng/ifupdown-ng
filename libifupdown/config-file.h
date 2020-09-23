@@ -20,6 +20,7 @@
 
 struct lif_config_file {
 	bool allow_addon_scripts;
+	bool allow_any_iface_as_template;
 };
 
 extern struct lif_config_file lif_config;
