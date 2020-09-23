@@ -243,6 +243,9 @@ lif_interface_collection_inherit(struct lif_interface *interface, struct lif_dic
 	if (!lif_config.allow_any_iface_as_template && !parent->is_template)
 		return false;
 
+	/* explicitly convert any interface we are inheriting from into a template */
+	parent->is_template = true;
+
 	lif_dict_add(&interface->vars, "inherit", strdup(ifname));
 	interface->is_bond = parent->is_bond;
 	interface->is_bridge = parent->is_bridge;
