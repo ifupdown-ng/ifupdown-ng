@@ -336,7 +336,9 @@ static const struct parser_keyword keywords[] = {
 	{"gateway", handle_gateway},
 	{"iface", handle_iface},
 	{"inherit", handle_inherit},
+	{"interface", handle_iface},
 	{"source", handle_source},
+	{"template", handle_iface},
 	{"use", handle_use},
 };
 
