@@ -236,6 +236,12 @@ handle_iface(struct lif_dict *collection, const char *filename, size_t lineno, c
 		return false;
 	}
 
+	/* mark the cur_iface as a template iface if `template` keyword
+	 * is used.
+	 */
+	if (!strcmp(token, "template"))
+		cur_iface->is_template = true;
+
 	/* in original ifupdown config, we can have "inet loopback"
 	 * or "inet dhcp" or such to designate hints.  lets pick up
 	 * those hints here.
