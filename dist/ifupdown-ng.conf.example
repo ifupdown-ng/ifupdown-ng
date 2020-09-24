@@ -15,3 +15,11 @@ allow_addon_scripts = 1
 # to disable this setting in order to require inheritance from specified
 # templates.
 allow_any_iface_as_template = 1
+
+# implicit_template_conversion:
+# In some legacy configs, a template may be declared as an iface, and
+# ifupdown-ng automatically converts those declarations to a proper
+# template.  If this setting is disabled, inheritance will continue to
+# work against non-template interfaces without converting them to a
+# template.
+implicit_template_conversion = 1
