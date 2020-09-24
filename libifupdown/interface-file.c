@@ -162,7 +162,9 @@ handle_auto(struct lif_dict *collection, const char *filename, size_t lineno, ch
 			return false;
 	}
 
-	cur_iface->is_auto = true;
+	if (!cur_iface->is_template)
+		cur_iface->is_auto = true;
+
 	return true;
 }
 
@@ -234,6 +236,15 @@ handle_iface(struct lif_dict *collection, const char *filename, size_t lineno, c
 	{
 		report_error(filename, lineno, "could not upsert interface %s", ifname);
 		return false;
+	}
+
+	/* mark the cur_iface as a template iface if `template` keyword
+	 * is used.
+	 */
+	if (!strcmp(token, "template"))
+	{
+		cur_iface->is_auto = false;
+		cur_iface->is_template = true;
 	}
 
 	/* in original ifupdown config, we can have "inet loopback"
@@ -336,7 +347,9 @@ static const struct parser_keyword keywords[] = {
 	{"gateway", handle_gateway},
 	{"iface", handle_iface},
 	{"inherit", handle_inherit},
+	{"interface", handle_iface},
 	{"source", handle_source},
+	{"template", handle_iface},
 	{"use", handle_use},
 };
 

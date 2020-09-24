@@ -50,6 +50,7 @@ struct lif_interface {
 	bool is_auto;
 	bool is_bridge;
 	bool is_bond;
+	bool is_template;
 
 	struct lif_dict vars;
 

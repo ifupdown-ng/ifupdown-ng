@@ -341,6 +341,9 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 bool
 lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *lifname, bool up)
 {
+	if (iface->is_template)
+		return false;
+
 	if (lifname == NULL)
 		lifname = iface->ifname;
 

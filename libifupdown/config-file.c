@@ -20,6 +20,7 @@
 
 struct lif_config_file lif_config = {
 	.allow_addon_scripts = true,
+	.allow_any_iface_as_template = true,
 };
 
 static bool
@@ -43,6 +44,8 @@ set_bool_value(const char *key, const char *value, void *opaque)
 
 static struct lif_config_handler handlers[] = {
 	{"allow_addon_scripts", set_bool_value, &lif_config.allow_addon_scripts},
+	{"allow_any_iface_as_template", set_bool_value, &lif_config.allow_any_iface_as_template},
+	{"implicit_template_conversion", set_bool_value, &lif_config.implicit_template_conversion},
 };
 
 bool

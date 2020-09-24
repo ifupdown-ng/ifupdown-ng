@@ -47,6 +47,10 @@ with an address of *203.0.113.2* and gateway of *203.0.113.1*.
 	associated with the declaration will be stored inside
 	_object_.
 
+*template* _object_
+	Begins a new declaration for _object_, like *iface*, except
+	that _object_ is defined as a *template*.
+
 # SUPPORTED KEYWORDS FOR OBJECT TRIPLES
 
 Any keyword may be used inside an interface declaration block, but
@@ -79,9 +83,10 @@ the system will only respond to certain keywords by default:
 	Interfaces associated with the parent are taken down at
 	the same time as the parent.
 
-*inherit* _interface_
-	Designates that the parent interface should inherit
-	configuration data from _interface_.
+*inherit* _object_
+	Designates that the configured interface should inherit
+	configuration data from _object_.  Normally _object_
+	must be a *template*.
 
 *use* _option_
 	Designates that an option should be used.  See _OPTIONS_
