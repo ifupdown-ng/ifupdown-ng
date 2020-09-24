@@ -21,6 +21,7 @@
 struct lif_config_file lif_config = {
 	.allow_addon_scripts = true,
 	.allow_any_iface_as_template = true,
+	.implicit_template_conversion = true,
 };
 
 static bool
