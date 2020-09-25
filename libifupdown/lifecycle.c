@@ -3,6 +3,7 @@
  * Purpose: management of interface lifecycle (bring up, takedown, reload)
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
+ * Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -312,6 +313,19 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 	for (char *tokenp = lif_next_token(&bufp); *tokenp; tokenp = lif_next_token(&bufp))
 	{
 		struct lif_interface *iface = lif_interface_collection_find(collection, tokenp);
+
+		if (iface->has_config_error)
+		{
+			if (opts->force)
+				fprintf (stderr, "ifupdown: (de)configuring dependent interface %s (of %s) despite config errors\n",
+				         iface->ifname, parent->ifname);
+			else
+			{
+				fprintf (stderr, "ifupdown: skipping dependent interface %s (of %s) as it has config errors\n",
+			        iface->ifname, parent->ifname);
+				continue;
+			}
+		}
 
 		/* if handle_refcounting returns true, it means we've already
 		 * configured the interface, or it is too soon to deconfigure

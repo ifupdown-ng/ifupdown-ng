@@ -3,6 +3,7 @@
  * Purpose: /etc/network/interfaces parser
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
+ * Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -137,7 +138,8 @@ handle_address(struct lif_dict *collection, const char *filename, size_t lineno,
 	if (cur_iface == NULL)
 	{
 		report_error(filename, lineno, "%s '%s' without interface", token, addr);
-		return false;
+		/* Ignore this address, but don't fail hard */
+		return true;
 	}
 
 	lif_interface_address_add(cur_iface, addr);
@@ -154,7 +156,10 @@ handle_auto(struct lif_dict *collection, const char *filename, size_t lineno, ch
 
 	char *ifname = lif_next_token(&bufp);
 	if (!*ifname && cur_iface == NULL)
-		return false;
+	{
+		report_error(filename, lineno, "auto without interface");
+		return true;
+	}
 	else
 	{
 		cur_iface = lif_interface_collection_find(collection, ifname);
@@ -179,7 +184,8 @@ handle_gateway(struct lif_dict *collection, const char *filename, size_t lineno,
 	if (cur_iface == NULL)
 	{
 		report_error(filename, lineno, "%s '%s' without interface", token, addr);
-		return false;
+		/* Ignore this gateway, but don't fail hard */
+		return true;
 	}
 
 	lif_interface_use_executor(cur_iface, "static");
@@ -228,7 +234,8 @@ handle_iface(struct lif_dict *collection, const char *filename, size_t lineno, c
 	if (!*ifname)
 	{
 		report_error(filename, lineno, "%s without any other tokens", token);
-		return false;
+		/* This is broken but not fatal */
+		return true;
 	}
 
 	cur_iface = lif_interface_collection_find(collection, ifname);
@@ -278,19 +285,44 @@ handle_inherit(struct lif_dict *collection, const char *filename, size_t lineno,
 	if (cur_iface == NULL)
 	{
 		report_error(filename, lineno, "%s '%s' without interface", token, target);
-		return false;
+		/* This is broken but not fatal */
+		return true;
 	}
 
 	if (!*target)
 	{
-		report_error(filename, lineno, "%s: unspecified interface");
-		return false;
+		report_error(filename, lineno, "iface %s: unspecified inherit target", cur_iface->ifname);
+		/* Mark this interface as errornous but carry on */
+		cur_iface->has_config_error = true;
+		return true;
 	}
 
-	if (!lif_interface_collection_inherit(cur_iface, collection, target))
+	struct lif_interface *parent = lif_interface_collection_find(collection, target);
+	if (parent == NULL)
 	{
-		report_error(filename, lineno, "could not inherit %s", target);
-		return false;
+		report_error(filename, lineno, "iface %s: could not inherit from %s: not found",
+		             cur_iface->ifname, target);
+		/* Mark this interface as errornous but carry on */
+		cur_iface->has_config_error = true;
+		return true;
+
+	}
+
+	if (!lif_config.allow_any_iface_as_template && !parent->is_template)
+	{
+		report_error(filename, lineno, "iface %s: could not inherit from %ss: inheritence from non-template interface not allowed",
+		             cur_iface->ifname, target);
+		/* Mark this interface as errornous but carry on */
+		cur_iface->has_config_error = true;
+		return true;
+	}
+
+	if (!lif_interface_collection_inherit(cur_iface, parent))
+	{
+		report_error(filename, lineno, "iface %s: could not inherit from %s", cur_iface->ifname, target);
+		/* Mark this interface as errornous but carry on */
+		cur_iface->has_config_error = true;
+		return true;
 	}
 
 	return true;
@@ -305,14 +337,16 @@ handle_source(struct lif_dict *collection, const char *filename, size_t lineno, 
 	if (!*source_filename)
 	{
 		report_error(filename, lineno, "missing filename to source");
-		return false;
+		/* Broken but not fatal */
+		return true;
 	}
 
 	if (!strcmp(filename, source_filename))
 	{
 		report_error(filename, lineno, "attempt to source %s would create infinite loop",
 			     source_filename);
-		return false;
+		/* Broken but not fatal */
+		return true;
 	}
 
 	return lif_interface_file_parse(collection, source_filename);
@@ -328,7 +362,8 @@ handle_use(struct lif_dict *collection, const char *filename, size_t lineno, cha
 	if (cur_iface == NULL)
 	{
 		report_error(filename, lineno, "%s '%s' without interface", token, executor);
-		return false;
+		/* Broken but not fatal */
+		return true;
 	}
 
 	lif_interface_use_executor(cur_iface, executor);

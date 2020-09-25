@@ -3,6 +3,7 @@
  * Purpose: interface management
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
+ * Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -52,6 +53,8 @@ struct lif_interface {
 	bool is_bond;
 	bool is_template;
 
+	bool has_config_error;	/* error found in interface configuration */
+
 	struct lif_dict vars;
 
 	size_t refcount;	/* > 0 if up, else 0 */
@@ -74,7 +77,7 @@ extern void lif_interface_collection_init(struct lif_dict *collection);
 extern void lif_interface_collection_fini(struct lif_dict *collection);
 extern struct lif_interface *lif_interface_collection_find(struct lif_dict *collection, const char *ifname);
 extern struct lif_interface *lif_interface_collection_upsert(struct lif_dict *collection, struct lif_interface *interface);
-extern bool lif_interface_collection_inherit(struct lif_interface *interface, struct lif_dict *collection, const char *ifname);
+extern bool lif_interface_collection_inherit(struct lif_interface *interface, struct lif_interface *parent);
 extern void lif_interface_collection_delete(struct lif_dict *collection, struct lif_interface *interface);
 
 #endif

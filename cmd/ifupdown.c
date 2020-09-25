@@ -3,6 +3,7 @@
  * Purpose: bring interfaces up or down
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
+ * Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -100,6 +101,20 @@ skip_interface(struct lif_interface *iface, const char *ifname)
 	{
 		fprintf(stderr, "%s: cannot change state on %s (template interface)\n", argv0, ifname);
 		return false;
+	}
+
+	if (iface->has_config_error)
+	{
+		if (exec_opts.force)
+		{
+			fprintf(stderr, "%s: (de)configuring interface %s despite config errors\n", argv0, ifname);
+			return false;
+		}
+		else
+		{
+			fprintf(stderr, "%s: skipping interface %s due to config errors\n", argv0, ifname);
+			return true;
+		}
 	}
 
 	if (exec_opts.force)
