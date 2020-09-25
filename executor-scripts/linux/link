@@ -39,9 +39,18 @@ create)
 		fi
 
 		${MOCK} ip link add "${IFACE}" type dummy
-	fi
 
-	if is_vlan; then
+	elif [ "${IF_LINK_TYPE}" = "veth" ]; then
+		if [ ! -d "/sys/class/net/${IFACE}" ]; then
+			ARGS=""
+			if [ "${IF_VETH_PEER_NAME}" ]; then
+				ARGS="peer ${IF_VETH_PEER_NAME}"
+			fi
+
+			${MOCK} ip link add "${IFACE}" type veth ${ARGS}
+		fi
+
+	elif is_vlan; then
 		if [ -d "/sys/class/net/${IFACE}" ]; then
 			exit 0
 		fi
@@ -77,7 +86,7 @@ down)
 	${MOCK} ip link set down dev "${IFACE}"
 	;;
 destroy)
-	if [ "${IF_LINK_TYPE}" = "dummy" ] || is_vlan; then
+	if [ "${IF_LINK_TYPE}" = "dummy" ] || [ "${IF_LINK_TYPE}" = "veth" ] || is_vlan; then
 		if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
 			exit 0
 		fi
