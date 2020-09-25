@@ -28,6 +28,17 @@ is_vlan() {
 }
 
 case "$PHASE" in
+depend)
+	# vlan-raw-device
+	if is_vlan; then
+		echo "$IF_VLAN_RAW_DEVICE"
+
+	# veth-peer-name
+	elif [ "${IF_LINK_TYPE}" = "veth" -a "${IF_VETH_PEER_NAME}" ]; then
+		echo "${IF_VETH_PEER_NAME}"
+	fi
+	;;
+
 create)
 	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
 		if [ -d "/sys/class/net/${IFACE}" ]; then
@@ -92,11 +103,6 @@ destroy)
 		fi
 
 		${MOCK} ip link del "${IFACE}"
-	fi
-	;;
-depend)
-	if is_vlan; then
-		echo "$IF_VLAN_RAW_DEVICE"
 	fi
 	;;
 esac
