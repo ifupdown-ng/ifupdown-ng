@@ -359,6 +359,9 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 	if (requires == NULL)
 		return true;
 
+	/* set the parent's pending flag to break dependency cycles */
+	parent->is_pending = true;
+
 	char require_ifs[4096] = {};
 	strlcpy(require_ifs, requires->data, sizeof require_ifs);
 	char *bufp = require_ifs;
@@ -399,15 +402,23 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 				iface->ifname, parent->ifname, up ? "up" : "down");
 
 		if (!lif_lifecycle_run(opts, iface, collection, state, iface->ifname, up))
+		{
+			parent->is_pending = false;
 			return false;
+		}
 	}
 
+	parent->is_pending = false;
 	return true;
 }
 
 bool
 lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *lifname, bool up)
 {
+	/* if we're already pending, exit */
+	if (iface->is_pending)
+		return true;
+
 	if (iface->is_template)
 		return false;
 
