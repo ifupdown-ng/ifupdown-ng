@@ -290,7 +290,7 @@ ifquery_main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (lif_lifecycle_count_rdepends(&exec_opts, &collection) == -1)
+	if (match_opts.property == NULL && lif_lifecycle_count_rdepends(&exec_opts, &collection) == -1)
 	{
 		fprintf(stderr, "%s: could not validate dependency tree\n", argv0);
 		return EXIT_FAILURE;
