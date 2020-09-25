@@ -103,14 +103,22 @@ skip_interface(struct lif_interface *iface, const char *ifname)
 		return false;
 	}
 
-	if (exec_opts.force)
-		return false;
-
 	if (iface->has_config_error)
 	{
-		fprintf(stderr, "%s: skipping interface %s due to config errors\n", argv0, ifname);
-		return true;
+		if (exec_opts.force)
+		{
+			fprintf(stderr, "%s: (de)configuring interface %s despite config errors\n", argv0, ifname);
+			return false;
+		}
+		else
+		{
+			fprintf(stderr, "%s: skipping interface %s due to config errors\n", argv0, ifname);
+			return true;
+		}
 	}
+
+	if (exec_opts.force)
+		return false;
 
 	if (up && iface->refcount > 0)
 	{
