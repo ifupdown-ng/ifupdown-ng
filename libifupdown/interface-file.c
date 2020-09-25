@@ -310,7 +310,7 @@ handle_inherit(struct lif_dict *collection, const char *filename, size_t lineno,
 
 	if (!lif_config.allow_any_iface_as_template && !parent->is_template)
 	{
-		report_error(filename, lineno, "iface %s: could not inherit from %ss: inheritence from interface not allowed",
+		report_error(filename, lineno, "iface %s: could not inherit from %ss: inheritence from non-template interface not allowed",
 		             cur_iface->ifname, target);
 		/* Mark this interface as errornous but carry on */
 		cur_iface->has_config_error = true;
