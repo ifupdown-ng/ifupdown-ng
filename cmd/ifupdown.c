@@ -3,6 +3,7 @@
  * Purpose: bring interfaces up or down
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
+ * Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -104,6 +105,12 @@ skip_interface(struct lif_interface *iface, const char *ifname)
 
 	if (exec_opts.force)
 		return false;
+
+	if (iface->has_config_error)
+	{
+		fprintf(stderr, "%s: skipping interface %s due to config errors\n", argv0, ifname);
+		return true;
+	}
 
 	if (up && iface->refcount > 0)
 	{

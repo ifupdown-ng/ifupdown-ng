@@ -3,6 +3,7 @@
  * Purpose: interface management
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
+ * Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -233,21 +234,13 @@ lif_interface_collection_delete(struct lif_dict *collection, struct lif_interfac
 }
 
 bool
-lif_interface_collection_inherit(struct lif_interface *interface, struct lif_dict *collection, const char *ifname)
+lif_interface_collection_inherit(struct lif_interface *interface, struct lif_interface *parent)
 {
-	struct lif_interface *parent = lif_interface_collection_find(collection, ifname);
-
-	if (parent == NULL)
-		return false;
-
-	if (!lif_config.allow_any_iface_as_template && !parent->is_template)
-		return false;
-
 	/* maybe convert any interface we are inheriting from into a template */
 	if (lif_config.implicit_template_conversion)
 		parent->is_template = true;
 
-	lif_dict_add(&interface->vars, "inherit", strdup(ifname));
+	lif_dict_add(&interface->vars, "inherit", strdup(parent->ifname));
 	interface->is_bond = parent->is_bond;
 	interface->is_bridge = parent->is_bridge;
 
