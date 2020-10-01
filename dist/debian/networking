@@ -1,0 +1,68 @@
+#!/bin/sh
+#
+# Wrapper script for networking set up and teardown via unit file
+#
+# Thu, 01 Oct 2020 22:47:43 +0200
+#  -- Maximilian Wilhelm <max@sdn.clinic>
+#
+
+STATE_DIR="/run/ifsate"
+
+# Make sure the state dir is present
+if [ ! -d "${STATE_DIR}" ]; then
+	mkdir "${STATE_DIR}"
+fi
+
+# Check for require binaries
+if [ ! -x /sbin/ifup -o ! -x /sbin/ifdown ]; then
+	echo "ifup and/or ifdown not found!" >&2
+	exit 1
+fi
+
+# Apply defaults if present (verbose mode, kill switch, etc.)
+CONFIGURE_INTERFACES=yes
+
+if [ -f /etc/default/networking ]; then
+	. /etc/default/networking
+fi
+
+ARGS=""
+if [ "${VERBOSE}" = yes ]; then
+	ARGS="-v"
+fi
+
+# Let's go
+case "$1" in
+	start)
+		if [ "${CONFIGURE_INTERFACES}" = no ]; then
+			echo "Not configuring network interfaces, see /etc/default/networking"
+			exit 0
+		fi
+
+		ifup -a ${ARGS}
+		;;
+
+	stop)
+		if [ "${SKIP_DOWN_AT_SYSRESET}" = "yes" ] && systemctl list-jobs | egrep -q '(shutdown|reboot|halt|poweroff)\.target'; then
+			echo ${NAME}':' "Skipping deconfiguring network interfaces"
+			exit 0
+		fi
+
+		ifdown -a ${ARGS}
+	;;
+
+	restart)
+		ifupdown_init
+		ifdown -a ${ARGS}
+		ifup -a ${ARGS}
+		;;
+
+	# reload missing here!
+
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac
+
+exit 0
