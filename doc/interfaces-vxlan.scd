@@ -10,14 +10,15 @@ Virtual eXtensible LAN (VXLAN) is an overlay network to carry Layer 2 over
 an IP network while accommodating a very large number of tenants. It is
 defined in RFC 7348.
 
-Beware that VXLAN encapsulation adds an overhead of 50 bytes from witin
-the overlay to the underlay (inner Ethernet frame + VXLAN + UDP + IP
-haeder). Consider this when setting up underlay an overlay.
+Be aware that VXLAN encapsulation adds 50 bytes of overhead to the IP packet
+header (inner Ethernet header + VXLAN + UDP + IP). This should be taken into
+consideration when setting up overlay networks, particularly on underlay
+networks with a conventional 1500 byte MTU.
 
-The following options allow to set up VXLAN Tunnel EndPoints (VTEPs)
-interfaces with ifupdown-ng.
+The following options set up VXLAN Tunnel EndPoints (VTEP) interfaces with
+ifupdown-ng.
 
-See https://www.kernel.org/doc/Documentation/networking/vxlan.rst and/or
+See https://www.kernel.org/doc/Documentation/networking/vxlan.rst and
 https://vincent.bernat.ch/en/blog/2017-vxlan-linux for more information.
 
 # VXLAN-RELATED OPTIONS
@@ -27,11 +28,11 @@ other options are optional.
 
 *vxlan-id* _VNI ID_
 	Denotes the VXLAN Network Identifier (VNI) ID for this interface.
-	This parameter is required for a VXLAN interface.
+	This parameter is required for VTEP interfaces.
 
 *vxlan-physdev* _interface_
-	Specifies the physical device to use for tunnel endpoint
-	communication.
+	Specifies the physical ("underlay") device to use for tunnel
+	endpoint communication.
 
 *vxlan-local-ip* _address_
 	Specifies the source IP address to use in outgoing packets.
@@ -47,8 +48,8 @@ other options are optional.
 	this parameter.
 
 *vxlan-remote-group* _multicast group_
-	Specifies the multicast IP address to join.  This parameter cannot
-	be specified with the _vxlan-remote-ip_ parameter.
+	Specifies the multicast group IP address to join. This parameter
+	cannot be specified with the _vxlan-remote-ip_ parameter.
 	For compatibility with ifupdown2 _vxlan-svcnodeip_ is an alias for
 	this parameter.
 
@@ -60,8 +61,8 @@ other options are optional.
 	Specifies the lifetime in seconds of FDB entries learnt by the kernel.
 
 *vxlan-dstport* _port_
-	Specifies the UDP destination port to communicate to the remote VXLAN
-	tunnel endpoint. The default is 4789.
+	Specifies the UDP destination port of the remote VXLAN tunnel endpoint.
+	The default is 4789.
 
 # EXAMPLES
 
