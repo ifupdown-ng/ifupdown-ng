@@ -27,7 +27,7 @@ configure_addresses() {
 configure_gateways() {
 	for i in $(ifquery -p gateway -i $INTERFACES_FILE $IFACE); do
 		addrfam=$(addr_family $i)
-		${MOCK} ip $addrfam route $1 default via $i $VRF_TABLE $METRIC
+		${MOCK} ip $addrfam route $1 default via $i $VRF_TABLE $METRIC dev $IFACE
 	done
 }
 
