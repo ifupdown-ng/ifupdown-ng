@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# This executor is responsible for setting up the Virtual Extensible LAN (VXLA) overlay interfaces.
+# This executor is responsible for setting up the Virtual Extensible LAN (VXLAN) overlay interfaces.
 #
 # Fri, 02 Oct 2020 01:10:29 +0200
 #  -- Maximilian Wilhelm <max@sdn.clinic>
@@ -35,12 +35,6 @@ case "$PHASE" in
 
 	create)
 		if [ -d "/sys/class/net/${IFACE}" ]; then
-			iface_type=$(ip -d link show dev "${IFACE}" | head -n3 | tail -n1 | awk '{ print $1 }')
-			if [ "${iface_type}" != 'dummy' ]; then
-				echo "Interface ${IFACE} exists but is of type ${iface_type} instead of dummy"
-				exit 1
-			fi
-
 			exit 0
 		fi
 
