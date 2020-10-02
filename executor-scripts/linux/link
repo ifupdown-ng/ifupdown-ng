@@ -36,6 +36,8 @@ create)
 				echo "Interface ${IFACE} exists but is of type ${iface_type} instead of dummy"
 				exit 1
 			fi
+
+			exit 0
 		fi
 
 		${MOCK} ip link add "${IFACE}" type dummy
