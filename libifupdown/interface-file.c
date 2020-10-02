@@ -88,6 +88,9 @@ static const struct remap_token tokens[] = {
 	{"tx-offload", "ethtool-offload-tx"},		/* ifupdown2 */
 	{"ufo-offload", "ethtool-offload-ufo"},		/* ifupdown2 */
 	{"vrf", "vrf-member"},				/* ifupdown2 */
+	{"vxlan-local-tunnelip", "vxlan-local-ip"},	/* ifupdown2 */
+	{"vxlan-remoteip", "vxlan-remote-ip"},		/* ifupdown2 */
+	{"vxlan-svcnodeip", "vxlan-remote-group"},	/* ifupdown2 */
 };
 
 static int

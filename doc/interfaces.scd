@@ -110,8 +110,8 @@ the system will only respond to certain keywords by default:
 *post-up* _command_
 	Runs _command_ after bringing the interface up.
 
-Additional packages such as *bonding*, *bridge*, *tunnel* and
-*vrf* add additional keywords to this vocabulary.
+Additional packages such as *bonding*, *bridge*, *tunnel*, *vrf* and
+*vxlan* add additional keywords to this vocabulary.
 
 # OPTIONS
 
@@ -144,6 +144,10 @@ most common options are:
 	The interface is a VRF.  Configuration of VRFs requires
 	the *vrf* package to be installed.
 
+*vxlan*
+	The interface is a Virtual Extensible LAN (VXLAN) tunnel
+	endpoint.
+
 # EXAMPLES
 
 Configure a bridge interface *br0* with *bond0* attached to it,
@@ -173,6 +177,10 @@ auto eth0
 iface eth0
     use dhcp
 ```
+
+# SEE ALSO
+
+*interfaces-vxlan*(5)
 
 # AUTHORS
 

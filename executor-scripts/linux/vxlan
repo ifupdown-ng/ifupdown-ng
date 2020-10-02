@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+# This executor is responsible for setting up the Virtual Extensible LAN (VXLAN) overlay interfaces.
+#
+# Fri, 02 Oct 2020 01:10:29 +0200
+#  -- Maximilian Wilhelm <max@sdn.clinic>
+#
+# Known options for the main interface are:
+#
+# IF_VXLAN_ID		The VXLAN Network Identifier (VNI)
+# IF_VXLAN_PHYSDEV	Specifies the physical device to use for tunnel endpoint communication
+# IF_VXLAN_LOCAL_IP	Specifies the source IP address to use in outgoing packets
+# IF_VXLAN_REMOTE_IP	IP of the remote VTEP endpoint (for ptp mode)
+# IF_VXLAN_REMOTE_GROUP	Multicast group to use for this VNI (for ptmp mode)
+# IF_VXLAN_LEARNING	Wether to activate MAC learning on this instance (on/off)
+# IF_VXLAN_AGEING	Specifies the lifetime in seconds of FDB entries learnt by the kernel
+# IF_VXLAN_DSTPORT	UDP destination port to communicate to the remote VXLAN tunnel endpoint (default 4789)
+#
+
+set -e
+
+[ -n "$VERBOSE" ] && set -x
+
+# No VNI, nuthin' to do for us
+if [ ! "${IF_VXLAN_ID}" ]; then
+	exit 0
+fi
+
+case "$PHASE" in
+	depend)
+		if [ "${IF_VXLAN_PHYSDEV}" ]; then
+			echo "${IF_VXLAN_PHYSDEV}"
+		fi
+		;;
+
+	create)
+		if [ -d "/sys/class/net/${IFACE}" ]; then
+			exit 0
+		fi
+
+		# Input validation
+		if [ "${IF_VXLAN_REMOTE_IP}" -a "${IF_VXLAN_REMOTE_GROUP}" ]; then
+			echo "Error on ${IFACE} (vxlan): Only one of 'remote' and 'group' can be given!" >&2
+			exit 1
+		fi
+
+		# Gather arguments
+		ARGS=""
+		[ "${IF_VXLAN_PHYSDEV}" ] && ARGS="${ARGS} dev ${IF_VXLAN_PHYSDEV}"
+		[ "${IF_VXLAN_LOCAL_IP}" ] && ARGS="${ARGS} local ${IF_VXLAN_LOCAL_IP}"
+		[ "${IF_VXLAN_REMOTE_IP}" ] && ARGS="${ARGS} remote ${IF_VXLAN_REMOTE_IP}"
+		[ "${IF_VXLAN_REMOTE_GROUP}" ] && ARGS="${ARGS} group ${IF_VXLAN_REMOTE_GROUP}"
+		[ "${IF_VXLAN_AGEING}" ] && ARGS="${ARGS} ageing ${IF_VXLAN_AGEING}"
+
+		# Linux uses non-standard default port - WTF?
+		if [ "${IF_VXLAN_DSTPORT}" ]; then
+			ARGS="${ARGS} dstport ${IF_VXLAN_DSTPORT}"
+		else
+			ARGS="${ARGS} dstport 4789"
+		fi
+
+		case "${IF_VXLAN_LEARNING}" in
+			on|yes)
+				ARGS="${ARGS} learning"
+				;;
+
+			off|no)
+				ARGS="${ARGS} nolearning"
+				;;
+		esac
+
+		${MOCK} ip link add "${IFACE}" type vxlan id "${IF_VXLAN_ID}" ${ARGS}
+		;;
+
+	destroy)
+		if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
+			exit 0
+		fi
+
+		${MOCK} ip link del "${IFACE}"
+		;;
+esac
