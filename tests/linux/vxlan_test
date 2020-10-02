@@ -1,0 +1,55 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/vxlan"
+
+tests_init \
+	create_simple \
+	create_ucast \
+	create_mcast \
+	create_physdev \
+	create_dstport \
+	create_nolearning \
+	destroy \
+
+create_simple_body() {
+	export IFACE=vx_foo PHASE=create MOCK=echo IF_VXLAN_ID=2342
+	atf_check -s exit:0 -o match:'ip link add vx_foo type vxlan id 2342 dstport 4789' \
+		${EXECUTOR}
+}
+
+create_ucast_body() {
+	export IFACE=vx_foo PHASE=create MOCK=echo IF_VXLAN_ID=2342 IF_VXLAN_REMOTE_IP=192.2.0.42
+	atf_check -s exit:0 -o match:'ip link add vx_foo type vxlan id 2342 remote 192.2.0.42' \
+		${EXECUTOR}
+}
+
+create_mcast_body() {
+	export IFACE=vx_foo PHASE=create MOCK=echo IF_VXLAN_ID=2342 IF_VXLAN_REMOTE_GROUP=225.0.8.15
+	atf_check -s exit:0 -o match:'ip link add vx_foo type vxlan id 2342 group 225.0.8.15' \
+		${EXECUTOR}
+}
+
+create_physdev_body() {
+	export IFACE=vx_foo PHASE=create MOCK=echo IF_VXLAN_ID=2342 IF_VXLAN_PHYSDEV=eth0
+	atf_check -s exit:0 -o match:'ip link add vx_foo type vxlan id 2342 dev eth0' \
+		${EXECUTOR}
+}
+
+create_dstport_body() {
+	export IFACE=vx_foo PHASE=create MOCK=echo IF_VXLAN_ID=2342 IF_VXLAN_DSTPORT=1234
+	atf_check -s exit:0 -o match:'ip link add vx_foo type vxlan id 2342 dstport 1234' \
+		${EXECUTOR}
+}
+
+create_nolearning_body() {
+	export IFACE=vx_foo PHASE=create MOCK=echo IF_VXLAN_ID=2342 IF_VXLAN_LEARNING=no
+	atf_check -s exit:0 -o match:'ip link add vx_foo type vxlan id 2342 dstport 4789 nolearning' \
+		${EXECUTOR}
+}
+
+destroy_body() {
+	export IFACE=vx_foo PHASE=destroy MOCK=echo IF_VXLAN_ID=2342
+	atf_check -s exit:0 -o match:'ip link del vx_foo' \
+		${EXECUTOR}
+}
