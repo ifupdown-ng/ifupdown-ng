@@ -36,6 +36,8 @@ create)
 				echo "Interface ${IFACE} exists but is of type ${iface_type} instead of dummy"
 				exit 1
 			fi
+
+			exit 0
 		fi
 
 		${MOCK} ip link add "${IFACE}" type dummy
@@ -74,6 +76,11 @@ up)
 	fi
 	;;
 down)
+	# Don't complain about a vanished interface when downing it
+	if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
+		exit 0
+	fi
+
 	${MOCK} ip link set down dev "${IFACE}"
 	;;
 destroy)
