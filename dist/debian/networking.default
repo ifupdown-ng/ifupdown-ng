@@ -1,0 +1,13 @@
+#
+# Defaults for ifupdown-ng networking service
+#
+
+# Change the below to "yes" if you want ifup/ifdown and it's executors to be
+# verbose about what's going on
+VERBOSE="no"
+
+# Set to "yes" if you want to skip deconfiguring all interfaces during system
+# reboot and shutdown. This might be of interest in large scale deployments,
+# where you might not want to wait for interface deconfiguration to speed up
+# shutdown/reboot.
+SKIP_DOWN_AT_SYSRESET="yes"
