@@ -74,6 +74,11 @@ up)
 	fi
 	;;
 down)
+	# Don't complain about a vanished interface when downing it
+	if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
+		exit 0
+	fi
+
 	${MOCK} ip link set down dev "${IFACE}"
 	;;
 destroy)
