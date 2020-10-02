@@ -11,8 +11,8 @@ up_body() {
 	atf_check -s exit:0 \
 		-o match:'addr add 203.0.113.2/24 dev eth0' \
 		-o match:'addr add 2001:db8:1000:2::2/64 dev eth0' \
-		-o match:'route add default via 203.0.113.1' \
-		-o match:'route add default via 2001:db8:1000:2::1' \
+		-o match:'route add default via 203.0.113.1 metric 1 dev eth0' \
+		-o match:'route add default via 2001:db8:1000:2::1 metric 1 dev eth0' \
 		${EXECUTOR}
 }
 
@@ -21,8 +21,8 @@ down_body() {
 	atf_check -s exit:0 \
 		-o match:'addr del 203.0.113.2/24 dev eth0' \
 		-o match:'addr del 2001:db8:1000:2::2/64 dev eth0' \
-		-o match:'route del default via 203.0.113.1' \
-		-o match:'route del default via 2001:db8:1000:2::1' \
+		-o match:'route del default via 203.0.113.1 metric 1 dev eth0' \
+		-o match:'route del default via 2001:db8:1000:2::1 metric 1 dev eth0' \
 		${EXECUTOR}
 }
 
