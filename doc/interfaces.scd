@@ -110,8 +110,51 @@ the system will only respond to certain keywords by default:
 *post-up* _command_
 	Runs _command_ after bringing the interface up.
 
-Additional packages such as *bonding*, *bridge*, *tunnel* and
-*vrf* add additional keywords to this vocabulary.
+Additional packages such as *bonding*, *bridge*, *tunnel*, *vrf* and
+*vxlan* add additional keywords to this vocabulary.
+
+# VXLAN INTERFACE CONFIGURATION
+
+A VXLAN Virtual Tunnel Endpoint (VTEP) interface must an ID set. All
+other options are optional.
+
+*vxlan-id* _VNI ID_
+	Denotes the VXLAN Network Identifier (VNI) ID for this interface.
+	This parameter is required for a VXLAN interface.
+
+*vxlan-physdev* _interface_
+	Specifies the physical device to use for tunnel endpoint
+	communication.
+
+*vxlan-local-ip* _address_
+	Specifies the source IP address to use in outgoing packets.
+	For compatiblity with ifupdown2 _vxlan-local-tunnelip_ is an
+	alias for this parameter.
+
+*vxlan-remote-ip* _address_
+	Specifies the unicast destination IP address to use in outgoing
+	packets when the destination link layer address is not known in
+	the VXLAN device forwarding database. This parameter cannot be
+	specified with the _vxlan-remote-group_ parameter.
+	For compatiblity with ifupdown2 _vxlan-remoteip_ is an alias for
+	this parameter.
+
+*vxlan-remote-group* _multicast group_
+	Specifies the multicast IP address to join.  This parameter cannot
+	be specified with the _vxlan-remote-ip_ parameter.
+	For compatibility with ifupdown2 _vxlan-svcnodeip_ is an alias for
+	this parameter.
+
+*vxlan-learning* _on/off_
+	Specifies if unknown source link layer addresses and IP addresses
+	are entered into the VXLAN device forwarding database.
+
+*vxlan-ageing* _seconds_
+	Specifies the lifetime in seconds of FDB entries learnt by the kernel.
+
+*vxlan-dstport* _port_
+	Specifies the UDP destination port to communicate to the remote VXLAN
+	tunnel endpoint. The default is 4789.
 
 # OPTIONS
 
@@ -143,6 +186,10 @@ most common options are:
 *vrf*
 	The interface is a VRF.  Configuration of VRFs requires
 	the *vrf* package to be installed.
+
+*vxlan*
+	The interface is a Virtual Extensible LAN (VXLAN) tunnel
+	endpoint.
 
 # EXAMPLES
 
