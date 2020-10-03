@@ -160,6 +160,9 @@ most common options are:
 	The interface is a Virtual Extensible LAN (VXLAN) tunnel
 	endpoint.
 
+*wireguard*
+	The interface is a Wireguard VPN tunnel endpoint.
+
 Check *interfaces-<option>(5)* for further informaton about a given
 option and available configuration parameters.
 
@@ -204,6 +207,7 @@ iface eth0
 *interfaces-bridge*(5)
 *interfaces-vrf*(5)
 *interfaces-vxlan*(5)
+*interfaces-wireguard*(5)
 
 # AUTHORS
 
