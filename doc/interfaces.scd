@@ -195,8 +195,12 @@ iface eth0
 
 # SEE ALSO
 
-*interfaces-bond*(5)
+*ifup*(8)
+*ifdown*(8)
+*ifquery*(8)
+*ifctrstat*(8)
 *interfaces-batman*(5)
+*interfaces-bond*(5)
 *interfaces-bridge*(5)
 *interfaces-vrf*(5)
 *interfaces-vxlan*(5)
