@@ -1,0 +1,64 @@
+#!/bin/sh
+#
+# This executor is responsible for setting up bond/LAG interfaces.
+#
+# Sat, 03 Oct 2020 20:42:19 +0200
+#  -- Maximilian Wilhelm <max@sdn.clinic>
+#
+
+set -e
+
+[ -n "$VERBOSE" ] && set -x
+
+get_bond_options() {
+	env | while IFS="=" read opt value; do
+		# We only care for options of format IF_BOND_<OPTION_NAME>
+		if ! echo "${opt}" | grep -q '^IF_BOND_[A-Z0-9_]\+$'; then
+			continue
+		fi
+
+		# Members are handled seperately
+		if [ "${opt}" = "IF_BOND_MEMBERS" ]; then
+			continue
+		fi
+
+		# Convert options for the actual name
+		real_opt=$(echo "${opt}" | sed -e 's/^IF_BOND_\([A-Z0-9_]\+\)/\1/' | tr '[A-Z]' '[a-z]')
+
+		echo -n " ${real_opt} ${value}"
+	done
+}
+
+case "$PHASE" in
+	depend)
+		echo "${IF_BOND_MEMBERS}"
+		;;
+
+	create)
+		if [ -d "/sys/class/net/${IFACE}" ]; then
+			exit 0
+		fi
+
+		# Gather bonding options for this interface
+		options=$(get_bond_options)
+
+		# Create bond
+		${MOCK} ip link add "${IFACE}" type bond ${options}
+
+		# Add members to bundle
+		for member_iface in ${IF_BOND_MEMBERS}; do
+			# Work around the current execution order
+			ip link set "${member_iface}" down
+			ip link set master "${IFACE}" "${member_iface}"
+			ip link set "${member_iface}" up
+		done
+		;;
+
+	destroy)
+		if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
+			exit 0
+		fi
+
+		${MOCK} ip link del "${IFACE}"
+		;;
+esac

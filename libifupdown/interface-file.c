@@ -28,6 +28,8 @@ struct remap_token {
 
 /* this list must be in alphabetical order for bsearch */
 static const struct remap_token tokens[] = {
+	{"bond-ad-sys-priority", "bond-ad-actor-sys-prio"}, /* ifupdown2 */
+	{"bond-slaves", "bond-members"},		/* legacy ifupdown, ifupdown2 */
 	{"driver-message-level", "ethtool-msglvl"},	/* Debian ethtool integration */
 	{"endpoint", "tunnel-remote"},			/* legacy ifupdown */
 	{"ethernet-autoneg", "ethtool-ethernet-autoneg"},	/* Debian ethtool integration */
