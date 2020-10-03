@@ -197,6 +197,7 @@ iface eth0
 
 *interfaces-bond*(5)
 *interfaces-batman*(5)
+*interfaces-bridge*(5)
 *interfaces-vrf*(5)
 *interfaces-vxlan*(5)
 
