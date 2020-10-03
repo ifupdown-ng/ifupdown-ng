@@ -147,6 +147,7 @@ MANPAGES_5 = \
 	doc/interfaces-bond.5 \
 	doc/interfaces-batman.5 \
 	doc/interfaces-bridge.5 \
+	doc/interfaces-ppp.5 \
 	doc/interfaces-vrf.5 \
 	doc/interfaces-vxlan.5 \
 	doc/interfaces-wireguard.5

@@ -148,6 +148,11 @@ most common options are:
 *loopback*
 	Designates the interface as a loopback device.
 
+*ppp*
+	Designates the interface as a PPP device.  Configuration
+	of PPP interfaces require the *ppp* and probably the *pppoe*
+	packages to be installed.
+
 *tunnel*
 	The interface is a tunnel.  Configuration of tunnels
 	requires the *tunnel* package to be installed.
@@ -205,6 +210,7 @@ iface eth0
 *interfaces-batman*(5)
 *interfaces-bond*(5)
 *interfaces-bridge*(5)
+*interfaces-ppp*(5)
 *interfaces-vrf*(5)
 *interfaces-vxlan*(5)
 *interfaces-wireguard*(5)
