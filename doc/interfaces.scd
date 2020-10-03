@@ -70,6 +70,11 @@ the system will only respond to certain keywords by default:
 	is for backwards compatibility and should not be used in new
 	deployments.
 
+*pointopoint*
+	Sets the given IPv4 address as the peer address on the interface.
+	This setting only takes effect for the IPv4 address familiy and
+	only makes sense in combination with as /32 netmask.
+
 *link-type* _link-type_
 	Denotes the link-type of the interface. When set to _dummy_,
 	the interface is created as a virtual dummy interfaces.
