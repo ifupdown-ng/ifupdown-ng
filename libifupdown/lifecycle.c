@@ -28,6 +28,8 @@
 #include "libifupdown/tokenize.h"
 #include "libifupdown/config-file.h"
 
+#define BUFFER_LEN 4096
+
 static bool
 handle_commands_for_phase(const struct lif_execute_opts *opts, char *const envp[], const struct lif_interface *iface, const char *phase)
 {
@@ -112,6 +114,35 @@ query_dependents_from_executors(const struct lif_execute_opts *opts, char *const
 	return true;
 }
 
+bool
+append_to_buffer(char **buffer, size_t *buffer_len, char **end, const char *value)
+{
+	size_t value_len = strlen (value);
+
+	/* Make sure there is enough room to add the value to the buffer */
+	if (*buffer_len < strlen (*buffer) + value_len + 2)
+	{
+		printf ("Doubling buffer...\n");
+		*buffer = realloc (*buffer, *buffer_len * 2);
+		if (*buffer == NULL)
+			/* XXX Here be dragons */
+			return false;
+
+		*buffer_len = *buffer_len * 2;
+	}
+
+	/* Append value to buffer */
+	size_t printed = sprintf (*end, "%s ", value);
+	if (printed < value_len + 1)
+		/* Here be dragons */
+		return false;
+
+	/* Move end pointer to last printed byte */
+	*end += printed;
+
+	return true;
+}
+
 static void
 build_environment(char **envp[], const struct lif_execute_opts *opts, const struct lif_interface *iface, const char *lifname, const char *phase, const char *mode)
 {
@@ -132,19 +163,33 @@ build_environment(char **envp[], const struct lif_execute_opts *opts, const stru
 	const struct lif_node *iter;
 	bool did_address = false, did_gateway = false;
 
+	/* Allocate a buffer for all possible addresses, if any */
+	char *addresses = calloc (BUFFER_LEN, 1);
+	size_t addresses_size = BUFFER_LEN;
+	char *addresses_end = addresses;
+
+	/* Allocate a buffer for all possible gateways, if any */
+	char *gateways = calloc (BUFFER_LEN, 1);
+	size_t gateways_size = BUFFER_LEN;
+	char *gateways_end = gateways;
+
 	LIF_DICT_FOREACH(iter, &iface->vars)
 	{
 		const struct lif_dict_entry *entry = iter->data;
 
 		if (!strcmp(entry->key, "address"))
 		{
-			if (did_address)
-				continue;
-
 			struct lif_address *addr = entry->data;
 			char addrbuf[4096];
 
 			if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
+				continue;
+
+			/* Append address to buffer */
+			append_to_buffer(&addresses, &addresses_size, &addresses_end, addrbuf);
+
+			/* Only print IF_ADDRESS once */
+			if (did_address)
 				continue;
 
 			lif_environment_push(envp, "IF_ADDRESS", addrbuf);
@@ -154,6 +199,9 @@ build_environment(char **envp[], const struct lif_execute_opts *opts, const stru
 		}
 		else if (!strcmp(entry->key, "gateway"))
 		{
+			/* Append address to buffer */
+			append_to_buffer(&gateways, &gateways_size, &gateways_end, entry->data);
+
 			if (did_gateway)
 				continue;
 
@@ -179,6 +227,11 @@ build_environment(char **envp[], const struct lif_execute_opts *opts, const stru
 
 		lif_environment_push(envp, envkey, (const char *) entry->data);
 	}
+
+	if (addresses != NULL)
+		lif_environment_push(envp, "IF_ADDRESSES", addresses);
+	if (gateways != NULL)
+		lif_environment_push(envp, "IF_GATEWAYS", gateways);
 }
 
 bool
