@@ -16,7 +16,7 @@
 #  IF_BATMAN_ROUTING_ALGO		Set the B.A.T.M.A.N. adv. routing algorithm (BATMAN_IV, BATMAN_V)
 #
 # Known options for underlying interfaces are:
-#  IF_BATMAN_IFACE_PENALTY		Set the hop penalty of this B.A.T.M.A.N. adv. interface
+#  IF_BATMAN_HOP_PENALTY		Set the hop penalty of this B.A.T.M.A.N. adv. underlay interface
 #
 set -e
 
@@ -67,7 +67,7 @@ set_routing_algo () {
 #
 # Functions to manage B.A.T.M.A.N. adv. underlying interfaces
 set_iface_penalty () {
-	${MOCK} batctl hardif "${IFACE}" hop_penalty "${IF_BATMAN_IFACE_PENALTY}"
+	${MOCK} batctl hardif "${IFACE}" hop_penalty "${IF_BATMAN_HOP_PENALTY}"
 }
 
 
@@ -98,7 +98,7 @@ case "${PHASE}" in
 			set_batman_params
 
 		# B.A.T.M.A.N. adv. underlying interface
-		elif [ "${IF_BATMAN_IFACE_PENALTY}" ]; then
+		elif [ "${IF_BATMAN_HOP_PENALTY}" ]; then
 			set_iface_penalty
 		fi
 		;;
