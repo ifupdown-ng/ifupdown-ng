@@ -163,9 +163,6 @@ build_environment(char **envp[], const struct lif_execute_opts *opts, const stru
 		{
 			if (iface->is_bridge)
 				lif_environment_push(envp, "IF_BRIDGE_PORTS", (const char *) entry->data);
-
-			if (iface->is_bond)
-				lif_environment_push(envp, "IF_BOND_SLAVES", (const char *) entry->data);
 		}
 
 		char envkey[4096] = "IF_";

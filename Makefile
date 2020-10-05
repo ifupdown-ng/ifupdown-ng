@@ -143,7 +143,8 @@ MANPAGES_8 = \
 	doc/ifctrstat.8
 
 MANPAGES_5 = \
-	doc/interfaces.5
+	doc/interfaces.5 \
+	doc/interfaces-bond.5
 
 MANPAGES_7 = \
 	doc/ifupdown-executor.7

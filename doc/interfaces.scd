@@ -180,6 +180,7 @@ iface eth0
 
 # SEE ALSO
 
+*interfaces-bond*(5)
 *interfaces-vxlan*(5)
 
 # AUTHORS
