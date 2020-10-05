@@ -73,6 +73,13 @@ the system will only respond to certain keywords by default:
 *link-type* _link-type_
 	Denotes the link-type of the interface. When set to _dummy_,
 	the interface is created as a virtual dummy interfaces.
+	When set to _veth_ the interface is created as virtual veth
+	interface (pair).
+
+*veth-peer-name* _peer-name_
+	Denotes the name of the veth peer interfaces. If not set
+	the kernel will name the veth peer interface as _vethN_
+	with N being an integer number.
 
 *alias* _alias_
 	Sets the given alias on the interface.

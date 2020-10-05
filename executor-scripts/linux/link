@@ -28,6 +28,17 @@ is_vlan() {
 }
 
 case "$PHASE" in
+depend)
+	# vlan-raw-device
+	if is_vlan; then
+		echo "$IF_VLAN_RAW_DEVICE"
+
+	# veth-peer-name
+	elif [ "${IF_LINK_TYPE}" = "veth" -a "${IF_VETH_PEER_NAME}" ]; then
+		echo "${IF_VETH_PEER_NAME}"
+	fi
+	;;
+
 create)
 	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
 		if [ -d "/sys/class/net/${IFACE}" ]; then
@@ -41,9 +52,18 @@ create)
 		fi
 
 		${MOCK} ip link add "${IFACE}" type dummy
-	fi
 
-	if is_vlan; then
+	elif [ "${IF_LINK_TYPE}" = "veth" ]; then
+		if [ ! -d "/sys/class/net/${IFACE}" ]; then
+			ARGS=""
+			if [ "${IF_VETH_PEER_NAME}" ]; then
+				ARGS="peer ${IF_VETH_PEER_NAME}"
+			fi
+
+			${MOCK} ip link add "${IFACE}" type veth ${ARGS}
+		fi
+
+	elif is_vlan; then
 		if [ -d "/sys/class/net/${IFACE}" ]; then
 			exit 0
 		fi
@@ -84,17 +104,12 @@ down)
 	${MOCK} ip link set down dev "${IFACE}"
 	;;
 destroy)
-	if [ "${IF_LINK_TYPE}" = "dummy" ] || is_vlan; then
+	if [ "${IF_LINK_TYPE}" = "dummy" ] || [ "${IF_LINK_TYPE}" = "veth" ] || is_vlan; then
 		if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
 			exit 0
 		fi
 
 		${MOCK} ip link del "${IFACE}"
-	fi
-	;;
-depend)
-	if is_vlan; then
-		echo "$IF_VLAN_RAW_DEVICE"
 	fi
 	;;
 esac
