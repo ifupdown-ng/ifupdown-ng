@@ -144,7 +144,11 @@ MANPAGES_8 = \
 
 MANPAGES_5 = \
 	doc/interfaces.5 \
-	doc/interfaces-bond.5
+	doc/interfaces-bond.5 \
+	doc/interfaces-batman.5 \
+	doc/interfaces-bridge.5 \
+	doc/interfaces-vrf.5 \
+	doc/interfaces-vxlan.5
 
 MANPAGES_7 = \
 	doc/ifupdown-executor.7
