@@ -122,7 +122,6 @@ append_to_buffer(char **buffer, size_t *buffer_len, char **end, const char *valu
 	/* Make sure there is enough room to add the value to the buffer */
 	if (*buffer_len < strlen (*buffer) + value_len + 2)
 	{
-		printf ("Doubling buffer...\n");
 		*buffer = realloc (*buffer, *buffer_len * 2);
 		if (*buffer == NULL)
 			/* XXX Here be dragons */
