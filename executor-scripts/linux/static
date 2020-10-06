@@ -29,7 +29,16 @@ configure_addresses() {
 			PEER=""
 		fi
 
-		${MOCK} ip "${addrfam}" addr "${1}" "${addr}" ${PEER} dev "${IFACE}"
+		if [ -z "${MOCK}" -a "${1}" = "del" ]; then
+			# When having multiple addresses set from the same prefix they might/will(?) be configured
+			# as 'secondary' and implicitly removed when removing the non-secondary address. This
+			# leads ip complaining about not being able to remove the secondaries as they are already
+			# gone. So we ignore errors while deconfiguring addresses as they liked occur when removing
+			# a vanish address anyway.
+			${MOCK} ip "${addrfam}" addr "${1}" "${addr}" ${PEER} dev "${IFACE}" 2>/dev/null
+		else
+			${MOCK} ip "${addrfam}" addr "${1}" "${addr}" ${PEER} dev "${IFACE}"
+		fi
 	done
 }
 
