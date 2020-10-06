@@ -231,6 +231,10 @@ build_environment(char **envp[], const struct lif_execute_opts *opts, const stru
 		lif_environment_push(envp, "IF_ADDRESSES", addresses);
 	if (gateways != NULL)
 		lif_environment_push(envp, "IF_GATEWAYS", gateways);
+
+	/* Clean up */
+	free (addresses);
+	free (gateways);
 }
 
 bool
