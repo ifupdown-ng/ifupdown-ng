@@ -126,6 +126,11 @@ The *use* keyword designates that an _option_ should be used.
 This system is extendable by additional packages, but the
 most common options are:
 
+*batman*
+	The interface is a B.A.T.M.A.N. adv. mesh interface.
+	Configuration of B.A.T.M.A.N. adv. interfaces requires the
+	*batctl* untiliy to be installed.
+
 *bond*
 	The interface is a bonded interface.  Configuration
 	of bonded interfaces requires the *bonding* package
@@ -191,6 +196,7 @@ iface eth0
 # SEE ALSO
 
 *interfaces-bond*(5)
+*interfaces-batman*(5)
 *interfaces-vrf*(5)
 *interfaces-vxlan*(5)
 
