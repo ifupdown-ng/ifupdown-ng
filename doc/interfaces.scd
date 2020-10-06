@@ -133,6 +133,11 @@ The *use* keyword designates that an _option_ should be used.
 This system is extendable by additional packages, but the
 most common options are:
 
+*batman*
+	The interface is a B.A.T.M.A.N. adv. mesh interface.
+	Configuration of B.A.T.M.A.N. adv. interfaces requires the
+	*batctl* untiliy to be installed.
+
 *bond*
 	The interface is a bonded interface.  Configuration
 	of bonded interfaces requires the *bonding* package
@@ -150,6 +155,11 @@ most common options are:
 *loopback*
 	Designates the interface as a loopback device.
 
+*ppp*
+	Designates the interface as a PPP device.  Configuration
+	of PPP interfaces require the *ppp* and probably the *pppoe*
+	packages to be installed.
+
 *tunnel*
 	The interface is a tunnel.  Configuration of tunnels
 	requires the *tunnel* package to be installed.
@@ -161,6 +171,12 @@ most common options are:
 *vxlan*
 	The interface is a Virtual Extensible LAN (VXLAN) tunnel
 	endpoint.
+
+*wireguard*
+	The interface is a Wireguard VPN tunnel endpoint.
+
+Check *interfaces-<option>(5)* for further informaton about a given
+option and available configuration parameters.
 
 # EXAMPLES
 
@@ -194,10 +210,19 @@ iface eth0
 
 # SEE ALSO
 
+*ifup*(8)
+*ifdown*(8)
+*ifquery*(8)
+*ifctrstat*(8)
+*interfaces-batman*(5)
 *interfaces-bond*(5)
+*interfaces-bridge*(5)
+*interfaces-ppp*(5)
+*interfaces-vrf*(5)
 *interfaces-vxlan*(5)
+*interfaces-wireguard*(5)
 
 # AUTHORS
 
-Ariadne Conill <ariadne@dereferenced.org>
+Ariadne Conill <ariadne@dereferenced.org>++
 Maximilian Wilhelm <max@sdn.clinic>
