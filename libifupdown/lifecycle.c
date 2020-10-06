@@ -131,7 +131,7 @@ append_to_buffer(char **buffer, size_t *buffer_len, char **end, const char *valu
 	}
 
 	/* Append value to buffer */
-	size_t printed = sprintf (*end, "%s ", value);
+	size_t printed = snprintf (*end, value_len + 2, "%s ", value);
 	if (printed < value_len + 1)
 		/* Here be dragons */
 		return false;
