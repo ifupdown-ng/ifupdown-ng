@@ -2,7 +2,6 @@
 
 . $(atf_get_srcdir)/../test_env.sh
 EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/static"
-FIXTURES="$(atf_get_srcdir)/../fixtures"
 
 tests_init \
 	up \
@@ -14,7 +13,8 @@ tests_init \
 	metric_down
 
 up_body() {
-	export IFACE=eth0 PHASE=up MOCK=echo INTERFACES_FILE="$FIXTURES/static-eth0.interfaces"
+	export IFACE=eth0 PHASE=up MOCK=echo IF_ADDRESSES="203.0.113.2/24 2001:db8:1000:2::2/64" \
+		IF_GATEWAYS="203.0.113.1 2001:db8:1000:2::1"
 	atf_check -s exit:0 \
 		-o match:'addr add 203.0.113.2/24 dev eth0' \
 		-o match:'addr add 2001:db8:1000:2::2/64 dev eth0' \
@@ -24,8 +24,8 @@ up_body() {
 }
 
 up_ptp_body() {
-	export IFACE=eth0 PHASE=up MOCK=echo INTERFACES_FILE="$FIXTURES/static-eth0-ptp.interfaces" \
-		IF_POINT_TO_POINT="192.0.2.1"
+	export IFACE=eth0 PHASE=up MOCK=echo IF_ADDRESSES="203.0.113.2/32 2001:db8:1000:2::2/64" \
+		IF_GATEWAYS="192.0.2.1 2001:db8:1000:2::1" IF_POINT_TO_POINT="192.0.2.1"
 	atf_check -s exit:0 \
 		-o match:'addr add 203.0.113.2/32 peer 192.0.2.1 dev eth0' \
 		-o match:'route add default via 192.0.2.1 metric 1 dev eth0' \
@@ -35,7 +35,8 @@ up_ptp_body() {
 }
 
 down_body() {
-	export IFACE=eth0 PHASE=down MOCK=echo INTERFACES_FILE="$FIXTURES/static-eth0.interfaces"
+	export IFACE=eth0 PHASE=down MOCK=echo IF_ADDRESSES="203.0.113.2/24 2001:db8:1000:2::2/64" \
+		IF_GATEWAYS="203.0.113.1 2001:db8:1000:2::1"
 	atf_check -s exit:0 \
 		-o match:'addr del 203.0.113.2/24 dev eth0' \
 		-o match:'addr del 2001:db8:1000:2::2/64 dev eth0' \
@@ -45,32 +46,28 @@ down_body() {
 }
 
 vrf_up_body() {
-	export IFACE=vrf-red PHASE=up MOCK=echo INTERFACES_FILE="$FIXTURES/vrf.interfaces" \
-		IF_VRF_TABLE=1
+	export IFACE=vrf-red PHASE=up MOCK=echo IF_GATEWAYS=203.0.113.2 IF_VRF_TABLE=1
 	atf_check -s exit:0 \
 		-o match:'route add default via 203.0.113.2 table 1' \
 		${EXECUTOR}
 }
 
 vrf_down_body() {
-	export IFACE=vrf-red PHASE=down MOCK=echo INTERFACES_FILE="$FIXTURES/vrf.interfaces" \
-		IF_VRF_TABLE=1
+	export IFACE=vrf-red PHASE=down MOCK=echo IF_GATEWAYS=203.0.113.2 IF_VRF_TABLE=1
 	atf_check -s exit:0 \
 		-o match:'route del default via 203.0.113.2 table 1' \
 		${EXECUTOR}
 }
 
 metric_up_body() {
-	export IFACE=vrf-red PHASE=up MOCK=echo INTERFACES_FILE="$FIXTURES/vrf.interfaces" \
-		IF_VRF_TABLE=1 IF_METRIC=20
+	export IFACE=vrf-red PHASE=up MOCK=echo IF_GATEWAYS=203.0.113.2 IF_VRF_TABLE=1 IF_METRIC=20
 	atf_check -s exit:0 \
 		-o match:'route add default via 203.0.113.2 table 1 metric 20' \
 		${EXECUTOR}
 }
 
 metric_down_body() {
-	export IFACE=vrf-red PHASE=down MOCK=echo INTERFACES_FILE="$FIXTURES/vrf.interfaces" \
-		IF_VRF_TABLE=1 IF_METRIC=20
+	export IFACE=vrf-red PHASE=down MOCK=echo IF_GATEWAYS=203.0.113.2 IF_VRF_TABLE=1 IF_METRIC=20
 	atf_check -s exit:0 \
 		-o match:'route del default via 203.0.113.2 table 1 metric 20' \
 		${EXECUTOR}
