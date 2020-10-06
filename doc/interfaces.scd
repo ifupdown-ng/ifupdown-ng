@@ -155,6 +155,9 @@ most common options are:
 	The interface is a Virtual Extensible LAN (VXLAN) tunnel
 	endpoint.
 
+Check *interfaces-<option>(5)* for further informaton about a given
+option and available configuration parameters.
+
 # EXAMPLES
 
 Configure a bridge interface *br0* with *bond0* attached to it,
@@ -188,9 +191,10 @@ iface eth0
 # SEE ALSO
 
 *interfaces-bond*(5)
+*interfaces-vrf*(5)
 *interfaces-vxlan*(5)
 
 # AUTHORS
 
-Ariadne Conill <ariadne@dereferenced.org>
+Ariadne Conill <ariadne@dereferenced.org>++
 Maximilian Wilhelm <max@sdn.clinic>
