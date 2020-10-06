@@ -136,12 +136,6 @@ install: all
 .scd.1 .scd.2 .scd.3 .scd.4 .scd.5 .scd.6 .scd.7 .scd.8:
 	${SCDOC} < $< > $@
 
-MANPAGES_8 = \
-	doc/ifquery.8 \
-	doc/ifup.8 \
-	doc/ifdown.8 \
-	doc/ifctrstat.8
-
 MANPAGES_5 = \
 	doc/interfaces.5 \
 	doc/interfaces-bond.5 \
@@ -154,6 +148,12 @@ MANPAGES_5 = \
 
 MANPAGES_7 = \
 	doc/ifupdown-executor.7
+
+MANPAGES_8 = \
+	doc/ifquery.8 \
+	doc/ifup.8 \
+	doc/ifdown.8 \
+	doc/ifctrstat.8
 
 MANPAGES = ${MANPAGES_5} ${MANPAGES_7} ${MANPAGES_8}
 
