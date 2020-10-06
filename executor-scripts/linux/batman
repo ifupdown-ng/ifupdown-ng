@@ -6,16 +6,7 @@
 # This executor is responsible for setting up the main B.A.T.M.A.N. adv. interface (eg. bat0)
 # as well as managing settings of the underlying interfaces (hardifs).
 #
-# Known options for the main interface are:
-#  IF_BATMAN_IFACES			Space separated list of interfaces to be part of this B.A.T.M.A.N. adv. instance
-#  IF_BATMAN_IFACES_IGNORE_REGEX	Interfaces to ignore when verifying configuration (regexp)
-#  IF_BATMAN_DISTRIBUTED_ARP_TABLE	'enable' or 'disable' DAT of this B.A.T.M.A.N. adv. instance
-#  IF_BATMAN_MULTICAST_MODE		'enable' or 'disable' the multicast mode of this B.A.T.M.A.N. adv. instance
-#  IF_BATMAN_GW_MODE			Set the gateway mode of this B.A.T.M.A.N. adv. instance
-#  IF_BATMAN_HOP_PENALTY		Set the hop penalty of this B.A.T.M.A.N. adv. instance
-#
-# Known options for underlying interfaces are:
-#  IF_BATMAN_IFACE_PENALTY		Set the hop penalty of this B.A.T.M.A.N. adv. interface
+# See interfaces-batman(5) for a list of supported options for hardifs as well as meshifs.
 #
 set -e
 
@@ -23,11 +14,9 @@ if [ "$VERBOSE" ]; then
 	set -x
 fi
 
-if [ "${IF_BATMAN_IFACES}" -o "${IF_BATMAN_IFACE_PENALTY}" ]; then
-	if ! which batctl >/dev/null 2>&1; then
-		echo "Error: batctl utility not found!" >&2
-		exit 1
-	fi
+if ! which batctl >/dev/null 2>&1; then
+	echo "Error: batctl utility not found!" >&2
+	exit 1
 fi
 
 #
@@ -47,17 +36,50 @@ batctl_if () {
 	done
 }
 
-set_batman_params () {
-	[ "${IF_BATMAN_DISTRIBUTED_ARP_TABLE}" ] && ${MOCK} batctl "${mesh_if_param}" "${IFACE}" distributed_arp_table "${IF_BATMAN_DISTRIBUTED_ARP_TABLE}"
-	[ "${IF_BATMAN_MULTICAST_MODE}" ]        && ${MOCK} batctl "${mesh_if_param}" "${IFACE}" multicast_mode "${IF_BATMAN_MULTICAST_MODE}"
-	[ "${IF_BATMAN_HOP_PENALTY}" ]           && ${MOCK} batctl "${mesh_if_param}" "${IFACE}" hop_penalty "${IF_BATMAN_HOP_PENALTY}"
-	[ "${IF_BATMAN_GW_MODE}" ]               && ${MOCK} batctl "${mesh_if_param}" "${IFACE}" gw_mode "${IF_BATMAN_GW_MODE}"
+set_meshif_options () {
+	# We only care for options of format IF_BATMAN_<OPTION_NAME>
+	env | grep '^IF_BATMAN_[A-Z0-9_]\+' | while IFS="=" read opt value; do
+		# Members, ignore-regex, routing-algo, and throughput_override are handled seperately
+		if [ "${opt}" = "IF_BATMAN_IFACES" -o \
+		     "${opt}" = "IF_BATMAN_IFACES_IGNORE_REGEX" -o \
+		     "${opt}" = "IF_BATMAN_ROUTING_ALGO" -o \
+		     "${opt}" = "IF_BATMAN_THROUGHPUT_OVERRIDE" ]; then
+			continue
+		fi
+
+		# Convert options for the actual name
+		real_opt=$(echo "${opt}" | sed -e 's/^IF_BATMAN_\([A-Z0-9_]\+\)/\1/' | tr '[A-Z]' '[a-z]')
+
+		${MOCK} batctl "${mesh_if_param}" "${IFACE}" "${real_opt}" "${value}"
+	done
+
 }
 
+set_routing_algo () {
+	if [ "${IF_BATMAN_ROUTING_ALGO}" != "BATMAN_IV" -a "${IF_BATMAN_ROUTING_ALGO}" != "BATMAN_V" ]; then
+		echo "Invalid routing algorithm \"$1\"."
+		return
+	fi
+
+	batctl ra "${IF_BATMAN_ROUTING_ALGO}"
+}
+
+
 #
-# Functions to manage B.A.T.M.A.N. adv. underlying interfaces
-set_iface_penalty () {
-	${MOCK} batctl hardif "${IFACE}" hop_penalty "${IF_BATMAN_IFACE_PENALTY}"
+# Functions to manage B.A.T.M.A.N. adv. underlay interfaces (hardifs)
+set_hardif_options () {
+	# Query hardif parameter manually for now
+	for hardif in ${IF_BATMAN_IFACES}; do
+		penalty=$(ifquery -p "batman-hop-penalty" "${hardif}")
+		if [ "${penalty}" ]; then
+			${MOCK} batctl hardif "${hardif}" hop_penalty "${penalty}"
+		fi
+
+		throughput=$(ifquery -p "batman-throughput-override" "${hardif}")
+		if [ "${throughput}" ]; then
+			${MOCK} batctl hardif "${hardif}" throughput_override "${througput}"
+		fi
+	done
 }
 
 
@@ -71,6 +93,10 @@ case "${PHASE}" in
 	create)
 		# Main B.A.T.M.A.N. adv. interface
 		if [ "${IF_BATMAN_IFACES}" ]; then
+			if [ "${IF_BATMAN_ROUTING_ALGO}" ]; then
+				set_routing_algo
+			fi
+
 			if [ ! -d "/sys/class/net/${IFACE}" ]; then
 				batctl "${mesh_if_param}" "${IFACE}" interface create || true
 			fi
@@ -78,14 +104,11 @@ case "${PHASE}" in
 		;;
 
 	pre-up)
-		# Main B.A.T.M.A.N. adv. interface
+		# Main B.A.T.M.A.N. adv. interface (meshif)
 		if [ "${IF_BATMAN_IFACES}" ]; then
 			batctl_if add
-			set_batman_params
-
-		# B.A.T.M.A.N. adv. underlying interface
-		elif [ "${IF_BATMAN_IFACE_PENALTY}" ]; then
-			set_iface_penalty
+			set_meshif_options
+			set_hardif_options
 		fi
 		;;
 
