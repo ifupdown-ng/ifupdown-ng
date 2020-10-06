@@ -68,13 +68,18 @@ set_routing_algo () {
 #
 # Functions to manage B.A.T.M.A.N. adv. underlay interfaces (hardifs)
 set_hardif_options () {
-	if [ "${IF_BATMAN_HOP_PENALTY}" ]; then
-		${MOCK} batctl hardif "${IFACE}" hop_penalty "${IF_BATMAN_HOP_PENALTY}"
-	fi
+	# Query hardif parameter manually for now
+	for hardif in ${IF_BATMAN_IFACES}; do
+		penalty=$(ifquery -p "batman-hop-penalty" "${hardif}")
+		if [ "${penalty}" ]; then
+			${MOCK} batctl hardif "${hardif}" hop_penalty "${penalty}"
+		fi
 
-	if [ "${IF_BATMAN_THROUGHPUT_OVERRIDE}" ]; then
-		${MOCK} batctl hardif "${IFACE}" throughput_override "${IF_BATMAN_THROUGHPUT_OVERRIDE}"
-	fi
+		throughput=$(ifquery -p "batman-throughput-override" "${hardif}")
+		if [ "${throughput}" ]; then
+			${MOCK} batctl hardif "${hardif}" throughput_override "${througput}"
+		fi
+	done
 }
 
 
@@ -103,9 +108,6 @@ case "${PHASE}" in
 		if [ "${IF_BATMAN_IFACES}" ]; then
 			batctl_if add
 			set_meshif_options
-
-		# B.A.T.M.A.N. adv. underlay interface (hardif)
-		elif [ "${IF_BATMAN_HOP_PENALTY}" -o "${IF_BATMAN_THROUGHPUT_OVERRIDE}" ]; then
 			set_hardif_options
 		fi
 		;;
