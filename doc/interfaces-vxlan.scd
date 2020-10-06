@@ -68,16 +68,16 @@ other options are optional.
 
 A VTEP with multiple peers addressed via a multicast group:
 
-...
+```
 auto vx_v1001_padcty
 iface vx_v1001_padcty
-        vxlan-id           655617
+	vxlan-id           655617
 	vxlan-physdev	   vlan1001
 	vxlan-remote-group 225.10.1.1
 	#
 	hwaddress f2:00:c1:01:10:01
 	mtu 1560
-...
+```
 
 Note that the underlay must have an MTU of at least 1610 to
 carry the encapsulated packets.
@@ -85,15 +85,15 @@ carry the encapsulated packets.
 
 A VTEP with one peer (point-to-point configuration):
 
-...
+```
 auto vx_ptp1
 iface vx_ptp1
-        vxlan-id        2342
+	vxlan-id        2342
 	vxlan-local-ip  192.0.2.42
 	vxlan-remote-ip 198.51.100.23
 	#
 	hwaddress f2:00:c1:01:10:01
-...
+```
 
 # AUTHORS
 
