@@ -2,6 +2,8 @@
 
 set -e
 
+[ -z "$VERBOSE" ] || set -x
+
 [ -z "$IF_METRIC" ] && IF_METRIC="1"
 [ -n "$IF_VRF_TABLE" ] && VRF_TABLE="table $IF_VRF_TABLE"
 [ -n "$IF_VRF_MEMBER" ] && VRF_TABLE="vrf $IF_VRF_MEMBER"
@@ -20,7 +22,13 @@ addr_family() {
 configure_addresses() {
 	for i in $(ifquery -p address -i $INTERFACES_FILE $IFACE); do
 		addrfam=$(addr_family $i)
-		${MOCK} ip $addrfam addr $1 $i dev $IFACE
+		if [ "${IF_POINT_TO_POINT}" -a "${addrfam}" = "-4" ]; then
+			PEER="peer ${IF_POINT_TO_POINT}"
+		else
+			PEER=""
+		fi
+
+		${MOCK} ip $addrfam addr $1 $i $PEER dev $IFACE
 	done
 }
 
@@ -30,8 +38,6 @@ configure_gateways() {
 		${MOCK} ip $addrfam route $1 default via $i $VRF_TABLE $METRIC dev $IFACE
 	done
 }
-
-[ -z "$VERBOSE" ] || set -x
 
 case "$PHASE" in
 up)

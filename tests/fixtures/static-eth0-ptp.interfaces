@@ -1,0 +1,7 @@
+auto eth0
+iface eth0
+	address 203.0.113.2/32
+	pointopoint 192.0.2.1
+	gateway 192.0.2.1
+	address 2001:db8:1000:2::2/64
+	gateway 2001:db8:1000:2::1
