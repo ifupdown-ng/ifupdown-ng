@@ -25,7 +25,7 @@ up_body() {
 
 up_ptp_body() {
 	export IFACE=eth0 PHASE=up MOCK=echo INTERFACES_FILE="$FIXTURES/static-eth0-ptp.interfaces" \
-		IF_POINTOPOINT="192.0.2.1"
+		IF_POINT_TO_POINT="192.0.2.1"
 	atf_check -s exit:0 \
 		-o match:'addr add 203.0.113.2/32 peer 192.0.2.1 dev eth0' \
 		-o match:'route add default via 192.0.2.1 metric 1 dev eth0' \

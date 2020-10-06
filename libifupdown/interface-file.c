@@ -79,6 +79,7 @@ static const struct remap_token tokens[] = {
 	{"offload-tso", "ethtool-offload-tso"},		/* Debian ethtool integration */
 	{"offload-tx", "ethtool-offload-tx"},		/* Debian ethtool integration */
 	{"offload-ufo", "ethtool-offload-ufo"},		/* Debian ethtool integration */
+	{"pointopoint", "point-to-point"},		/* legacy ifupdown, ifupdown2 */
 	{"provider", "ppp-provider"},			/* legacy ifupdown, ifupdown2 */
 	{"rx-offload", "ethtool-offload-rx"},		/* ifupdown2 */
 	{"tso-offload", "ethtool-offload-tso"},		/* ifupdown2 */

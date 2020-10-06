@@ -70,10 +70,12 @@ the system will only respond to certain keywords by default:
 	is for backwards compatibility and should not be used in new
 	deployments.
 
-*pointopoint*
-	Sets the given IPv4 address as the peer address on the interface.
-	This setting only takes effect for the IPv4 address familiy and
-	only makes sense in combination with as /32 netmask.
+*point-to-point* _address_
+	Sets the given IPv4 _address_ as the peer address on the
+	interface. This setting only takes effect for the IPv4 address
+	familiy and only makes sense in combination with a /32 netmask.
+	For compatiblity with ifupdown and ifupdown2, _pointopoint_ is
+	an alias for this parameter.
 
 *link-type* _link-type_
 	Denotes the link-type of the interface. When set to _dummy_,

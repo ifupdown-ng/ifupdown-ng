@@ -22,8 +22,8 @@ addr_family() {
 configure_addresses() {
 	for i in $(ifquery -p address -i $INTERFACES_FILE $IFACE); do
 		addrfam=$(addr_family $i)
-		if [ "${IF_POINTOPOINT}" -a "${addrfam}" = "-4" ]; then
-			PEER="peer ${IF_POINTOPOINT}"
+		if [ "${IF_POINT_TO_POINT}" -a "${addrfam}" = "-4" ]; then
+			PEER="peer ${IF_POINT_TO_POINT}"
 		else
 			PEER=""
 		fi
