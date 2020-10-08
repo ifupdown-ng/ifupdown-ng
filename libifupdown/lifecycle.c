@@ -476,18 +476,26 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 static bool
 count_interface_rdepends(const struct lif_execute_opts *opts, struct lif_dict *collection, struct lif_interface *parent, size_t depth)
 {
+	/* if we have looped, return true immediately to break the loop. */
+	if (parent->is_pending)
+		return true;
+
 	/* query our dependents if we don't have them already */
 	if (!lif_lifecycle_query_dependents(opts, parent, parent->ifname))
 		return false;
 
 	/* set rdepends_count to depth, dependents will be depth + 1 */
+	parent->is_pending = true;
 	parent->rdepends_count = depth;
 
 	struct lif_dict_entry *requires = lif_dict_find(&parent->vars, "requires");
 
 	/* no dependents, nothing to worry about */
 	if (requires == NULL)
+	{
+		parent->is_pending = false;
 		return true;
+	}
 
 	/* walk any dependents */
 	char require_ifs[4096] = {};
@@ -499,9 +507,13 @@ count_interface_rdepends(const struct lif_execute_opts *opts, struct lif_dict *c
 		struct lif_interface *iface = lif_interface_collection_find(collection, tokenp);
 
 		if (!count_interface_rdepends(opts, collection, iface, depth + 1))
+		{
+			parent->is_pending = false;
 			return false;
+		}
 	}
 
+	parent->is_pending = false;
 	return true;
 }
 
