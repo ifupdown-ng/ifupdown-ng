@@ -1,0 +1,9 @@
+auto a
+iface a
+	use link
+	requires b
+
+auto b
+iface b
+	use link
+	requires a
