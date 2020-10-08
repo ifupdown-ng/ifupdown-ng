@@ -19,7 +19,8 @@ tests_init \
 	learned_dependency_2 \
 	learned_executor \
 	implicit_vlan \
-	teardown_dep_ordering
+	teardown_dep_ordering \
+	dependency_loop_breaking
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifup -S/dev/null
@@ -138,4 +139,10 @@ teardown_dep_ordering_body() {
 		-e match:"skipping auto interface bat" \
 		-e match:"skipping auto interface dummy" \
 		ifup -n -i $FIXTURES/teardown-dep-ordering.interfaces -E $EXECUTORS -a
+}
+
+dependency_loop_breaking_body() {
+	atf_check -s exit:0 -o ignore \
+		-e match:"ifup: skipping auto interface a \\(already configured\\), use --force to force configuration" \
+		ifup -n -i $FIXTURES/dependency-loop.interfaces -E $EXECUTORS -a
 }
