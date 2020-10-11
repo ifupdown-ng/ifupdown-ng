@@ -63,9 +63,6 @@ print_interface_dot(struct lif_dict *collection, struct lif_interface *iface, st
 	if (!lif_lifecycle_query_dependents(&exec_opts, iface, iface->ifname))
 		return;
 
-	if (iface->refcount > 0)
-		return;
-
 	if (parent != NULL)
 		printf("\"%s (%zu)\" -> ", parent->ifname, parent->rdepends_count);
 
@@ -86,8 +83,12 @@ print_interface_dot(struct lif_dict *collection, struct lif_interface *iface, st
 	{
 		struct lif_interface *child_if = lif_interface_collection_find(collection, tokenp);
 
+		if (child_if->is_pending)
+			continue;
+
+		child_if->is_pending = true;
 		print_interface_dot(collection, child_if, iface);
-		child_if->refcount++;
+		child_if->is_pending = false;
 	}
 }
 

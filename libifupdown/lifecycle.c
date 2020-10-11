@@ -359,6 +359,9 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 	if (requires == NULL)
 		return true;
 
+	/* set the parent's pending flag to break dependency cycles */
+	parent->is_pending = true;
+
 	char require_ifs[4096] = {};
 	strlcpy(require_ifs, requires->data, sizeof require_ifs);
 	char *bufp = require_ifs;
@@ -399,15 +402,23 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 				iface->ifname, parent->ifname, up ? "up" : "down");
 
 		if (!lif_lifecycle_run(opts, iface, collection, state, iface->ifname, up))
+		{
+			parent->is_pending = false;
 			return false;
+		}
 	}
 
+	parent->is_pending = false;
 	return true;
 }
 
 bool
 lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *lifname, bool up)
 {
+	/* if we're already pending, exit */
+	if (iface->is_pending)
+		return true;
+
 	if (iface->is_template)
 		return false;
 
@@ -465,18 +476,26 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 static bool
 count_interface_rdepends(const struct lif_execute_opts *opts, struct lif_dict *collection, struct lif_interface *parent, size_t depth)
 {
+	/* if we have looped, return true immediately to break the loop. */
+	if (parent->is_pending)
+		return true;
+
 	/* query our dependents if we don't have them already */
 	if (!lif_lifecycle_query_dependents(opts, parent, parent->ifname))
 		return false;
 
 	/* set rdepends_count to depth, dependents will be depth + 1 */
+	parent->is_pending = true;
 	parent->rdepends_count = depth;
 
 	struct lif_dict_entry *requires = lif_dict_find(&parent->vars, "requires");
 
 	/* no dependents, nothing to worry about */
 	if (requires == NULL)
+	{
+		parent->is_pending = false;
 		return true;
+	}
 
 	/* walk any dependents */
 	char require_ifs[4096] = {};
@@ -488,9 +507,13 @@ count_interface_rdepends(const struct lif_execute_opts *opts, struct lif_dict *c
 		struct lif_interface *iface = lif_interface_collection_find(collection, tokenp);
 
 		if (!count_interface_rdepends(opts, collection, iface, depth + 1))
+		{
+			parent->is_pending = false;
 			return false;
+		}
 	}
 
+	parent->is_pending = false;
 	return true;
 }
 

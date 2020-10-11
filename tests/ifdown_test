@@ -23,7 +23,8 @@ tests_init \
 	deferred_teardown_2 \
 	deferred_teardown_3 \
 	teardown_dep_ordering \
-	regress_opt_f
+	regress_opt_f \
+	dependency_loop_breaking
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifdown -S/dev/null
@@ -184,4 +185,10 @@ teardown_dep_ordering_body() {
 regress_opt_f_body() {
 	atf_check -s exit:0 -o ignore -e ignore \
 		ifdown -n -S $FIXTURES/vlan.ifstate -E $EXECUTORS -i $FIXTURES/vlan.interfaces -f eth0.8
+}
+
+dependency_loop_breaking_body() {
+	atf_check -s exit:0 -o ignore \
+		-e match:"ifdown: skipping auto interface a \\(already deconfigured\\), use --force to force deconfiguration" \
+		ifdown -n -i $FIXTURES/dependency-loop.interfaces -E $EXECUTORS -a
 }
