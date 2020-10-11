@@ -11,12 +11,8 @@ set -e
 [ -n "$VERBOSE" ] && set -x
 
 get_bond_options() {
-	env | while IFS="=" read opt value; do
-		# We only care for options of format IF_BOND_<OPTION_NAME>
-		if ! echo "${opt}" | grep -q '^IF_BOND_[A-Z0-9_]\+$'; then
-			continue
-		fi
-
+	# We only care for options of format IF_BOND_<OPTION_NAME>
+	env | grep '^IF_BOND_[A-Z0-9_]\+$' | while IFS="=" read opt value; do
 		# Members are handled seperately
 		if [ "${opt}" = "IF_BOND_MEMBERS" ]; then
 			continue
