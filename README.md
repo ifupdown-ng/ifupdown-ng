@@ -30,7 +30,7 @@ For compatibility with some legacy ifupdown executors, we also provide the
 
 On musl systems, simply do `make` and `make install` to build and install.
 
-On glibc systems, you must most likely install `libbsd-dev` and additionally define `LIBBSD_CFLAGS` and `LIBBSD_LIBS`:
+On glibc systems, you must install `libbsd-dev` or equivalent and additionally define `LIBBSD_CFLAGS` and `LIBBSD_LIBS`:
 
     # instal packages
     apt install build-essential libbsd0 libbsd-dev
