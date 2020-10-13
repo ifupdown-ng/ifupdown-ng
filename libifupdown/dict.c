@@ -86,7 +86,7 @@ lif_dict_add_once(struct lif_dict *dict, const char *key, void *data,
 }
 
 struct lif_dict_entry *
-lif_dict_find(struct lif_dict *dict, const char *key)
+lif_dict_find(const struct lif_dict *dict, const char *key)
 {
 	struct lif_node *iter;
 
@@ -102,7 +102,7 @@ lif_dict_find(struct lif_dict *dict, const char *key)
 }
 
 struct lif_list *
-lif_dict_find_all(struct lif_dict *dict, const char *key)
+lif_dict_find_all(const struct lif_dict *dict, const char *key)
 {
 	struct lif_list *entries = calloc(1, sizeof *entries);
 	struct lif_node *iter;

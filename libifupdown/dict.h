@@ -44,8 +44,8 @@ extern void lif_dict_init(struct lif_dict *dict);
 extern void lif_dict_fini(struct lif_dict *dict);
 extern struct lif_dict_entry *lif_dict_add(struct lif_dict *dict, const char *key, void *data);
 extern struct lif_dict_entry *lif_dict_add_once(struct lif_dict *dict, const char *key, void *data, lif_dict_cmp_t compar);
-extern struct lif_dict_entry *lif_dict_find(struct lif_dict *dict, const char *key);
-extern struct lif_list *lif_dict_find_all(struct lif_dict *dict, const char *key);
+extern struct lif_dict_entry *lif_dict_find(const struct lif_dict *dict, const char *key);
+extern struct lif_list *lif_dict_find_all(const struct lif_dict *dict, const char *key);
 extern void lif_dict_delete(struct lif_dict *dict, const char *key);
 extern void lif_dict_delete_entry(struct lif_dict *dict, struct lif_dict_entry *entry);
 
