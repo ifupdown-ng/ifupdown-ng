@@ -92,31 +92,6 @@ print_interface_dot(struct lif_dict *collection, struct lif_interface *iface, st
 	}
 }
 
-static inline size_t
-count_set_bits(const char *netmask)
-{
-	/* netmask set to CIDR length */
-	if (strchr(netmask, '.') == NULL)
-		return strtol(netmask, NULL, 10);
-
-	size_t r = 0;
-	struct in_addr in;
-
-	if (inet_pton(AF_INET, netmask, &in) == 0)
-		return r;
-
-	/* take the IP, put it in host endian order, and
-	 * flip it so that all the set bits are set to the right.
-	 * then we can simply count down from 32 and right-shift
-	 * until the bit field is all zero.
-	 */
-	unsigned int bits = htonl(in.s_addr);
-	for (bits = ~bits, r = 32; bits; bits >>= 1, r--)
-		;
-
-	return r;
-}
-
 void
 print_interface_property(struct lif_interface *iface, const char *property)
 {
@@ -132,25 +107,9 @@ print_interface_property(struct lif_interface *iface, const char *property)
 
 		if (printing_address)
 		{
-			struct lif_address *addr = entry->data;
-			size_t orig_netmask = addr->netmask;
-
-			if (!addr->netmask)
-			{
-				/* if fallback netmask is not set, default to 255.255.255.0 */
-				addr->netmask = 24;
-
-				struct lif_dict_entry *entry = lif_dict_find(&iface->vars, "netmask");
-				if (entry != NULL)
-					addr->netmask = count_set_bits(entry->data);
-			}
-
 			char addr_buf[512];
-
-			if (!lif_address_unparse(addr, addr_buf, sizeof addr_buf, true))
+			if (!lif_address_format_cidr(iface, entry, addr_buf, sizeof(addr_buf)))
 				continue;
-
-			addr->netmask = orig_netmask;
 
 			printf("%s\n", addr_buf);
 		}
