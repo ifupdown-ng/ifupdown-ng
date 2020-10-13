@@ -30,17 +30,19 @@ For compatibility with some legacy ifupdown executors, we also provide the
 
 On musl systems, simply do `make` and `make install` to build and install.
 
-On glibc systems, you must additionally define LIBBSD_CFLAGS and LIBBSD_LIBS:
+On glibc systems, you must most likely install `libbsd-dev` and additionally define `LIBBSD_CFLAGS` and `LIBBSD_LIBS`:
 
-    export LIBBSD_CFLAGS=$(pkg-config --cflags libbsd-overlay)
-    export LIBBSD_LIBS=$(pkg-config --libs libbsd-overlay)
-    make
+    # instal packages
+    apt install build-essential libbsd0 libbsd-dev
+
+    # build ifupdown-ng
+    make LIBBSD_CFLAGS="$(pkg-config --cflags libbsd-overlay)" LIBBSD_LIBS="$(pkg-config --cflags --libs libbsd-overlay)"
     make install
 
-To run the tests, do `make check`.
+To run the tests, do `make check`. Running the checks requires `kyua` (`apk add kyua`, not packaged for Debian).
 
 To build the documentation, do `make docs` and `make install_docs`.  Building
-the documentation requires scdoc (`apk add scdoc`).
+the documentation requires scdoc (`apk add scdoc` / `apt install scdoc`).
 
 ## Discussion
 
