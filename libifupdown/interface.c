@@ -84,7 +84,7 @@ count_set_bits(const char *netmask)
 }
 
 bool
-lif_address_format_cidr(struct lif_interface *iface, struct lif_dict_entry *entry, char *buf, size_t buflen)
+lif_address_format_cidr(const struct lif_interface *iface, struct lif_dict_entry *entry, char *buf, size_t buflen)
 {
 	struct lif_address *addr = entry->data;
 	size_t orig_netmask = addr->netmask;

@@ -67,7 +67,7 @@ struct lif_interface {
 
 extern bool lif_address_parse(struct lif_address *address, const char *presentation);
 extern bool lif_address_unparse(const struct lif_address *address, char *buf, size_t buflen, bool with_netmask);
-extern bool lif_address_format_cidr(struct lif_interface *iface, struct lif_dict_entry *entry, char *buf, size_t buflen);
+extern bool lif_address_format_cidr(const struct lif_interface *iface, struct lif_dict_entry *entry, char *buf, size_t buflen);
 
 extern void lif_interface_init(struct lif_interface *interface, const char *ifname);
 extern bool lif_interface_address_add(struct lif_interface *interface, const char *address);
