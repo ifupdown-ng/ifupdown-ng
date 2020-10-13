@@ -7,13 +7,14 @@
 # Enable support for /etc/if-X.d addon scripts.  These are used for
 # compatibility with legacy setups, and may be disabled for performance
 # improvements in setups where only ifupdown-ng executors are used.
+# Valid values are 0 and 1, the default is 1.
 allow_addon_scripts = 1
 
 # allow_any_iface_as_template:
 # Enable any interface to act as a template for another interface.
 # This is presently the default, but is deprecated.  An admin may choose
 # to disable this setting in order to require inheritance from specified
-# templates.
+# templates.  Valid values are 0 and 1, the default is 1.
 allow_any_iface_as_template = 1
 
 # implicit_template_conversion:
@@ -21,5 +22,5 @@ allow_any_iface_as_template = 1
 # ifupdown-ng automatically converts those declarations to a proper
 # template.  If this setting is disabled, inheritance will continue to
 # work against non-template interfaces without converting them to a
-# template.
+# template.  Valid values are 0 and 1, the default is 1.
 implicit_template_conversion = 1

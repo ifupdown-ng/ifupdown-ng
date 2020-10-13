@@ -20,6 +20,10 @@ in order of importance:
   database, which contains information about what
   interfaces should be configured.
 
+* `/etc/network/ifupdown-ng.conf`: the main configuration
+  file which controls ifupdown-ng's behaviour.  See the
+  *ifupdown-ng Configuration* section below.
+
 * `/run/ifstate`: the interface state file, which denotes
   what physical interfaces are configured, and what
   interface definition they are configured as.
@@ -38,7 +42,34 @@ in order of importance:
 All configuration examples in this guide concern the
 `/etc/network/interfaces` file.
 
-## Basic Configuration
+## ifupdown-ng Configuration
+
+ifupdown-ng allows to configure some parts of it's behaviour.
+Currently the following settings are supported in
+`/etc/network/ifupdown-ng.conf`:
+
+* `allow_addon_scripts`: Enable support for /etc/if-X.d addon scripts.
+  These are used for compatibility with legacy setups, and may be
+  disabled for performance improvements in setups where only
+  ifupdown-ng executors are used.  Valid values are `0` and `1`,
+  default is `1`.
+
+* `allow_any_iface_as_template`: Enable any interface to act as a
+  template for another interface.  This is presently the default,
+  but is deprecated.  An admin may choose to disable this setting
+  in order to require inheritance from specified templates.
+  Valid values are `0` and `1`, the default is `1`.
+
+* `implicit_template_conversion`: In some legacy configs, a template
+  may be declared as an iface, and ifupdown-ng automatically converts
+  those declarations to a proper template.  If this setting is
+  disabled, inheritance will continue to work against non-template
+  interfaces without converting them to a template. Valid values
+  are `0` and `1`, the default is `1`.
+
+## Interface Configuration
+
+### Basic Configuration
 
 To begin with, lets look at a basic configuration for a
 desktop computer.  This scenario involves using the DHCP
@@ -71,7 +102,7 @@ iface eth0
     use dhcp
 ```
 
-## IPv6 RA Configuration
+### IPv6 RA Configuration
 
 With IPv6, stateless auto-configuration is typically used to
 configure network interfaces.  If you are not interested in
@@ -85,7 +116,7 @@ iface eth0
     use ipv6-ra
 ```
 
-## Static Configuration
+### Static Configuration
 
 We can use the `static` executor to configure static IPv4 and
 IPv6 addresses.  If you use the `address` keyword, the `static`
@@ -98,7 +129,7 @@ iface eth0
     gateway 203.0.113.1
 ```
 
-### Multiple Addresses
+#### Multiple Addresses
 
 A typical scenario on servers is where a server has multiple
 IP addresses on a single interface.  In this case you simply
@@ -113,7 +144,7 @@ iface eth0
     gateway 203.0.113.1
 ```
 
-### Dual-stack configurations
+#### Dual-stack configurations
 
 Another typical scenario for servers is to run a dual-stack
 configuration, where interfaces have both an IPv4 and an IPv6
@@ -184,7 +215,7 @@ iface bond0
     [...]
 ```
 
-Is equivalent to:
+Is with respect to dependency equivalent to:
 
 ```
 auto bond0
@@ -215,6 +246,5 @@ used for an interface, use the ifquery(8) command.
 ## Questions
 
 If you have further questions about how to use ifupdown-ng to
-configure a specific scenario, drop by the [ifupdown-ng IRC channel][irc].
-
-   [irc]: irc://irc.as7007.net/#ifupdown-ng
+configure a specific scenario, drop by the
+[ifupdown-ng IRC channel](irc://irc.as7007.net/#ifupdown-ng).
