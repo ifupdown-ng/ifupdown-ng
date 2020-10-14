@@ -22,6 +22,7 @@ struct lif_config_file {
 	bool allow_addon_scripts;
 	bool allow_any_iface_as_template;
 	bool implicit_template_conversion;
+	bool use_hostname_for_dhcp;
 };
 
 extern struct lif_config_file lif_config;

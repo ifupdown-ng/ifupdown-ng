@@ -123,6 +123,9 @@ lif_interface_init(struct lif_interface *interface, const char *ifname)
 	if (strchr(ifname, '.') != NULL)
 		lif_interface_use_executor(interface, "vlan");
 
+	if (!lif_config.use_hostname_for_dhcp)
+		return;
+
 	/* learn a reasonable default hostname */
 	struct utsname un;
 	if (uname(&un) < 0)
