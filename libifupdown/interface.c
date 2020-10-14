@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <sys/utsname.h>
 #include "libifupdown/interface.h"
 #include "libifupdown/config-file.h"
 
@@ -121,6 +122,13 @@ lif_interface_init(struct lif_interface *interface, const char *ifname)
 	/* keep the 'vlan' executor as a config hint for backwards compatibility */
 	if (strchr(ifname, '.') != NULL)
 		lif_interface_use_executor(interface, "vlan");
+
+	/* learn a reasonable default hostname */
+	struct utsname un;
+	if (uname(&un) < 0)
+		return;
+
+	lif_dict_add(&interface->vars, "hostname", strdup(un.nodename));
 }
 
 bool
