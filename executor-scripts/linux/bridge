@@ -73,7 +73,7 @@ del_ports() {
 	done
 }
 
-set_bridge_opts() {
+set_bridge_opts_brctl() {
 	[ -n "$IF_BRIDGE_AGEING" ] \
 		&& brctl setageing $IFACE $IF_BRIDGE_AGEING
 	[ -n "$IF_BRIDGE_BRIDGEPRIO" ] \
@@ -92,6 +92,14 @@ set_bridge_opts() {
 		&& brctl setportprio $IFACE $IF_BRIDGE_PORTPRIO
 	[ -n "$IF_BRIDGE_STP" ] \
 		&& brctl stp $IFACE $IF_BRIDGE_STP
+}
+
+set_bridge_opts_iproute2() {
+}
+
+set_bridge_opts() {
+	[ -x /sbin/bridge ] && set_bridge_opts_iproute2 && return 0
+	[ -x /sbin/brctl ] && set_bridge_opts_brctl && return 0
 }
 
 all_ports_ready() {
