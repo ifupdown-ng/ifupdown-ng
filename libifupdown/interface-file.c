@@ -18,6 +18,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <dirent.h>
+#include <errno.h>
 #include "libifupdown/libifupdown.h"
 
 /* internally rewrite problematic ifupdown2 tokens to ifupdown-ng equivalents */
@@ -340,6 +342,47 @@ handle_source(struct lif_interface_file_parse_state *state, char *token, char *b
 }
 
 static bool
+handle_source_directory(struct lif_interface_file_parse_state *state, char *token, char *bufp)
+{
+	(void) token;
+
+	char *source_directory = lif_next_token(&bufp);
+	if (!*source_directory)
+	{
+		report_error(state, "missing directory to source");
+		/* Broken but not fatal */
+		return true;
+	}
+
+	DIR *source_dir = opendir(source_directory);
+	if (source_dir == NULL)
+	{
+		report_error(state, "while opening directory %s: %s", source_directory, strerror(errno));
+		/* Broken but not fatal */
+		return true;
+	}
+
+	struct dirent *dirent_p;
+	for (dirent_p = readdir(source_dir); dirent_p != NULL; dirent_p = readdir(source_dir))
+	{
+		if (dirent_p->d_type != DT_REG)
+			continue;
+
+		char pathbuf[4096];
+		snprintf(pathbuf, sizeof pathbuf, "%s/%s", source_directory, dirent_p->d_name);
+
+		if (!lif_interface_file_parse(state, pathbuf))
+		{
+			closedir(source_dir);
+			return false;
+		}
+	}
+
+	closedir(source_dir);
+	return true;
+}
+
+static bool
 handle_use(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
 	char *executor = lif_next_token(&bufp);
@@ -369,6 +412,7 @@ static const struct parser_keyword keywords[] = {
 	{"inherit", handle_inherit},
 	{"interface", handle_iface},
 	{"source", handle_source},
+	{"source-directory", handle_source_directory},
 	{"template", handle_iface},
 	{"use", handle_use},
 };
