@@ -237,6 +237,9 @@ ifupdown_main(int argc, char *argv[])
 
 	struct lif_dict state = {};
 	struct lif_dict collection = {};
+	struct lif_interface_file_parse_state parse_state = {
+		.collection = &collection,
+	};
 
 	lif_interface_collection_init(&collection);
 
@@ -246,7 +249,7 @@ ifupdown_main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (!lif_interface_file_parse(&collection, exec_opts.interfaces_file))
+	if (!lif_interface_file_parse(&parse_state, exec_opts.interfaces_file))
 	{
 		fprintf(stderr, "%s: could not parse %s\n", argv0, exec_opts.interfaces_file);
 		return EXIT_FAILURE;
