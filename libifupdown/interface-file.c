@@ -338,14 +338,6 @@ handle_source(struct lif_interface_file_parse_state *state, char *token, char *b
 		return true;
 	}
 
-	if (!strcmp(state->cur_filename, source_filename))
-	{
-		report_error(state, "attempt to source %s would create infinite loop",
-			     source_filename);
-		/* Broken but not fatal */
-		return true;
-	}
-
 	return lif_interface_file_parse(state, source_filename);
 }
 
@@ -395,6 +387,13 @@ keyword_cmp(const void *a, const void *b)
 bool
 lif_interface_file_parse(struct lif_interface_file_parse_state *state, const char *filename)
 {
+	struct lif_dict_entry *entry = lif_dict_find(&state->loaded, filename);
+	if (entry != NULL)
+	{
+		report_error(state, "skipping already included file %s", filename);
+		return true;
+	}
+
 	FILE *f = fopen(filename, "r");
 	if (f == NULL)
 		return false;
@@ -404,6 +403,8 @@ lif_interface_file_parse(struct lif_interface_file_parse_state *state, const cha
 
 	size_t old_lineno = state->cur_lineno;
 	state->cur_lineno = 0;
+
+	lif_dict_add(&state->loaded, filename, NULL);
 
 	char linebuf[4096];
 	while (lif_fgetline(linebuf, sizeof linebuf, f) != NULL)
