@@ -92,6 +92,17 @@ set_bridge_opts_brctl() {
 		&& brctl stp $IFACE $IF_BRIDGE_STP
 }
 
+yesno() {
+	case "$1" in
+	yes|YES|true|TRUE|1)
+		echo 1
+		;;
+	*)
+		echo 0
+		;;
+	esac
+}
+
 set_bridge_opts_iproute2() {
 	[ -n "$IF_BRIDGE_AGEING" ] \
 		&& ip link set dev $IFACE type bridge ageing_time $IF_BRIDGE_AGEING
@@ -109,6 +120,8 @@ set_bridge_opts_iproute2() {
 		&& bridge link set dev $IFACE priority $IF_BRIDGE_PORTPRIO
 	[ -n "$IF_BRIDGE_STP" ] \
 		&& ip link set dev $IFACE type bridge stp $IF_BRIDGE_STP
+	[ -n "$IF_BRIDGE_VLAN_AWARE" ] \
+		&& ip link set dev $IFACE type bridge vlan_filtering $(yesno $IF_BRIDGE_VLAN_AWARE)
 }
 
 set_bridge_opts() {
