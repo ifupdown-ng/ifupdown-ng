@@ -32,9 +32,6 @@ struct lif_address {
 	int domain;
 };
 
-extern bool lif_address_parse(struct lif_address *address, const char *presentation);
-extern bool lif_address_unparse(const struct lif_address *address, char *buf, size_t buflen, bool with_netmask);
-
 /*
  * Interfaces are contained in a dictionary, with the interfaces mapped by
  * interface name to their `struct lif_interface`.
@@ -67,6 +64,10 @@ struct lif_interface {
 
 #define LIF_INTERFACE_COLLECTION_FOREACH_SAFE(iter, iter_next, collection) \
 	LIF_DICT_FOREACH_SAFE((iter), (iter_next), (collection))
+
+extern bool lif_address_parse(struct lif_address *address, const char *presentation);
+extern bool lif_address_unparse(const struct lif_address *address, char *buf, size_t buflen, bool with_netmask);
+extern bool lif_address_format_cidr(const struct lif_interface *iface, struct lif_dict_entry *entry, char *buf, size_t buflen);
 
 extern void lif_interface_init(struct lif_interface *interface, const char *ifname);
 extern bool lif_interface_address_add(struct lif_interface *interface, const char *address);

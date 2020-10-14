@@ -174,14 +174,13 @@ build_environment(char **envp[], const struct lif_execute_opts *opts, const stru
 
 	LIF_DICT_FOREACH(iter, &iface->vars)
 	{
-		const struct lif_dict_entry *entry = iter->data;
+		struct lif_dict_entry *entry = iter->data;
 
 		if (!strcmp(entry->key, "address"))
 		{
-			struct lif_address *addr = entry->data;
 			char addrbuf[4096];
 
-			if (!lif_address_unparse(addr, addrbuf, sizeof addrbuf, true))
+			if (!lif_address_format_cidr(iface, entry, addrbuf, sizeof(addrbuf)))
 				continue;
 
 			/* Append address to buffer */
