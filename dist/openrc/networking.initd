@@ -30,7 +30,7 @@ find_running_ifaces() {
 	if [ -n "$single_iface" ]; then
 		echo $single_iface
 	else
-		awk -F= '{print $2}' $ifstate
+		ifquery -r -i "$cfgfile" -S "$ifstate"
 	fi
 }
 
@@ -41,8 +41,8 @@ start() {
 	for iface in $(find_ifaces); do
 		local r=0
 		ebegin "$iface"
-		if ! ifup -i "$cfgfile" $iface >/dev/null; then
-			ifdown -i "$cfgfile" $iface >/dev/null 2>&1
+		if ! ifup -i "$cfgfile" -S "$ifstate" $iface >/dev/null; then
+			ifdown -f -i "$cfgfile" -S "$ifstate" $iface >/dev/null 2>&1
 			r=1
 		fi
 		# atleast one interface needs to be started for action
