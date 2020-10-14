@@ -18,7 +18,16 @@
 
 #include <stdbool.h>
 #include "libifupdown/interface.h"
+#include "libifupdown/dict.h"
 
-extern bool lif_interface_file_parse(struct lif_dict *collection, const char *filename);
+struct lif_interface_file_parse_state {
+	struct lif_interface *cur_iface;
+	struct lif_dict *collection;
+	struct lif_dict *loaded;
+	const char *cur_filename;
+	size_t cur_lineno;
+};
+
+extern bool lif_interface_file_parse(struct lif_interface_file_parse_state *state, const char *filename);
 
 #endif
