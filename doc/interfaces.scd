@@ -47,6 +47,12 @@ with an address of *203.0.113.2* and gateway of *203.0.113.1*.
 	associated with the declaration will be stored inside
 	_object_.
 
+*source* _filename_
+	Includes the file _filename_ as configuration data.
+
+*source-directory* _directory_
+	Includes the files in _directory_ as configuration data.
+
 *template* _object_
 	Begins a new declaration for _object_, like *iface*, except
 	that _object_ is defined as a *template*.
