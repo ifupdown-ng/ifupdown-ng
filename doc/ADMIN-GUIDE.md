@@ -67,6 +67,11 @@ Currently the following settings are supported in
   interfaces without converting them to a template. Valid values
   are `0` and `1`, the default is `1`.
 
+* `use_hostname_for_dhcp`: A common configuration pattern with DHCP
+  interfaces is to use `hostname $(hostname)`.  If this setting is
+  enabled, the `hostname` property will default to the system
+  hostname.  Valid values are `0` and `1`, the default is `1`.
+
 ## Interface Configuration
 
 ### Basic Configuration

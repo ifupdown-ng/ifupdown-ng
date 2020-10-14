@@ -222,6 +222,24 @@ handle_generic(struct lif_interface_file_parse_state *state, char *token, char *
 	return true;
 }
 
+static bool
+handle_hostname(struct lif_interface_file_parse_state *state, char *token, char *bufp)
+{
+	char *hostname = lif_next_token(&bufp);
+
+	if (state->cur_iface == NULL)
+	{
+		report_error(state, "%s '%s' without interface", token, hostname);
+		/* Ignore this hostname, but don't fail hard */
+		return true;
+	}
+
+	lif_dict_delete(&state->cur_iface->vars, token);
+	lif_dict_add(&state->cur_iface->vars, token, strdup(hostname));
+
+	return true;
+}
+
 static bool handle_inherit(struct lif_interface_file_parse_state *state, char *token, char *bufp);
 
 static bool
@@ -408,6 +426,7 @@ static const struct parser_keyword keywords[] = {
 	{"address", handle_address},
 	{"auto", handle_auto},
 	{"gateway", handle_gateway},
+	{"hostname", handle_hostname},
 	{"iface", handle_iface},
 	{"inherit", handle_inherit},
 	{"interface", handle_iface},
