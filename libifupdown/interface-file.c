@@ -18,6 +18,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <dirent.h>
+#include <errno.h>
 #include "libifupdown/libifupdown.h"
 
 /* internally rewrite problematic ifupdown2 tokens to ifupdown-ng equivalents */
@@ -117,11 +119,8 @@ maybe_remap_token(const char *token)
 	return tokbuf;
 }
 
-/* XXX: remove this global variable somehow */
-static struct lif_interface *cur_iface = NULL;
-
 static void
-report_error(const char *filename, size_t lineno, const char *errfmt, ...)
+report_error(struct lif_interface_file_parse_state *state, const char *errfmt, ...)
 {
 	char errbuf[4096];
 
@@ -130,84 +129,76 @@ report_error(const char *filename, size_t lineno, const char *errfmt, ...)
 	vsnprintf(errbuf, sizeof errbuf, errfmt, va);
 	va_end(va);
 
-	fprintf(stderr, "%s:%zu: %s\n", filename, lineno, errbuf);
+	fprintf(stderr, "%s:%zu: %s\n", state->cur_filename, state->cur_lineno, errbuf);
 }
 
 static bool
-handle_address(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+handle_address(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
-	(void) collection;
 	(void) token;
 
 	char *addr = lif_next_token(&bufp);
 
-	if (cur_iface == NULL)
+	if (state->cur_iface == NULL)
 	{
-		report_error(filename, lineno, "%s '%s' without interface", token, addr);
+		report_error(state, "%s '%s' without interface", token, addr);
 		/* Ignore this address, but don't fail hard */
 		return true;
 	}
 
-	lif_interface_address_add(cur_iface, addr);
+	lif_interface_address_add(state->cur_iface, addr);
 
 	return true;
 }
 
 static bool
-handle_auto(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+handle_auto(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
-	(void) filename;
-	(void) lineno;
 	(void) token;
 
 	char *ifname = lif_next_token(&bufp);
-	if (!*ifname && cur_iface == NULL)
+	if (!*ifname && state->cur_iface == NULL)
 	{
-		report_error(filename, lineno, "auto without interface");
+		report_error(state, "auto without interface");
 		return true;
 	}
 	else
 	{
-		cur_iface = lif_interface_collection_find(collection, ifname);
-		if (cur_iface == NULL)
+		state->cur_iface = lif_interface_collection_find(state->collection, ifname);
+		if (state->cur_iface == NULL)
 			return false;
 	}
 
-	if (!cur_iface->is_template)
-		cur_iface->is_auto = true;
+	if (!state->cur_iface->is_template)
+		state->cur_iface->is_auto = true;
 
 	return true;
 }
 
 static bool
-handle_gateway(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+handle_gateway(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
-	(void) collection;
 	(void) token;
 
 	char *addr = lif_next_token(&bufp);
 
-	if (cur_iface == NULL)
+	if (state->cur_iface == NULL)
 	{
-		report_error(filename, lineno, "%s '%s' without interface", token, addr);
+		report_error(state, "%s '%s' without interface", token, addr);
 		/* Ignore this gateway, but don't fail hard */
 		return true;
 	}
 
-	lif_interface_use_executor(cur_iface, "static");
-	lif_dict_add(&cur_iface->vars, token, strdup(addr));
+	lif_interface_use_executor(state->cur_iface, "static");
+	lif_dict_add(&state->cur_iface->vars, token, strdup(addr));
 
 	return true;
 }
 
 static bool
-handle_generic(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+handle_generic(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
-	(void) collection;
-	(void) filename;
-	(void) lineno;
-
-	if (cur_iface == NULL)
+	if (state->cur_iface == NULL)
 		return true;
 
 	token = maybe_remap_token(token);
@@ -216,7 +207,7 @@ handle_generic(struct lif_dict *collection, const char *filename, size_t lineno,
 	while (isspace (*bufp))
 		bufp++;
 
-	lif_dict_add(&cur_iface->vars, token, strdup(bufp));
+	lif_dict_add(&state->cur_iface->vars, token, strdup(bufp));
 
 	/* Check if token looks like <word1>-<word*> and assume <word1> is an addon */
 	char *word_end = strchr(token, '-');
@@ -224,40 +215,40 @@ handle_generic(struct lif_dict *collection, const char *filename, size_t lineno,
 	{
 		/* Copy word1 to not mangle *token */
 		char *addon = strndup(token, word_end - token);
-		lif_interface_use_executor(cur_iface, addon);
+		lif_interface_use_executor(state->cur_iface, addon);
 		free(addon);
 	}
 
 	return true;
 }
 
-static bool handle_inherit(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp);
+static bool handle_inherit(struct lif_interface_file_parse_state *state, char *token, char *bufp);
 
 static bool
-handle_iface(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+handle_iface(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
 	char *ifname = lif_next_token(&bufp);
 	if (!*ifname)
 	{
-		report_error(filename, lineno, "%s without any other tokens", token);
+		report_error(state, "%s without any other tokens", token);
 		/* This is broken but not fatal */
 		return true;
 	}
 
-	cur_iface = lif_interface_collection_find(collection, ifname);
-	if (cur_iface == NULL)
+	state->cur_iface = lif_interface_collection_find(state->collection, ifname);
+	if (state->cur_iface == NULL)
 	{
-		report_error(filename, lineno, "could not upsert interface %s", ifname);
+		report_error(state, "could not upsert interface %s", ifname);
 		return false;
 	}
 
-	/* mark the cur_iface as a template iface if `template` keyword
+	/* mark the state->cur_iface as a template iface if `template` keyword
 	 * is used.
 	 */
 	if (!strcmp(token, "template"))
 	{
-		cur_iface->is_auto = false;
-		cur_iface->is_template = true;
+		state->cur_iface->is_auto = false;
+		state->cur_iface->is_template = true;
 	}
 
 	/* in original ifupdown config, we can have "inet loopback"
@@ -268,12 +259,12 @@ handle_iface(struct lif_dict *collection, const char *filename, size_t lineno, c
 	while (*token)
 	{
 		if (!strcmp(token, "dhcp"))
-			lif_interface_use_executor(cur_iface, "dhcp");
+			lif_interface_use_executor(state->cur_iface, "dhcp");
 		else if (!strcmp(token, "ppp"))
-			lif_interface_use_executor(cur_iface, "ppp");
+			lif_interface_use_executor(state->cur_iface, "ppp");
 		else if (!strcmp(token, "inherits"))
 		{
-			if (!handle_inherit(collection, filename, lineno, token, bufp))
+			if (!handle_inherit(state, token, bufp))
 				return false;
 		}
 
@@ -284,50 +275,50 @@ handle_iface(struct lif_dict *collection, const char *filename, size_t lineno, c
 }
 
 static bool
-handle_inherit(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+handle_inherit(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
 	char *target = lif_next_token(&bufp);
 
-	if (cur_iface == NULL)
+	if (state->cur_iface == NULL)
 	{
-		report_error(filename, lineno, "%s '%s' without interface", token, target);
+		report_error(state, "%s '%s' without interface", token, target);
 		/* This is broken but not fatal */
 		return true;
 	}
 
 	if (!*target)
 	{
-		report_error(filename, lineno, "iface %s: unspecified inherit target", cur_iface->ifname);
+		report_error(state, "iface %s: unspecified inherit target", state->cur_iface->ifname);
 		/* Mark this interface as errornous but carry on */
-		cur_iface->has_config_error = true;
+		state->cur_iface->has_config_error = true;
 		return true;
 	}
 
-	struct lif_interface *parent = lif_interface_collection_find(collection, target);
+	struct lif_interface *parent = lif_interface_collection_find(state->collection, target);
 	if (parent == NULL)
 	{
-		report_error(filename, lineno, "iface %s: could not inherit from %s: not found",
-		             cur_iface->ifname, target);
+		report_error(state, "iface %s: could not inherit from %s: not found",
+		             state->cur_iface->ifname, target);
 		/* Mark this interface as errornous but carry on */
-		cur_iface->has_config_error = true;
+		state->cur_iface->has_config_error = true;
 		return true;
 
 	}
 
 	if (!lif_config.allow_any_iface_as_template && !parent->is_template)
 	{
-		report_error(filename, lineno, "iface %s: could not inherit from %ss: inheritence from non-template interface not allowed",
-		             cur_iface->ifname, target);
+		report_error(state, "iface %s: could not inherit from %ss: inheritence from non-template interface not allowed",
+		             state->cur_iface->ifname, target);
 		/* Mark this interface as errornous but carry on */
-		cur_iface->has_config_error = true;
+		state->cur_iface->has_config_error = true;
 		return true;
 	}
 
-	if (!lif_interface_collection_inherit(cur_iface, parent))
+	if (!lif_interface_collection_inherit(state->cur_iface, parent))
 	{
-		report_error(filename, lineno, "iface %s: could not inherit from %s", cur_iface->ifname, target);
+		report_error(state, "iface %s: could not inherit from %s", state->cur_iface->ifname, target);
 		/* Mark this interface as errornous but carry on */
-		cur_iface->has_config_error = true;
+		state->cur_iface->has_config_error = true;
 		return true;
 	}
 
@@ -335,51 +326,82 @@ handle_inherit(struct lif_dict *collection, const char *filename, size_t lineno,
 }
 
 static bool
-handle_source(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+handle_source(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
 	(void) token;
 
 	char *source_filename = lif_next_token(&bufp);
 	if (!*source_filename)
 	{
-		report_error(filename, lineno, "missing filename to source");
+		report_error(state, "missing filename to source");
 		/* Broken but not fatal */
 		return true;
 	}
 
-	if (!strcmp(filename, source_filename))
-	{
-		report_error(filename, lineno, "attempt to source %s would create infinite loop",
-			     source_filename);
-		/* Broken but not fatal */
-		return true;
-	}
-
-	return lif_interface_file_parse(collection, source_filename);
+	return lif_interface_file_parse(state, source_filename);
 }
 
 static bool
-handle_use(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp)
+handle_source_directory(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
-	(void) collection;
+	(void) token;
 
-	char *executor = lif_next_token(&bufp);
-
-	if (cur_iface == NULL)
+	char *source_directory = lif_next_token(&bufp);
+	if (!*source_directory)
 	{
-		report_error(filename, lineno, "%s '%s' without interface", token, executor);
+		report_error(state, "missing directory to source");
 		/* Broken but not fatal */
 		return true;
 	}
 
-	lif_interface_use_executor(cur_iface, executor);
+	DIR *source_dir = opendir(source_directory);
+	if (source_dir == NULL)
+	{
+		report_error(state, "while opening directory %s: %s", source_directory, strerror(errno));
+		/* Broken but not fatal */
+		return true;
+	}
+
+	struct dirent *dirent_p;
+	for (dirent_p = readdir(source_dir); dirent_p != NULL; dirent_p = readdir(source_dir))
+	{
+		if (dirent_p->d_type != DT_REG)
+			continue;
+
+		char pathbuf[4096];
+		snprintf(pathbuf, sizeof pathbuf, "%s/%s", source_directory, dirent_p->d_name);
+
+		if (!lif_interface_file_parse(state, pathbuf))
+		{
+			closedir(source_dir);
+			return false;
+		}
+	}
+
+	closedir(source_dir);
+	return true;
+}
+
+static bool
+handle_use(struct lif_interface_file_parse_state *state, char *token, char *bufp)
+{
+	char *executor = lif_next_token(&bufp);
+
+	if (state->cur_iface == NULL)
+	{
+		report_error(state, "%s '%s' without interface", token, executor);
+		/* Broken but not fatal */
+		return true;
+	}
+
+	lif_interface_use_executor(state->cur_iface, executor);
 	return true;
 }
 
 /* map keywords to parser functions */
 struct parser_keyword {
 	const char *token;
-	bool (*handle)(struct lif_dict *collection, const char *filename, size_t lineno, char *token, char *bufp);
+	bool (*handle)(struct lif_interface_file_parse_state *state, char *token, char *bufp);
 };
 
 static const struct parser_keyword keywords[] = {
@@ -390,6 +412,7 @@ static const struct parser_keyword keywords[] = {
 	{"inherit", handle_inherit},
 	{"interface", handle_iface},
 	{"source", handle_source},
+	{"source-directory", handle_source_directory},
 	{"template", handle_iface},
 	{"use", handle_use},
 };
@@ -404,17 +427,31 @@ keyword_cmp(const void *a, const void *b)
 }
 
 bool
-lif_interface_file_parse(struct lif_dict *collection, const char *filename)
+lif_interface_file_parse(struct lif_interface_file_parse_state *state, const char *filename)
 {
+	struct lif_dict_entry *entry = lif_dict_find(&state->loaded, filename);
+	if (entry != NULL)
+	{
+		report_error(state, "skipping already included file %s", filename);
+		return true;
+	}
+
 	FILE *f = fopen(filename, "r");
 	if (f == NULL)
 		return false;
 
+	const char *old_filename = state->cur_filename;
+	state->cur_filename = filename;
+
+	size_t old_lineno = state->cur_lineno;
+	state->cur_lineno = 0;
+
+	lif_dict_add(&state->loaded, filename, NULL);
+
 	char linebuf[4096];
-	size_t lineno = 0;
 	while (lif_fgetline(linebuf, sizeof linebuf, f) != NULL)
 	{
-		lineno++;
+		state->cur_lineno++;
 
 		char *bufp = linebuf;
 		char *token = lif_next_token(&bufp);
@@ -427,17 +464,21 @@ lif_interface_file_parse(struct lif_dict *collection, const char *filename)
 
 		if (parserkw != NULL)
 		{
-			if (!parserkw->handle(collection, filename, lineno, token, bufp))
+			if (!parserkw->handle(state, token, bufp))
 				goto parse_error;
 		}
-		else if (!handle_generic(collection, filename, lineno, token, bufp))
+		else if (!handle_generic(state, token, bufp))
 			goto parse_error;
 	}
 
 	fclose(f);
+	state->cur_filename = old_filename;
+	state->cur_lineno = old_lineno;
 	return true;
 
 parse_error:
 	fclose(f);
+	state->cur_filename = old_filename;
+	state->cur_lineno = old_lineno;
 	return false;
 }
