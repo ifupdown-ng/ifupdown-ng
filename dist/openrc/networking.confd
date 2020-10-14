@@ -1,0 +1,8 @@
+# Sets the path used for the interface definitions.
+#cfgfile="/etc/network/interfaces"
+
+# Sets the path used for the state database.
+#ifstate="/run/ifstate"
+
+# Skip taking down networking while shutting down.
+#keep_network="YES"
