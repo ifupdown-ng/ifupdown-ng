@@ -62,7 +62,7 @@ stop() {
 	eindent
 	for iface in $(find_running_ifaces); do
 		ebegin "$iface"
-		ifdown -i "$cfgfile" -f $iface >/dev/null
+		ifdown -i "$cfgfile" -S "$ifstate" -f $iface >/dev/null
 		eend $?
 	done
 	eoutdent
