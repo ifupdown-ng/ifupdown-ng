@@ -158,6 +158,8 @@ list_interfaces(struct lif_dict *collection, struct match_options *opts)
 		printf("}\n");
 }
 
+static bool listing = false, listing_stat = false, listing_running = false;
+
 void
 list_state(struct lif_dict *state, struct match_options *opts)
 {
@@ -176,11 +178,13 @@ list_state(struct lif_dict *state, struct match_options *opts)
 			continue;
 
 		struct lif_state_record *rec = entry->data;
-		printf("%s=%s %zu\n", entry->key, rec->mapped_if, rec->refcount);
+
+		if (listing_running)
+			printf("%s\n", entry->key);
+		else
+			printf("%s=%s %zu\n", entry->key, rec->mapped_if, rec->refcount);
 	}
 }
-
-static bool listing = false, listing_stat = false;
 
 static void
 set_listing(const char *opt_arg)
@@ -194,6 +198,13 @@ set_show_state(const char *opt_arg)
 {
 	(void) opt_arg;
 	listing_stat = true;
+}
+
+static void
+set_show_running(const char *opt_arg)
+{
+	(void) opt_arg;
+	listing_running = true;
 }
 
 static void
@@ -217,6 +228,7 @@ set_property(const char *opt_arg)
 }
 
 static struct if_option local_options[] = {
+	{'r', "running", NULL, "show configured (running) interfaces", false, set_show_running},
 	{'s', "state", NULL, "show configured state", false, set_show_state},
 	{'p', "property", "property PROPERTY", "print values of properties matching PROPERTY", true, set_property},
 	{'D', "dot", NULL, "generate a dependency graph", false, set_output_dot},
@@ -257,7 +269,7 @@ ifquery_main(int argc, char *argv[])
 	}
 
 	/* --list --state is not allowed */
-	if (listing && listing_stat)
+	if (listing && (listing_stat || listing_running))
 		generic_usage(self_applet, EXIT_FAILURE);
 
 	if (listing)
@@ -265,7 +277,7 @@ ifquery_main(int argc, char *argv[])
 		list_interfaces(&collection, &match_opts);
 		return EXIT_SUCCESS;
 	}
-	else if (listing_stat)
+	else if (listing_stat || listing_running)
 	{
 		list_state(&state, &match_opts);
 		return EXIT_SUCCESS;
