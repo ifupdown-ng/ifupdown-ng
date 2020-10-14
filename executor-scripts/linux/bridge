@@ -58,7 +58,7 @@ add_ports() {
 		if [ -n "$IF_BRIDGE_HW" ]; then
 			ip link set dev $port addr $IF_BRIDGE_HW
 		fi
-		brctl addif $IFACE $port && ip link set dev $port up
+		ip link set dev $port master $IFACE && ip link set dev $port up
 	done
 }
 
@@ -66,7 +66,7 @@ del_ports() {
 	local port=
 	for port in $PORTS; do
 		ip link set dev $port down
-		brctl delif $IFACE $port
+		ip link set dev $port nomaster
 		if [ -x /etc/network/ip-post-down.d/vlan ]; then
 			env IFACE=$port /etc/network/if-post-down.d/vlan
 		fi
@@ -140,7 +140,7 @@ depend)
 	;;
 create)
 	if [ ! -d "/sys/class/net/${IFACE}" ]; then
-		brctl addbr "${IFACE}"
+		ip link add "${IFACE}" type bridge
 	fi
 	;;
 pre-up)
@@ -155,7 +155,7 @@ post-down)
 	;;
 destroy)
 	if [ -d "/sys/class/net/${IFACE}" ]; then
-		brctl delbr "${IFACE}"
+		ip link del "${IFACE}"
 	fi
 	;;
 esac
