@@ -32,6 +32,10 @@ configuration file to the current format.
 *-p, --property* _PROPERTY_
 	Print the values of matching properties for an interface.
 
+*-r, --running*
+	Print the interface names that are marked as running in
+	the state database.
+
 *-s, --state*
 	Query the state database instead of the config database.
 
