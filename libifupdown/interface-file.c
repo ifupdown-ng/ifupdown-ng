@@ -196,8 +196,6 @@ handle_gateway(struct lif_interface_file_parse_state *state, char *token, char *
 static bool
 handle_generic(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
-	(void) state;
-
 	if (state->cur_iface == NULL)
 		return true;
 
