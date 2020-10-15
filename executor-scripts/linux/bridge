@@ -52,9 +52,6 @@ all_ports() {
 add_ports() {
 	local port=
 	for port in $PORTS; do
-		if [ -x /etc/network/if-pre-up.d/vlan ]; then
-			env IFACE=$port /etc/network/if-pre-up.d/vlan
-		fi
 		if [ -n "$IF_BRIDGE_HW" ]; then
 			ip link set dev $port addr $IF_BRIDGE_HW
 		fi
@@ -67,9 +64,6 @@ del_ports() {
 	for port in $PORTS; do
 		ip link set dev $port down
 		ip link set dev $port nomaster
-		if [ -x /etc/network/ip-post-down.d/vlan ]; then
-			env IFACE=$port /etc/network/if-post-down.d/vlan
-		fi
 	done
 }
 
