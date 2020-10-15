@@ -123,6 +123,34 @@ set_bridge_opts() {
 	[ -x /sbin/brctl ] && set_bridge_opts_brctl && return 0
 }
 
+set_bridge_default_vlans() {
+	[ -x /sbin/bridge ] || return 0
+
+	[ -z "$IF_BRIDGE_PORTS" ] && return 0
+	for port in $IF_BRIDGE_PORTS; do
+		vids=$(ifquery -p bridge-vids $port)
+		[ -z "$vids" ] && vids="$IF_BRIDGE_VIDS"
+
+		for vid in $vids; do
+			bridge vlan add vid $vid dev $port
+		done
+	done
+}
+
+set_bridge_access_vlans() {
+	[ -z "$IF_BRIDGE_PORTS" ] || return 0
+	[ -z "$IF_BRIDGE_ACCESS" ] && return 0
+	[ -x /sbin/bridge ] || return 0
+
+	if [ "$IF_BRIDGE_PVID" = "$IF_BRIDGE_ACCESS" ]; then
+		PVID="pvid"
+	else
+		PVID=""
+	fi
+
+	bridge vlan add vid $IF_BRIDGE_ACCESS $PVID untagged dev $IFACE
+}
+
 all_ports_ready() {
 	local port=
 	for port in $PORTS; do
@@ -175,6 +203,8 @@ create)
 pre-up)
 	wait_ports
 	set_bridge_opts
+	set_bridge_default_vlans
+	set_bridge_access_vlans
 	add_ports
 	wait_bridge
 	;;
