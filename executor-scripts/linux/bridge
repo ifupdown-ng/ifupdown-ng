@@ -180,8 +180,6 @@ wait_bridge() {
 	done
 }
 
-[ -z "$IF_BRIDGE_PORTS" ] && IF_BRIDGE_PORTS="$IF_REQUIRES"
-
 case "$IF_BRIDGE_PORTS" in
 "")	;;
 none)	PORTS="";;
