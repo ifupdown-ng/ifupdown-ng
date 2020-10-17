@@ -21,7 +21,7 @@ find_ifaces() {
 	if [ -n "$single_iface" ]; then
 		echo $single_iface
 	else
-		ifquery -L -i "$cfgfile"
+		ifquery -L -a -i "$cfgfile"
 	fi
 }
 
