@@ -261,6 +261,12 @@ ifupdown_main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	if(!lif_compat_apply(&collection))
+	{
+		fprintf(stderr, "%s: failed to apply compatibility glue\n", argv0);
+		return EXIT_FAILURE;
+	}
+
 	if (!lif_state_sync(&state, &collection))
 	{
 		fprintf(stderr, "%s: could not sync state\n", argv0);
