@@ -38,7 +38,8 @@ LIBIFUPDOWN_SRC = \
 	libifupdown/execute.c \
 	libifupdown/lifecycle.c \
 	libifupdown/config-parser.c \
-	libifupdown/config-file.c
+	libifupdown/config-file.c \
+	libifupdown/compat.c \
 
 LIBIFUPDOWN_OBJ = ${LIBIFUPDOWN_SRC:.c=.o}
 LIBIFUPDOWN_LIB = libifupdown.a
