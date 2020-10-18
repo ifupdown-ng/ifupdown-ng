@@ -113,7 +113,7 @@ set_bridge_opts_iproute2() {
 	[ -n "$IF_BRIDGE_PORTPRIO" ] \
 		&& bridge link set dev $IFACE priority $IF_BRIDGE_PORTPRIO
 	[ -n "$IF_BRIDGE_STP" ] \
-		&& ip link set dev $IFACE type bridge stp $IF_BRIDGE_STP
+		&& ip link set dev $IFACE type bridge stp $(yesno $IF_BRIDGE_STP)
 	[ -n "$IF_BRIDGE_VLAN_AWARE" ] \
 		&& ip link set dev $IFACE type bridge vlan_filtering $(yesno $IF_BRIDGE_VLAN_AWARE)
 }
