@@ -138,6 +138,7 @@ install: all
 	${SCDOC} < $< > $@
 
 MANPAGES_5 = \
+	doc/ifupdown-ng.conf.5 \
 	doc/interfaces.5 \
 	doc/interfaces-bond.5 \
 	doc/interfaces-batman.5 \
