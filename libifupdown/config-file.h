@@ -21,6 +21,7 @@
 struct lif_config_file {
 	bool allow_addon_scripts;
 	bool allow_any_iface_as_template;
+	bool compat_create_interfaces;
 	bool compat_ifupdown2_bridge_ports_inherit_vlans;
 	bool implicit_template_conversion;
 	bool use_hostname_for_dhcp;

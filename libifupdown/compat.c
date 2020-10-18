@@ -68,7 +68,7 @@ compat_ifupdown2_bridge_ports_inherit_vlans(struct lif_dict *collection)
 			if (entry)
 				bridge_port = entry->data;
 
-			else
+			else if (lif_config.compat_create_interfaces)
 			{
 				bridge_port = lif_interface_collection_find(collection, tokenp);
 				if (bridge_port == NULL)
@@ -76,6 +76,14 @@ compat_ifupdown2_bridge_ports_inherit_vlans(struct lif_dict *collection)
 					fprintf(stderr, "Failed to add interface \"%s\"", tokenp);
 					return false;
 				}
+			}
+
+			/* We would have to creaet an interface, but shouldn't */
+			else
+			{
+				fprintf(stderr, "compat: Missing interface stanza for bridge-port \"%s\" but should not create one.\n",
+				        tokenp);
+				continue;
 			}
 
 			/* Maybe pimp bridge-pvid */
