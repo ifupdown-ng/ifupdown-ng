@@ -14,6 +14,7 @@
  */
 
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 #include "libifupdown/config-file.h"
 #include "libifupdown/dict.h"
