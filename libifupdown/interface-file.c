@@ -203,6 +203,10 @@ handle_generic(struct lif_interface_file_parse_state *state, char *token, char *
 
 	token = maybe_remap_token(token);
 
+	/* This smells like a bridge */
+	if (strcmp(token, "bridge-ports") == 0)
+		state->cur_iface->is_bridge = true;
+
 	/* Skip any leading whitespaces in value for <token> */
 	while (isspace (*bufp))
 		bufp++;
