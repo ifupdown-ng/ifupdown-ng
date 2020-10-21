@@ -29,8 +29,13 @@ lif_state_read(struct lif_dict *state, FILE *fd)
 		char *bufp = linebuf;
 		char *ifname = lif_next_token(&bufp);
 		char *refcount = lif_next_token(&bufp);
+		char *explicit = lif_next_token(&bufp);
 		size_t rc = 1;
 		char *equals_p = strchr(linebuf, '=');
+		bool is_explicit = false;
+
+		if (*explicit)
+			is_explicit = true;
 
 		if (*refcount)
 		{
@@ -42,12 +47,12 @@ lif_state_read(struct lif_dict *state, FILE *fd)
 
 		if (equals_p == NULL)
 		{
-			lif_state_upsert(state, ifname, &(struct lif_interface){ .ifname = ifname, .refcount = rc });
+			lif_state_upsert(state, ifname, &(struct lif_interface){ .ifname = ifname, .refcount = rc, .is_explicit = is_explicit });
 			continue;
 		}
 
 		*equals_p++ = '\0';
-		lif_state_upsert(state, ifname, &(struct lif_interface){ .ifname = equals_p, .refcount = rc });
+		lif_state_upsert(state, ifname, &(struct lif_interface){ .ifname = equals_p, .refcount = rc, .is_explicit = is_explicit });
 	}
 
 	return true;
@@ -129,7 +134,8 @@ lif_state_write(const struct lif_dict *state, FILE *f)
 		struct lif_dict_entry *entry = iter->data;
 		struct lif_state_record *rec = entry->data;
 
-		fprintf(f, "%s=%s %zu\n", entry->key, rec->mapped_if, rec->refcount);
+		fprintf(f, "%s=%s %zu%s\n", entry->key, rec->mapped_if, rec->refcount,
+			rec->is_explicit ? " explicit" : "");
 	}
 }
 
