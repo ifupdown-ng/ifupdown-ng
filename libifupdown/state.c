@@ -34,7 +34,7 @@ lif_state_read(struct lif_dict *state, FILE *fd)
 		char *equals_p = strchr(linebuf, '=');
 		bool is_explicit = false;
 
-		if (*explicit)
+		if (*explicit && !strcmp(explicit, "explicit"))
 			is_explicit = true;
 
 		if (*refcount)
