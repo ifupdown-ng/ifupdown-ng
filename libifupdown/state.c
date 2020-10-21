@@ -182,6 +182,7 @@ lif_state_sync(struct lif_dict *state, struct lif_dict *if_collection)
 		struct lif_interface *iface = lif_interface_collection_find(if_collection, rec->mapped_if);
 
 		iface->refcount = rec->refcount;
+		iface->is_explicit = rec->is_explicit;
 	}
 
 	return true;
