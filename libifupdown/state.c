@@ -99,6 +99,7 @@ lif_state_upsert(struct lif_dict *state, const char *ifname, struct lif_interfac
 
 	rec->mapped_if = strdup(iface->ifname);
 	rec->refcount = iface->refcount;
+	rec->is_explicit = iface->is_explicit;
 
 	lif_dict_add(state, ifname, rec);
 }
