@@ -182,7 +182,8 @@ list_state(struct lif_dict *state, struct match_options *opts)
 		if (listing_running)
 			printf("%s\n", entry->key);
 		else
-			printf("%s=%s %zu\n", entry->key, rec->mapped_if, rec->refcount);
+			printf("%s=%s %zu%s\n", entry->key, rec->mapped_if, rec->refcount,
+			       rec->is_explicit ? " explicit" : "");
 	}
 }
 
