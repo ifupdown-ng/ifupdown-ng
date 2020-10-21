@@ -95,7 +95,7 @@ acquire_state_lock(const char *state_path, const char *lifname)
 }
 
 bool
-skip_interface(struct lif_interface *iface, const char *ifname)
+skip_interface(struct lif_interface *iface, const char *ifname, struct lif_dict *state, bool update_state)
 {
 	if (iface->is_template)
 	{
@@ -123,16 +123,23 @@ skip_interface(struct lif_interface *iface, const char *ifname)
 	if (up && iface->refcount > 0)
 	{
 		if (exec_opts.verbose)
-			fprintf(stderr, "%s: skipping auto interface %s (already configured), use --force to force configuration\n",
-				argv0, ifname);
+			fprintf(stderr, "%s: skipping %sinterface %s (already configured), use --force to force configuration\n",
+				argv0, iface->is_auto ? "auto " : "", ifname);
+
+		if (update_state)
+		{
+			iface->is_explicit = true;
+			lif_state_upsert(state, ifname, iface);
+		}
+
 		return true;
 	}
 
 	if (!up && iface->refcount == 0)
 	{
 		if (exec_opts.verbose)
-			fprintf(stderr, "%s: skipping auto interface %s (already deconfigured), use --force to force deconfiguration\n",
-				argv0, ifname);
+			fprintf(stderr, "%s: skipping %sinterface %s (already deconfigured), use --force to force deconfiguration\n",
+				argv0, iface->is_auto ? "auto " : "", ifname);
 		return true;
 	}
 
@@ -140,7 +147,7 @@ skip_interface(struct lif_interface *iface, const char *ifname)
 }
 
 bool
-change_interface(struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *ifname)
+change_interface(struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *ifname, bool update_state)
 {
 	int lockfd = acquire_state_lock(exec_opts.state_file, ifname);
 
@@ -150,7 +157,7 @@ change_interface(struct lif_interface *iface, struct lif_dict *collection, struc
 		return false;
 	}
 
-	if (skip_interface(iface, ifname))
+	if (skip_interface(iface, ifname, state, update_state))
 	{
 		if (lockfd != -1)
 			close(lockfd);
@@ -178,6 +185,12 @@ change_interface(struct lif_interface *iface, struct lif_dict *collection, struc
 	if (lockfd != -1)
 		close(lockfd);
 
+	if (up && update_state)
+	{
+		iface->is_explicit = true;
+		lif_state_upsert(state, ifname, iface);
+	}
+
 	return true;
 }
 
@@ -202,7 +215,7 @@ change_auto_interfaces(struct lif_dict *collection, struct lif_dict *state, stru
 		    fnmatch(opts->include_pattern, iface->ifname, 0))
 			continue;
 
-		if (!change_interface(iface, collection, state, iface->ifname))
+		if (!change_interface(iface, collection, state, iface->ifname, false))
 			return false;
 	}
 
@@ -313,7 +326,7 @@ ifupdown_main(int argc, char *argv[])
 			iface = entry->data;
 		}
 
-		if (!change_interface(iface, &collection, &state, ifname))
+		if (!change_interface(iface, &collection, &state, ifname, true))
 			return update_state_file_and_exit(EXIT_FAILURE, &state);
 	}
 

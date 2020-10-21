@@ -172,6 +172,9 @@ handle_auto(struct lif_interface_file_parse_state *state, char *token, char *buf
 	if (!state->cur_iface->is_template)
 		state->cur_iface->is_auto = true;
 
+	if (state->cur_iface->is_auto)
+		state->cur_iface->is_explicit = true;
+
 	return true;
 }
 
