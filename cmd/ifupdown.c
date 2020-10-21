@@ -95,7 +95,7 @@ acquire_state_lock(const char *state_path, const char *lifname)
 }
 
 bool
-skip_interface(struct lif_interface *iface, const char *ifname)
+skip_interface(struct lif_interface *iface, const char *ifname, struct lif_dict *state, bool update_state)
 {
 	if (iface->is_template)
 	{
@@ -123,16 +123,23 @@ skip_interface(struct lif_interface *iface, const char *ifname)
 	if (up && iface->refcount > 0)
 	{
 		if (exec_opts.verbose)
-			fprintf(stderr, "%s: skipping auto interface %s (already configured), use --force to force configuration\n",
-				argv0, ifname);
+			fprintf(stderr, "%s: skipping %sinterface %s (already configured), use --force to force configuration\n",
+				argv0, iface->is_auto ? "auto " : "", ifname);
+
+		if (update_state)
+		{
+			iface->is_explicit = true;
+			lif_state_upsert(state, ifname, iface);
+		}
+
 		return true;
 	}
 
 	if (!up && iface->refcount == 0)
 	{
 		if (exec_opts.verbose)
-			fprintf(stderr, "%s: skipping auto interface %s (already deconfigured), use --force to force deconfiguration\n",
-				argv0, ifname);
+			fprintf(stderr, "%s: skipping %sinterface %s (already deconfigured), use --force to force deconfiguration\n",
+				argv0, iface->is_auto ? "auto " : "", ifname);
 		return true;
 	}
 
@@ -150,7 +157,7 @@ change_interface(struct lif_interface *iface, struct lif_dict *collection, struc
 		return false;
 	}
 
-	if (skip_interface(iface, ifname))
+	if (skip_interface(iface, ifname, state, update_state))
 	{
 		if (lockfd != -1)
 			close(lockfd);
