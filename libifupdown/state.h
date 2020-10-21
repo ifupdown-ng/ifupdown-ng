@@ -17,11 +17,14 @@
 #define LIBIFUPDOWN_STATE_H__GUARD
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "libifupdown/interface.h"
 
 struct lif_state_record {
 	char *mapped_if;
 	size_t refcount;
+
+	bool is_explicit;
 };
 
 extern bool lif_state_read(struct lif_dict *state, FILE *f);
