@@ -223,6 +223,7 @@ lif_interface_collection_init(struct lif_dict *collection)
 	/* always enable loopback interface as part of a collection */
 	if_lo = lif_interface_collection_find(collection, "lo");
 	if_lo->is_auto = true;
+	if_lo->is_explicit = true;
 	lif_interface_use_executor(if_lo, "loopback");
 }
 
