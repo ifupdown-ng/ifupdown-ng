@@ -57,8 +57,9 @@ configured in the configuration database.
 
 # SEE ALSO
 
-*ifdown*(8)++
-*ifquery*(8)++
+*ifupdown-ng.conf*(5)
+*ifdown*(8)
+*ifquery*(8)
 *interfaces*(5)
 
 # AUTHORS

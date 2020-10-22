@@ -1,6 +1,7 @@
 #!/bin/sh
 
 set -e
+[ -n "$VERBOSE" ] && set -x
 
 # Copyright (C) 2012, 2020 Natanael Copa <ncopa@alpinelinux.org>
 # Copyright (C) 2020 Ariadne Conill <ariadne@dereferenced.org>
@@ -13,6 +14,10 @@ set -e
 # This software is provided 'as is' and without any warranty, express or
 # implied.  In no event shall the authors be liable for any damages arising
 # from the use of this software.
+
+################################################################################
+#                        Bridge management functions                           #
+################################################################################
 
 all_ports_exist() {
 	local i=
@@ -52,13 +57,10 @@ all_ports() {
 add_ports() {
 	local port=
 	for port in $PORTS; do
-		if [ -x /etc/network/if-pre-up.d/vlan ]; then
-			env IFACE=$port /etc/network/if-pre-up.d/vlan
-		fi
 		if [ -n "$IF_BRIDGE_HW" ]; then
 			ip link set dev $port addr $IF_BRIDGE_HW
 		fi
-		brctl addif $IFACE $port && ip link set dev $port up
+		ip link set dev $port master $IFACE && ip link set dev $port up
 	done
 }
 
@@ -66,22 +68,17 @@ del_ports() {
 	local port=
 	for port in $PORTS; do
 		ip link set dev $port down
-		brctl delif $IFACE $port
-		if [ -x /etc/network/ip-post-down.d/vlan ]; then
-			env IFACE=$port /etc/network/if-post-down.d/vlan
-		fi
+		ip link set dev $port nomaster
 	done
 }
 
-set_bridge_opts() {
+set_bridge_opts_brctl() {
 	[ -n "$IF_BRIDGE_AGEING" ] \
 		&& brctl setageing $IFACE $IF_BRIDGE_AGEING
 	[ -n "$IF_BRIDGE_BRIDGEPRIO" ] \
 		&& brctl setbridgeprio $IFACE $IF_BRIDGE_BRIDGEPRIO
 	[ -n "$IF_BRIDGE_FD" ] \
 		&& brctl setfd $IFACE $IF_BRIDGE_FD
-	[ -n "$IF_BRIDGE_GCINT" ] \
-		&& brctl setgcint $IFACE $IF_BRIDGE_GCINT
 	[ -n "$IF_BRIDGE_HELLO" ] \
 		&& brctl sethello $IFACE $IF_BRIDGE_HELLO
 	[ -n "$IF_BRIDGE_MAXAGE" ] \
@@ -93,6 +90,44 @@ set_bridge_opts() {
 	[ -n "$IF_BRIDGE_STP" ] \
 		&& brctl stp $IFACE $IF_BRIDGE_STP
 }
+
+yesno() {
+	case "$1" in
+	yes|YES|true|TRUE|1)
+		echo 1
+		;;
+	*)
+		echo 0
+		;;
+	esac
+}
+
+set_bridge_opts_iproute2() {
+	[ -n "$IF_BRIDGE_AGEING" ] \
+		&& ip link set dev $IFACE type bridge ageing_time $IF_BRIDGE_AGEING
+	[ -n "$IF_BRIDGE_BRIDGEPRIO" ] \
+		&& ip link set dev $IFACE type bridge priority $IF_BRIDGE_BRIDGEPRIO
+	[ -n "$IF_BRIDGE_FD" ] \
+		&& ip link set dev $IFACE type bridge forward_delay $IF_BRIDGE_FD
+	[ -n "$IF_BRIDGE_HELLO" ] \
+		&& ip link set dev $IFACE type bridge hello_time $IF_BRIDGE_HELLO
+	[ -n "$IF_BRIDGE_MAXAGE" ] \
+		&& ip link set dev $IFACE type bridge max_age $IF_BRIDGE_MAXAGE
+	[ -n "$IF_BRIDGE_PATHCOST" ] \
+		&& bridge link set dev $IFACE cost $IF_BRIDGE_PATHCOST
+	[ -n "$IF_BRIDGE_PORTPRIO" ] \
+		&& bridge link set dev $IFACE priority $IF_BRIDGE_PORTPRIO
+	[ -n "$IF_BRIDGE_STP" ] \
+		&& ip link set dev $IFACE type bridge stp $(yesno $IF_BRIDGE_STP)
+	[ -n "$IF_BRIDGE_VLAN_AWARE" ] \
+		&& ip link set dev $IFACE type bridge vlan_filtering $(yesno $IF_BRIDGE_VLAN_AWARE)
+}
+
+set_bridge_opts() {
+	[ -x /sbin/bridge ] && set_bridge_opts_iproute2 && return 0
+	[ -x /sbin/brctl ] && set_bridge_opts_brctl && return 0
+}
+
 
 all_ports_ready() {
 	local port=
@@ -123,7 +158,92 @@ wait_bridge() {
 	done
 }
 
-[ -z "$IF_BRIDGE_PORTS" ] && IF_BRIDGE_PORTS="$IF_REQUIRES"
+
+################################################################################
+#                     Bridge port management functions                         #
+################################################################################
+
+configure_access_port() {
+	port="$1"
+	vlan="$2"
+	self="$3"
+
+	# Cleans all existing VLANs (probably at least VLAN 1)
+	bridge vlan show dev ${port} | tail -n +2 | grep -v '^$' | sed -e "s/^${port}//" | while read vid flags; do
+		bridge vlan del vid "${vid}" dev "${port}" ${self}
+	done
+
+	bridge vlan add vid "${vlan}" pvid untagged dev "${port}" ${self}
+}
+
+configure_trunk_port() {
+	port="$1"
+	self="$2"
+
+	# Working on the bridge itself?
+	if [ "${self}" ]; then
+		allow_untagged="${IF_BRIDGE_ALLOW_UNTAGGED}"
+		pvid="${IF_BRIDGE_PVID}"
+		vids="${IF_BRIDGE_VIDS}"
+	else
+		allow_untagged=$(ifquery -p bridge-allow-untagged ${port} 2>/dev/null || true)
+		pvid=$(ifquery -p bridge-pvid ${port} 2>/dev/null || true)
+		vids=$(ifquery -p bridge-vids ${port} 2>/dev/null || true)
+	fi
+
+	# If bridge-allow-untagged if set to off, remove untagged VLAN. If it's
+	# one of our bridge-vids, it will be set again later.
+	if [ "${allow_untagged}" -a  "$(yesno ${allow_untagged})" = 0 ]; then
+		untagged_vid=$(bridge vlan show dev ${port} | tail -n +2 | grep -v '^$' | sed -e "s/^${port}//" | awk '/Untagged/ { print $1 }')
+		if [ "${untagged_vid}" ]; then
+			bridge vlan del vid "${untagged_vid}" dev "${port}" ${self}
+		fi
+	fi
+
+	# The vlan specified is to be considered a PVID at ingress.
+	# Any untagged frames will be assigned to this VLAN.
+	if [ "${pvid}" ]; then
+		cur_pvid=$(bridge vlan show dev ${port} | tail -n +2 | grep -v '^$' | sed -e "s/^${port}//" | awk '/PVID/ { print $1 }')
+		if [ "${cur_pvid}" ]; then
+			bridge vlan del vid ${cur_pvid} dev "${port}" ${self}
+		fi
+
+		bridge vlan add vid "${pvid}" dev "${port}" pvid untagged ${self}
+	fi
+
+	# Add regular tagged VLANs
+	for vid in ${vids}; do
+		bridge vlan add vid $vid dev "${port}" ${self}
+	done
+}
+
+# Configure VLANs on the bridge interface itself
+set_bridge_vlans() {
+	# Shall the bridge interface be an untagged port?
+	if [ "${IF_BRIDGE_ACCESS}" ]; then
+		configure_access_port "${IFACE}" "${IF_BRIDGE_ACCESS}" "self"
+
+	# Configure bridge interface as trunk port
+	else
+		configure_trunk_port "${IFACE}" "self"
+	fi
+}
+
+# Configure VLANs on the bridge-ports
+set_bridge_port_vlans() {
+	for port in ${PORTS}; do
+		access_vlan=$(ifquery -p bridge-access ${port} 2>/dev/null || true)
+
+		# Shall this prot interface be an untagged port?
+		if [ "${access_vlan}" ]; then
+			configure_access_port "${port}" "${access_vlan}"
+
+		# Configure port as trunk
+		else
+			configure_trunk_port "${port}"
+		fi
+	done
+}
 
 case "$IF_BRIDGE_PORTS" in
 "")	;;
@@ -132,30 +252,53 @@ all)	PORTS=$(all_ports);;
 *)	PORTS="$IF_BRIDGE_PORTS";;
 esac
 
-[ -z "$PORTS" ] && ! env | grep -q "^IF_BRIDGE" && exit
-
 case "$PHASE" in
 depend)
-	echo "$PORTS"
-	;;
-create)
-	if [ ! -d "/sys/class/net/${IFACE}" ]; then
-		brctl addbr "${IFACE}"
+	# Called for the bridge interface
+	if [ "${IF_BRIDGE_PORTS}" ]; then
+		echo "$PORTS"
 	fi
 	;;
+
+create)
+	# Called for the bridge interface
+	if [ "${IF_BRIDGE_PORTS}" -a ! -d "/sys/class/net/${IFACE}" ]; then
+		ip link add "${IFACE}" type bridge
+	fi
+	;;
+
 pre-up)
-	wait_ports
-	set_bridge_opts
-	add_ports
-	wait_bridge
+	# Called for the bridge interface
+	if [ "${IF_BRIDGE_PORTS}" ]; then
+		wait_ports
+		set_bridge_opts
+		set_bridge_vlans
+		add_ports
+		set_bridge_port_vlans
+		wait_bridge
+
+	# Called for a bridge member port
+	elif [ "${IF_BRIDGE_VIDS}" -o "${IF_BRIDGE_PVID}" -o "${IF_BRIDGE_ACCESS}" -o "${IF_BRIDGE_ALLOW_UNTAGGED}" ]; then
+		# Eventually we want to configure VLAN settings of member ports here.
+		# The current execution model does not allow this, so this is a no-op
+		# for now and we work around this by configuring ports while configuring
+		# the bridge.
+		true
+	fi
 	;;
+
 post-down)
-	del_ports
-	ip link set dev $IFACE down
+	# Called for the bridge interface
+	if [ "${IF_BRIDGE_PORTS}" ]; then
+		del_ports
+		ip link set dev $IFACE down
+	fi
 	;;
+
 destroy)
-	if [ -d "/sys/class/net/${IFACE}" ]; then
-		brctl delbr "${IFACE}"
+	# Called for the bridge interface
+	if [ "${IF_BRIDGE_PORTS}" -a -d "/sys/class/net/${IFACE}" ]; then
+		ip link del "${IFACE}"
 	fi
 	;;
 esac

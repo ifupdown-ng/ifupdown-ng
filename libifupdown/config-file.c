@@ -21,6 +21,8 @@
 struct lif_config_file lif_config = {
 	.allow_addon_scripts = true,
 	.allow_any_iface_as_template = true,
+	.compat_create_interfaces = true,
+	.compat_ifupdown2_bridge_ports_inherit_vlans = true,
 	.implicit_template_conversion = true,
 	.use_hostname_for_dhcp = true,
 };
@@ -31,7 +33,7 @@ set_bool_value(const char *key, const char *value, void *opaque)
 	(void) key;
 
 	if (*value == '1' ||
-		*value == 'Y' || *value == 'y' || 
+		*value == 'Y' || *value == 'y' ||
 		*value == 'T' || *value == 't')
 		*(bool *) opaque = true;
 	else if (*value == '0' ||
@@ -47,6 +49,8 @@ set_bool_value(const char *key, const char *value, void *opaque)
 static struct lif_config_handler handlers[] = {
 	{"allow_addon_scripts", set_bool_value, &lif_config.allow_addon_scripts},
 	{"allow_any_iface_as_template", set_bool_value, &lif_config.allow_any_iface_as_template},
+	{"compat_create_interfaces", set_bool_value, &lif_config.compat_create_interfaces},
+	{"compat_ifupdown2_bridge_ports_inherit_vlans", set_bool_value, &lif_config.compat_ifupdown2_bridge_ports_inherit_vlans},
 	{"implicit_template_conversion", set_bool_value, &lif_config.implicit_template_conversion},
 	{"use_hostname_for_dhcp", set_bool_value, &lif_config.use_hostname_for_dhcp},
 };
