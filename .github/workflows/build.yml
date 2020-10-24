@@ -10,7 +10,7 @@ jobs:
       - name: Update system and add dependencies
         run: |
           apk upgrade -Ua
-          apk add build-base git kyua atf
+          apk add build-base git kyua atf scdoc
 
       - name: Checkout
         uses: actions/checkout@v2
