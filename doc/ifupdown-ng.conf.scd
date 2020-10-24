@@ -43,7 +43,7 @@ configuration options.
 # COMPATIBILITY RELATED OPTIONS
 
 *compat_create_interfaces* _bool_
-	Denotes where or not to create interfaces when compat_* settings are
+	Denotes where or not to create interfaces when compat_\* settings are
 	active and it would be necessary to create an interface to be fully
 	compliant.  This could happen when inheriting bridge VLAN settings to
 	an interface within a bridges bridge-ports setting but no interface
