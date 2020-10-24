@@ -216,6 +216,7 @@ iface eth0
 
 # SEE ALSO
 
+*ifstate*(5)
 *ifupdown-ng.conf*(5)
 *ifup*(8)
 *ifdown*(8)
