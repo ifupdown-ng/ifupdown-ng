@@ -16,9 +16,6 @@
 # IF_VXLAN_AGEING	Specifies the lifetime in seconds of FDB entries learnt by the kernel
 # IF_VXLAN_DSTPORT	UDP destination port to communicate to the remote VXLAN tunnel endpoint (default 4789)
 #
-
-set -e
-
 [ -n "$VERBOSE" ] && set -x
 
 # No VNI, nuthin' to do for us

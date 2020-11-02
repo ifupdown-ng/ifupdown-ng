@@ -5,9 +5,6 @@
 # Sat, 03 Oct 2020 20:42:19 +0200
 #  -- Maximilian Wilhelm <max@sdn.clinic>
 #
-
-set -e
-
 [ -n "$VERBOSE" ] && set -x
 
 get_bond_options() {

@@ -1,7 +1,4 @@
 #!/bin/sh
-
-set -e
-
 # some users provide a shell fragment for the hostname property.
 [ -n "$IF_HOSTNAME" ] && IF_HOSTNAME=$(eval echo $IF_HOSTNAME)
 

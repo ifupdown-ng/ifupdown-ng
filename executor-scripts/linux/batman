@@ -8,8 +8,6 @@
 #
 # See interfaces-batman(5) for a list of supported options for hardifs as well as meshifs.
 #
-set -e
-
 if [ "$VERBOSE" ]; then
 	set -x
 fi

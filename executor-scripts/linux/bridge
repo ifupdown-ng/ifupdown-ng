@@ -1,6 +1,4 @@
 #!/bin/sh
-
-set -e
 [ -n "$VERBOSE" ] && set -x
 
 # Copyright (C) 2012, 2020 Natanael Copa <ncopa@alpinelinux.org>

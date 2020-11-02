@@ -1,6 +1,4 @@
 #!/bin/sh
-set -e
-
 handle_init() {
 	${MOCK} /sbin/ip link $1 $IFACE type vrf table $IF_VRF_TABLE
 	${MOCK} /sbin/ip rule $1 iif $IFACE table $IF_VRF_TABLE

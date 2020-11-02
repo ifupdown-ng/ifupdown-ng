@@ -1,7 +1,4 @@
 #!/bin/sh
-
-set -e
-
 [ -z "${VERBOSE}" ] || set -x
 
 [ -z "${IF_METRIC}" ] && IF_METRIC="1"

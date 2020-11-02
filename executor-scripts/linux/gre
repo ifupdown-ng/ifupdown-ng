@@ -1,7 +1,4 @@
 #!/bin/sh
-
-set -e
-
 # Executor for advanced GRE tunnel management.
 
 [ -z "$IF_GRE_LOCAL" ] && exit 1

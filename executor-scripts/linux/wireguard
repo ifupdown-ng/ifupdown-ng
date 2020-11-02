@@ -1,7 +1,4 @@
 #!/bin/sh
-
-set -e
-
 [ -n "$VERBOSE" ] && set -x
 [ -z "$IF_WIREGUARD_CONFIG_PATH" ] && IF_WIREGUARD_CONFIG_PATH="/etc/wireguard/$IFACE.conf"
 
