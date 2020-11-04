@@ -108,9 +108,9 @@ the system will only respond to certain keywords by default:
 	configuration data from _object_.  Normally _object_
 	must be a *template*.
 
-*use* _option_
-	Designates that an option should be used.  See _OPTIONS_
-	section for more information on options.
+*use* _executor_
+	Designates that an executor should be used.  See _EXECUTORS_
+	section for more information on executors.
 
 *pre-down* _command_
 	Runs _command_ before taking the interface down.
@@ -133,11 +133,11 @@ the system will only respond to certain keywords by default:
 Additional packages such as *bonding*, *bridge*, *tunnel*, *vrf* and
 *vxlan* add additional keywords to this vocabulary.
 
-# OPTIONS
+# EXECUTORS
 
-The *use* keyword designates that an _option_ should be used.
+The *use* keyword designates that an _executor_ should be used.
 This system is extendable by additional packages, but the
-most common options are:
+most common executors are:
 
 *batman*
 	The interface is a B.A.T.M.A.N. adv. mesh interface.
@@ -181,8 +181,8 @@ most common options are:
 *wireguard*
 	The interface is a Wireguard VPN tunnel endpoint.
 
-Check *interfaces-<option>(5)* for further informaton about a given
-option and available configuration parameters.
+Check *interfaces-<executor>(5)* for further informaton about a given
+executor and available configuration parameters.
 
 # EXAMPLES
 
