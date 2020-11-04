@@ -17,6 +17,13 @@ allow_addon_scripts = 1
 # templates.  Valid values are 0 and 1, the default is 1.
 allow_any_iface_as_template = 1
 
+# auto_executor_selection:
+# Automatically determine which executors are needed to bring up an
+# interface.  An admin may choose to disable this setting and explicitly
+# define which executors to use with `use` statements.
+# Valid values are 0 and 1, the default is 1.
+auto_executor_selection = 1
+
 # compat_create_interfaces:
 # Denotes where or not to create interfaces when compat_* settings are
 # active and it would be necessary to create an interface to be fully
