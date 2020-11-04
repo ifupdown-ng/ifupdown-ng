@@ -21,6 +21,7 @@
 struct lif_config_file lif_config = {
 	.allow_addon_scripts = true,
 	.allow_any_iface_as_template = true,
+	.auto_executor_selection = true,
 	.compat_create_interfaces = true,
 	.compat_ifupdown2_bridge_ports_inherit_vlans = true,
 	.implicit_template_conversion = true,
@@ -49,6 +50,7 @@ set_bool_value(const char *key, const char *value, void *opaque)
 static struct lif_config_handler handlers[] = {
 	{"allow_addon_scripts", set_bool_value, &lif_config.allow_addon_scripts},
 	{"allow_any_iface_as_template", set_bool_value, &lif_config.allow_any_iface_as_template},
+	{"auto_executor_selection", set_bool_value, &lif_config.auto_executor_selection},
 	{"compat_create_interfaces", set_bool_value, &lif_config.compat_create_interfaces},
 	{"compat_ifupdown2_bridge_ports_inherit_vlans", set_bool_value, &lif_config.compat_ifupdown2_bridge_ports_inherit_vlans},
 	{"implicit_template_conversion", set_bool_value, &lif_config.implicit_template_conversion},
