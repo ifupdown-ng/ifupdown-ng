@@ -184,6 +184,10 @@ most common executors are:
 Check *interfaces-<executor>(5)* for further informaton about a given
 executor and available configuration parameters.
 
+If the _auto\_executor\_selection_ ifupdown-ng.conf option is enabled,
+*use* statements will automatically be added for executors when their
+configuration statements are present in the interfaces file.
+
 # EXAMPLES
 
 Configure a bridge interface *br0* with *bond0* attached to it,
