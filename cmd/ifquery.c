@@ -159,6 +159,7 @@ list_interfaces(struct lif_dict *collection, struct match_options *opts)
 }
 
 static bool listing = false, listing_stat = false, listing_running = false;
+static bool allow_undefined = false;
 
 void
 list_state(struct lif_dict *state, struct match_options *opts)
@@ -228,6 +229,13 @@ set_property(const char *opt_arg)
 	match_opts.property = opt_arg;
 }
 
+static void
+set_allow_undefined(const char *opt_arg)
+{
+	(void) opt_arg;
+	allow_undefined = true;
+}
+
 static struct if_option local_options[] = {
 	{'r', "running", NULL, "show configured (running) interfaces", false, set_show_running},
 	{'s', "state", NULL, "show configured state", false, set_show_state},
@@ -235,6 +243,7 @@ static struct if_option local_options[] = {
 	{'D', "dot", NULL, "generate a dependency graph", false, set_output_dot},
 	{'L', "list", NULL, "list matching interfaces", false, set_listing},
 	{'P', "pretty-print", NULL, "pretty print the interfaces instead of just listing", false, set_pretty_print},
+	{'U', "allow-undefined", NULL, "allow querying undefined (virtual) interfaces", false, set_allow_undefined},
 };
 
 static struct if_option_group local_option_group = {
@@ -307,6 +316,9 @@ ifquery_main(int argc, char *argv[])
 
 			if (entry != NULL)
 				iface = entry->data;
+
+			if (entry == NULL && allow_undefined)
+				iface = lif_interface_collection_find(&collection, argv[idx]);
 		}
 
 		if (iface == NULL)
