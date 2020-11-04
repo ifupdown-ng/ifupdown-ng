@@ -122,16 +122,6 @@ lif_interface_init(struct lif_interface *interface, const char *ifname)
 	/* keep the 'vlan' executor as a config hint for backwards compatibility */
 	if (strchr(ifname, '.') != NULL)
 		lif_interface_use_executor(interface, "vlan");
-
-	if (!lif_config.use_hostname_for_dhcp)
-		return;
-
-	/* learn a reasonable default hostname */
-	struct utsname un;
-	if (uname(&un) < 0)
-		return;
-
-	lif_dict_add(&interface->vars, "hostname", strdup(un.nodename));
 }
 
 bool
@@ -211,6 +201,16 @@ lif_interface_use_executor(struct lif_interface *interface, const char *executor
 		interface->is_bridge = true;
 	else if (!strcmp(executor, "bond"))
 		interface->is_bond = true;
+
+	if (strcmp(executor, "dhcp") || !lif_config.use_hostname_for_dhcp)
+		return;
+
+	/* learn a reasonable default hostname */
+	struct utsname un;
+	if (uname(&un) < 0)
+		return;
+
+	lif_dict_add(&interface->vars, "hostname", strdup(un.nodename));
 }
 
 void
