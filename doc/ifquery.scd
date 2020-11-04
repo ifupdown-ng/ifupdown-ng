@@ -54,6 +54,11 @@ configuration file to the current format.
 	When listing interfaces, print their configuration in a format
 	that is compatible with *interfaces*(5) files.
 
+*-U, --allow-undefined*
+	Create virtual interfaces for any interfaces not explicitly
+	defined in the configuration file.  This is primarily useful
+	for property queries.
+
 *-S, --state-file* _FILE_
 	Use _FILE_ as the state database.
 
