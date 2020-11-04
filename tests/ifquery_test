@@ -34,7 +34,9 @@ tests_init \
 	vlan_explicit_learned_dependency \
 	vlan_guessed_learned_dependency \
 	vlan_complex_learned_dependency \
-	wireguard
+	wireguard \
+	allow_undefined_positive \
+	allow_undefined_negative
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -225,4 +227,18 @@ wireguard_body() {
 		-o match:"requires eth0" \
 		-o match:"use wireguard" \
 		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/wireguard.interfaces wg0
+}
+
+allow_undefined_positive_body() {
+	atf_check -s exit:0 \
+		-o ignore \
+		-e ignore \
+		ifquery -U -i /dev/null -p address foo
+}
+
+allow_undefined_negative_body() {
+	atf_check -s exit:1 \
+		-o ignore \
+		-e ignore \
+		ifquery -i /dev/null -p address foo
 }
