@@ -17,6 +17,12 @@ configuration options.
 	performance improvements in setups where only ifupdown-ng executors
 	are used.  Valid values are _0_ and _1_, the default is _1_.
 
+*auto_executor_selection* _bool_
+	Automatically determine which executors to use.  At present, this
+	is done by inserting `use` statements for the namespace a config
+	option has.  The namespace is separated from the config option with
+	a dash (`-`).  Valid values are _0_ and _1_, the default is _1_.
+
 *use_hostname_for_dhcp* _bool_
 	Automatically learn the hostname property, used for DHCP
 	configuration by querying the system hostname using uname(2).

@@ -60,6 +60,12 @@ Currently the following settings are supported in
   in order to require inheritance from specified templates.
   Valid values are `0` and `1`, the default is `1`.
 
+* `auto_executor_selection`: Automatically select executors based
+  on the presence of their config options.  An admin may choose to
+  disable this setting in order to require explicitly enabling
+  executors through `use` statements.  Valid values are `0` and `1`,
+  the default is `1`.
+
 * `compat_create_interfaces`:
   Denotes where or not to create interfaces when compat\_* settings are
   active and it would be necessary to create an interface to be fully

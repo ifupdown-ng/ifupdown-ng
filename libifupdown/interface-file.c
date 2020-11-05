@@ -216,6 +216,9 @@ handle_generic(struct lif_interface_file_parse_state *state, char *token, char *
 
 	lif_dict_add(&state->cur_iface->vars, token, strdup(bufp));
 
+	if (!lif_config.auto_executor_selection)
+		return true;
+
 	/* Check if token looks like <word1>-<word*> and assume <word1> is an addon */
 	char *word_end = strchr(token, '-');
 	if (word_end != NULL)
