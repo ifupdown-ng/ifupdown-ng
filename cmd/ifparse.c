@@ -19,6 +19,12 @@
 #include <string.h>
 #include <getopt.h>
 #include "libifupdown/libifupdown.h"
+
+#ifdef CONFIG_YAML
+# include "libifupdown/yaml-base.h"
+# include "libifupdown/yaml-writer.h"
+#endif
+
 #include "cmd/multicall.h"
 #include "cmd/pretty-print-iface.h"
 
@@ -41,9 +47,24 @@ set_allow_undefined(const char *arg)
 	allow_undefined = true;
 }
 
+#ifdef CONFIG_YAML
+static bool use_yaml = false;
+
+static void
+set_yaml(const char *arg)
+{
+	(void) arg;
+
+	use_yaml = true;
+}
+#endif
+
 static struct if_option local_options[] = {
 	{'A', "all", NULL, "show all interfaces", false, set_show_all},
 	{'U', "allow-undefined", NULL, "allow querying undefined (virtual) interfaces", false, set_allow_undefined},
+#ifdef CONFIG_YAML
+	{'Y', "yaml", NULL, "render output as YAML", false, set_yaml},
+#endif
 };
 
 static struct if_option_group local_option_group = {
@@ -51,6 +72,43 @@ static struct if_option_group local_option_group = {
 	.group_size = ARRAY_SIZE(local_options),
 	.group = local_options
 };
+
+#ifdef CONFIG_YAML
+static void
+prettyprint_interface_yaml(struct lif_interface *iface)
+{
+	struct lif_yaml_node doc = {};
+
+	lif_yaml_document_init(&doc, "interfaces");
+
+	struct lif_yaml_node *iface_node = lif_yaml_node_new_list(iface->ifname);
+	lif_yaml_node_append_child(&doc, iface_node);
+
+	struct lif_node *iter;
+	LIF_DICT_FOREACH(iter, &iface->vars)
+	{
+		struct lif_dict_entry *entry = iter->data;
+		const char *value = entry->data;
+		char addr_buf[512];
+
+		if (!strcmp(entry->key, "address"))
+		{
+			struct lif_address *addr = entry->data;
+
+			if (!lif_address_unparse(addr, addr_buf, sizeof addr_buf, true))
+				continue;
+
+			value = addr_buf;
+		}
+
+		struct lif_yaml_node *iface_entry_node = lif_yaml_node_new_string(entry->key, value);
+		lif_yaml_node_append_child(iface_node, iface_entry_node);
+	}
+
+	lif_yaml_write(iface_node, stdout);
+	lif_yaml_node_free(&doc);
+}
+#endif
 
 int
 ifparse_main(int argc, char *argv[])
@@ -95,7 +153,12 @@ ifparse_main(int argc, char *argv[])
 		{
 			struct lif_dict_entry *entry = n->data;
 
-			prettyprint_interface_eni(entry->data);
+#ifdef CONFIG_YAML
+			if (use_yaml)
+				prettyprint_interface_yaml(entry->data);
+			else
+#endif
+				prettyprint_interface_eni(entry->data);
 		}
 
 		return EXIT_SUCCESS;
@@ -122,7 +185,12 @@ ifparse_main(int argc, char *argv[])
 			return EXIT_FAILURE;
 		}
 
-		prettyprint_interface_eni(iface);
+#ifdef CONFIG_YAML
+		if (use_yaml)
+			prettyprint_interface_yaml(entry->data);
+		else
+#endif
+			prettyprint_interface_eni(iface);
 	}
 
 	return EXIT_SUCCESS;
