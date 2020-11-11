@@ -63,7 +63,7 @@ static struct if_option local_options[] = {
 	{'A', "all", NULL, "show all interfaces", false, set_show_all},
 	{'U', "allow-undefined", NULL, "allow querying undefined (virtual) interfaces", false, set_allow_undefined},
 #ifdef CONFIG_YAML
-	{'Y', "yaml", NULL, "render output as YAML", false, set_yaml},
+	{'Y', "yaml-raw", NULL, "reflect raw {iface, key, value} triples as YAML", false, set_yaml},
 #endif
 };
 
