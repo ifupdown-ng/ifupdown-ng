@@ -84,6 +84,12 @@ prettyprint_interface_yaml(struct lif_interface *iface)
 	struct lif_yaml_node *iface_node = lif_yaml_node_new_list(iface->ifname);
 	lif_yaml_node_append_child(&doc, iface_node);
 
+	if (iface->is_auto)
+	{
+		struct lif_yaml_node *iface_entry_node = lif_yaml_node_new_boolean("auto", true);
+		lif_yaml_node_append_child(iface_node, iface_entry_node);
+	}
+
 	struct lif_node *iter;
 	LIF_DICT_FOREACH(iter, &iface->vars)
 	{
