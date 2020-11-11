@@ -81,7 +81,7 @@ MULTICALL_${CONFIG_IFPARSE}_OBJ += ${IFPARSE_SRC:.c=.o}
 CMDS_${CONFIG_IFPARSE} += ifparse
 CPPFLAGS_${CONFIG_IFPARSE} += -DCONFIG_IFPARSE
 
-# enable YAML support (+? KB)
+# enable YAML support (+2 KB)
 CONFIG_YAML ?= Y
 YAML_SRC = \
 	libifupdown/yaml-base.c \
