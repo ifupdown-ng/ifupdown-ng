@@ -22,7 +22,8 @@
 enum lif_yaml_value {
 	LIF_YAML_STRING,
 	LIF_YAML_LIST,
-	LIF_YAML_OBJECT
+	LIF_YAML_OBJECT,
+	LIF_YAML_BOOLEAN
 };
 
 struct lif_yaml_node {
@@ -31,13 +32,17 @@ struct lif_yaml_node {
 	bool malloced;
 	char *name;
 	enum lif_yaml_value value_type;
-	char *value;			/* for string nodes */
+	union {
+		char *str_value;			/* for string nodes */
+		bool bool_value;			/* for boolean nodes */
+	} value;
 	struct lif_list children;	/* for list and object nodes */
 };
 
 extern void lif_yaml_document_init(struct lif_yaml_node *doc, const char *name);
 extern struct lif_yaml_node *lif_yaml_document_new(const char *name);
 
+extern struct lif_yaml_node *lif_yaml_node_new_boolean(const char *name, bool value);
 extern struct lif_yaml_node *lif_yaml_node_new_string(const char *name, const char *value);
 extern struct lif_yaml_node *lif_yaml_node_new_object(const char *name);
 extern struct lif_yaml_node *lif_yaml_node_new_list(const char *name);

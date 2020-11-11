@@ -39,6 +39,22 @@ lif_yaml_document_new(const char *name)
 }
 
 struct lif_yaml_node *
+lif_yaml_node_new_boolean(const char *name, bool value)
+{
+	struct lif_yaml_node *node = calloc(1, sizeof *node);
+
+	node->malloced = true;
+	node->value_type = LIF_YAML_BOOLEAN;
+
+	if (name != NULL)
+		node->name = strdup(name);
+
+	node->value.bool_value = value;
+
+	return node;
+}
+
+struct lif_yaml_node *
 lif_yaml_node_new_string(const char *name, const char *value)
 {
 	struct lif_yaml_node *node = calloc(1, sizeof *node);
@@ -50,7 +66,7 @@ lif_yaml_node_new_string(const char *name, const char *value)
 		node->name = strdup(name);
 
 	if (value != NULL)
-		node->value = strdup(value);
+		node->value.str_value = strdup(value);
 
 	return node;
 }
@@ -96,7 +112,9 @@ lif_yaml_node_free(struct lif_yaml_node *node)
 	}
 
 	free(node->name);
-	free(node->value);
+
+	if (node->value_type == LIF_YAML_STRING)
+		free(node->value.str_value);
 
 	if (node->malloced)
 		free(node);
