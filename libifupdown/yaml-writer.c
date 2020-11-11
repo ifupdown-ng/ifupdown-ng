@@ -34,7 +34,7 @@ lif_yaml_write_node(struct lif_yaml_node *node, FILE *f, size_t indent)
 	switch (node->value_type)
 	{
 	case LIF_YAML_STRING:
-		fprintf(f, "%s\n", node->value);
+		fprintf(f, "!!str %s\n", node->value);
 		break;
 	case LIF_YAML_OBJECT:
 		fprintf(f, "\n");
