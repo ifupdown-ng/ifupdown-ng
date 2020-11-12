@@ -206,7 +206,7 @@ struct if_applet ifparse_applet = {
 	.name = "ifparse",
 	.desc = "redisplay interface configuration",
 	.main = ifparse_main,
-	.usage = "ifparse [options] <interfaces>\n  ifquery [options] --all",
+	.usage = "ifparse [options] <interfaces>\n  ifparse [options] --all",
 	.manpage = "8 ifparse",
 	.groups = { &global_option_group, &match_option_group, &exec_option_group, &local_option_group },
 };
