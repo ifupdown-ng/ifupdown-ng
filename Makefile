@@ -172,7 +172,8 @@ MANPAGES_8 = \
 	doc/ifquery.8 \
 	doc/ifup.8 \
 	doc/ifdown.8 \
-	doc/ifctrstat.8
+	doc/ifctrstat.8 \
+	doc/ifparse.8
 
 MANPAGES = ${MANPAGES_5} ${MANPAGES_7} ${MANPAGES_8}
 
