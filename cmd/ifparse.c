@@ -47,24 +47,18 @@ set_allow_undefined(const char *arg)
 	allow_undefined = true;
 }
 
-#ifdef CONFIG_YAML
-static bool use_yaml = false;
+static const char *output_fmt = "ifupdown";
 
 static void
-set_yaml(const char *arg)
+set_output_fmt(const char *arg)
 {
-	(void) arg;
-
-	use_yaml = true;
+	output_fmt = arg;
 }
-#endif
 
 static struct if_option local_options[] = {
+	{'F', "format", NULL, "output format to use", true, set_output_fmt},
 	{'A', "all", NULL, "show all interfaces", false, set_show_all},
 	{'U', "allow-undefined", NULL, "allow querying undefined (virtual) interfaces", false, set_allow_undefined},
-#ifdef CONFIG_YAML
-	{'Y', "yaml-raw", NULL, "reflect raw {iface, key, value} triples as YAML", false, set_yaml},
-#endif
 };
 
 static struct if_option_group local_option_group = {
@@ -116,6 +110,27 @@ prettyprint_interface_yaml(struct lif_interface *iface)
 }
 #endif
 
+struct prettyprint_impl_map {
+	const char *name;
+	void (*handle)(struct lif_interface *iface);
+};
+
+struct prettyprint_impl_map pp_impl_map[] = {
+	{"ifupdown", prettyprint_interface_eni},
+#ifdef CONFIG_YAML
+	{"yaml-raw", prettyprint_interface_yaml},
+#endif
+};
+
+static int
+pp_impl_cmp(const void *a, const void *b)
+{
+	const char *key = a;
+	const struct prettyprint_impl_map *impl = b;
+
+	return strcmp(key, impl->name);
+}
+
 int
 ifparse_main(int argc, char *argv[])
 {
@@ -151,6 +166,13 @@ ifparse_main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	struct prettyprint_impl_map *m = bsearch(output_fmt, pp_impl_map, ARRAY_SIZE(pp_impl_map), sizeof(*m), pp_impl_cmp);
+	if (m == NULL)
+	{
+		fprintf(stderr, "%s: %s: output format not supported\n", argv0, output_fmt);
+		return EXIT_FAILURE;
+	}
+
 	if (show_all)
 	{
 		struct lif_node *n;
@@ -159,12 +181,7 @@ ifparse_main(int argc, char *argv[])
 		{
 			struct lif_dict_entry *entry = n->data;
 
-#ifdef CONFIG_YAML
-			if (use_yaml)
-				prettyprint_interface_yaml(entry->data);
-			else
-#endif
-				prettyprint_interface_eni(entry->data);
+			m->handle(entry->data);
 		}
 
 		return EXIT_SUCCESS;
@@ -191,12 +208,7 @@ ifparse_main(int argc, char *argv[])
 			return EXIT_FAILURE;
 		}
 
-#ifdef CONFIG_YAML
-		if (use_yaml)
-			prettyprint_interface_yaml(entry->data);
-		else
-#endif
-			prettyprint_interface_eni(iface);
+		m->handle(iface);
 	}
 
 	return EXIT_SUCCESS;
