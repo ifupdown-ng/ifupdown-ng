@@ -22,7 +22,7 @@
 static const size_t INDENT_WIDTH = 2;
 
 static void
-lif_yaml_write_node(struct lif_yaml_node *node, FILE *f, size_t indent)
+lif_yaml_write_node(struct lif_yaml_node *node, FILE *f, size_t indent, bool type_annotations)
 {
 	struct lif_node *iter;
 
@@ -34,10 +34,10 @@ lif_yaml_write_node(struct lif_yaml_node *node, FILE *f, size_t indent)
 	switch (node->value_type)
 	{
 	case LIF_YAML_BOOLEAN:
-		fprintf(f, "!!bool %s\n", node->value.bool_value ? "true" : "false");
+		fprintf(f, "%s%s\n", type_annotations ? "!!bool " : "", node->value.bool_value ? "true" : "false");
 		break;
 	case LIF_YAML_STRING:
-		fprintf(f, "!!str %s\n", node->value.str_value);
+		fprintf(f, "%s%s\n", type_annotations ? "!!str " : "", node->value.str_value);
 		break;
 	case LIF_YAML_OBJECT:
 		fprintf(f, "\n");
@@ -55,12 +55,12 @@ lif_yaml_write_node(struct lif_yaml_node *node, FILE *f, size_t indent)
 		if (node->value_type == LIF_YAML_LIST)
 			fprintf(f, "%*s-\n", (int) (child_indent - INDENT_WIDTH), "");
 
-		lif_yaml_write_node(iter_node, f, child_indent);
+		lif_yaml_write_node(iter_node, f, child_indent, type_annotations);
 	}
 }
 
 void
-lif_yaml_write(struct lif_yaml_node *doc, FILE *f)
+lif_yaml_write(struct lif_yaml_node *doc, FILE *f, bool type_annotations)
 {
-	lif_yaml_write_node(doc, f, 0);
+	lif_yaml_write_node(doc, f, 0, type_annotations);
 }

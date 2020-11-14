@@ -111,7 +111,7 @@ prettyprint_interface_yaml(struct lif_interface *iface)
 		lif_yaml_node_append_child(iface_node, iface_entry_node);
 	}
 
-	lif_yaml_write(iface_node, stdout);
+	lif_yaml_write(iface_node, stdout, true);
 	lif_yaml_node_free(&doc);
 }
 #endif
