@@ -39,8 +39,7 @@ LIBIFUPDOWN_SRC = \
 	libifupdown/lifecycle.c \
 	libifupdown/config-parser.c \
 	libifupdown/config-file.c \
-	libifupdown/compat.c \
-
+	libifupdown/compat.c
 LIBIFUPDOWN_OBJ = ${LIBIFUPDOWN_SRC:.c=.o}
 LIBIFUPDOWN_LIB = libifupdown.a
 
@@ -48,7 +47,8 @@ MULTICALL_SRC = \
 	cmd/multicall.c \
 	cmd/multicall-options.c \
 	cmd/multicall-exec-options.c \
-	cmd/multicall-match-options.c
+	cmd/multicall-match-options.c \
+	cmd/pretty-print-iface.c
 MULTICALL_OBJ = ${MULTICALL_SRC:.c=.o}
 MULTICALL = ifupdown
 
@@ -74,6 +74,22 @@ MULTICALL_${CONFIG_IFCTRSTAT}_OBJ += ${IFCTRSTAT_SRC:.c=.o}
 CMDS_${CONFIG_IFCTRSTAT} += ifctrstat
 CPPFLAGS_${CONFIG_IFCTRSTAT} += -DCONFIG_IFCTRSTAT
 
+# enable ifparse applet (+1 KB)
+CONFIG_IFPARSE ?= Y
+IFPARSE_SRC = cmd/ifparse.c
+MULTICALL_${CONFIG_IFPARSE}_OBJ += ${IFPARSE_SRC:.c=.o}
+CMDS_${CONFIG_IFPARSE} += ifparse
+CPPFLAGS_${CONFIG_IFPARSE} += -DCONFIG_IFPARSE
+
+# enable YAML support (+2 KB)
+CONFIG_YAML ?= Y
+YAML_SRC = \
+	libifupdown/yaml-base.c \
+	libifupdown/yaml-writer.c
+LIBIFUPDOWN_${CONFIG_YAML}_OBJ += ${YAML_SRC:.c=.o}
+CPPFLAGS_${CONFIG_YAML} += -DCONFIG_YAML
+
+LIBIFUPDOWN_OBJ += ${LIBIFUPDOWN_Y_OBJ}
 MULTICALL_OBJ += ${MULTICALL_Y_OBJ}
 CMDS += ${CMDS_Y}
 CPPFLAGS += ${CPPFLAGS_Y}
@@ -156,7 +172,8 @@ MANPAGES_8 = \
 	doc/ifquery.8 \
 	doc/ifup.8 \
 	doc/ifdown.8 \
-	doc/ifctrstat.8
+	doc/ifctrstat.8 \
+	doc/ifparse.8
 
 MANPAGES = ${MANPAGES_5} ${MANPAGES_7} ${MANPAGES_8}
 

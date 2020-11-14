@@ -20,42 +20,7 @@
 #include <getopt.h>
 #include "libifupdown/libifupdown.h"
 #include "cmd/multicall.h"
-
-void
-print_interface(struct lif_interface *iface)
-{
-	if (!lif_lifecycle_query_dependents(&exec_opts, iface, iface->ifname))
-		return;
-
-	if (iface->is_auto)
-		printf("auto %s\n", iface->ifname);
-
-	printf("%s %s\n", iface->is_template ? "template" : "iface", iface->ifname);
-
-	struct lif_node *iter;
-	LIF_DICT_FOREACH(iter, &iface->vars)
-	{
-		struct lif_dict_entry *entry = iter->data;
-
-		if (!strcmp(entry->key, "address"))
-		{
-			struct lif_address *addr = entry->data;
-			char addr_buf[512];
-
-			if (!lif_address_unparse(addr, addr_buf, sizeof addr_buf, true))
-			{
-				printf("  # warning: failed to unparse address\n");
-				continue;
-			}
-
-			printf("  %s %s\n", entry->key, addr_buf);
-		}
-		else
-			printf("  %s %s\n", entry->key, (const char *) entry->data);
-	}
-
-	printf("\n");
-}
+#include "cmd/pretty-print-iface.h"
 
 void
 print_interface_dot(struct lif_dict *collection, struct lif_interface *iface, struct lif_interface *parent)
@@ -147,7 +112,7 @@ list_interfaces(struct lif_dict *collection, struct match_options *opts)
 			continue;
 
 		if (opts->pretty_print)
-			print_interface(iface);
+			prettyprint_interface_eni(iface);
 		else if (opts->dot)
 			print_interface_dot(collection, iface, NULL);
 		else
@@ -330,7 +295,7 @@ ifquery_main(int argc, char *argv[])
 		if (match_opts.property != NULL)
 			print_interface_property(iface, match_opts.property);
 		else
-			print_interface(iface);
+			prettyprint_interface_eni(iface);
 	}
 
 	return EXIT_SUCCESS;
