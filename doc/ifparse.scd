@@ -27,6 +27,10 @@ stanzas between different formats.
 *-i, --interfaces* _FILE_
 	Use _FILE_ as the config database.
 
+*-F, --format* _FORMAT_
+	Use _FORMAT_ to determine what format to use.  *ifupdown* and
+	*yaml-raw* formats are available.
+
 *-I, --include* _PATTERN_
 	Include _PATTERN_ when matching against the config or state
 	database.
@@ -45,11 +49,6 @@ stanzas between different formats.
 *-X, --exclude* _PATTERN_
 	Exclude _PATTERN_ when matching against the config or state
 	database.
-
-*-Y, --yaml-raw*
-	Output configuration data in the yaml-raw format instead of
-	the traditional stanza-based format.  This format is primarily
-	intended for other tools outside ifupdown-ng itself to use.
 
 # SEE ALSO
 
