@@ -19,6 +19,6 @@
 #include "libifupdown/libifupdown.h"
 #include "libifupdown/yaml-base.h"
 
-extern void lif_yaml_write(struct lif_yaml_node *doc, FILE *f, bool type_annotations);
+extern void lif_yaml_write(const struct lif_yaml_node *doc, FILE *f, bool type_annotations);
 
 #endif

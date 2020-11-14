@@ -22,9 +22,9 @@
 static const size_t INDENT_WIDTH = 2;
 
 static void
-lif_yaml_write_node(struct lif_yaml_node *node, FILE *f, size_t indent, bool type_annotations)
+lif_yaml_write_node(const struct lif_yaml_node *node, FILE *f, size_t indent, bool type_annotations)
 {
-	struct lif_node *iter;
+	const struct lif_node *iter;
 
 	if (node->name != NULL)
 		fprintf(f, "%*s%s: ", (int) indent, "", node->name);
@@ -50,7 +50,7 @@ lif_yaml_write_node(struct lif_yaml_node *node, FILE *f, size_t indent, bool typ
 
 	LIF_LIST_FOREACH(iter, node->children.head)
 	{
-		struct lif_yaml_node *iter_node = iter->data;
+		const struct lif_yaml_node *iter_node = iter->data;
 
 		if (node->value_type == LIF_YAML_LIST)
 			fprintf(f, "%*s-\n", (int) (child_indent - INDENT_WIDTH), "");
@@ -60,7 +60,7 @@ lif_yaml_write_node(struct lif_yaml_node *node, FILE *f, size_t indent, bool typ
 }
 
 void
-lif_yaml_write(struct lif_yaml_node *doc, FILE *f, bool type_annotations)
+lif_yaml_write(const struct lif_yaml_node *doc, FILE *f, bool type_annotations)
 {
 	lif_yaml_write_node(doc, f, 0, type_annotations);
 }
