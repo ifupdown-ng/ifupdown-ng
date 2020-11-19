@@ -1,0 +1,11 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/test_env.sh
+
+tests_init \
+	regress_getopt
+
+regress_getopt_body() {
+	atf_check -e not-inline:'-F: applet not found' -o ignore -s exit:1 \
+		ifupdown ifquery -F
+}
