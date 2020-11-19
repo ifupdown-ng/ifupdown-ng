@@ -66,6 +66,8 @@ applet_cmp(const void *a, const void *b)
 
 void multicall_usage(int status) __attribute__((noreturn));
 
+struct if_applet ifupdown_applet;
+
 int
 main(int argc, char *argv[])
 {
@@ -85,9 +87,11 @@ main(int argc, char *argv[])
 	}
 
 	self_applet = *app;
-	process_options(*app, argc, argv);
 
-	return (*app)->main(argc, argv);
+	if (self_applet != &ifupdown_applet)
+		process_options(*app, argc, argv);
+
+	return self_applet->main(argc, argv);
 }
 
 int
@@ -98,8 +102,6 @@ multicall_main(int argc, char *argv[])
 
 	return main(argc - 1, argv + 1);
 }
-
-struct if_applet ifupdown_applet;
 
 void
 multicall_usage(int status)
