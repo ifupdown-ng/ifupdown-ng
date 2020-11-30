@@ -32,6 +32,7 @@ struct remap_token {
 static const struct remap_token tokens[] = {
 	{"bond-ad-sys-priority", "bond-ad-actor-sys-prio"}, /* ifupdown2 */
 	{"bond-slaves", "bond-members"},		/* legacy ifupdown, ifupdown2 */
+	{"client", "dhcp-client-id"},			/* legacy ifupdown */
 	{"driver-message-level", "ethtool-msglvl"},	/* Debian ethtool integration */
 	{"endpoint", "tunnel-remote"},			/* legacy ifupdown */
 	{"ethernet-autoneg", "ethtool-ethernet-autoneg"},	/* Debian ethtool integration */
@@ -68,6 +69,8 @@ static const struct remap_token tokens[] = {
 	{"hardware-irq-coalesce-tx-usecs-high", "ethtool-coalesce-tx-usecs-high"},		/* Debian ethtool integration */
 	{"hardware-irq-coalesce-tx-usecs-irq", "ethtool-coalesce-tx-usecs-irq"},		/* Debian ethtool integration */
 	{"hardware-irq-coalesce-tx-usecs-low", "ethtool-coalesce-tx-usecs-low"},		/* Debian ethtool integration */
+	{"hostname", "dhcp-hostname"},			/* legacy ifupdown */
+	{"leasetime", "dhcp-leastime"},			/* legacy ifupdown */
 	{"link-autoneg", "ethtool-ethernet-autoneg"},	/* ifupdown2 */
 	{"link-duplex", "ethtool-link-duplex"},		/* Debian ethtool integration */
 	{"link-fec", "ethtool-link-fec"},		/* ifupdown2 */
@@ -85,6 +88,7 @@ static const struct remap_token tokens[] = {
 	{"offload-ufo", "ethtool-offload-ufo"},		/* Debian ethtool integration */
 	{"pointopoint", "point-to-point"},		/* legacy ifupdown, ifupdown2 */
 	{"provider", "ppp-provider"},			/* legacy ifupdown, ifupdown2 */
+	{"script", "dhcp-script"},			/* legacy ifupdown */
 	{"rx-offload", "ethtool-offload-rx"},		/* ifupdown2 */
 	{"tso-offload", "ethtool-offload-tso"},		/* ifupdown2 */
 	{"ttl", "tunnel-ttl"},				/* legacy ifupdown */
@@ -92,6 +96,7 @@ static const struct remap_token tokens[] = {
 	{"tunnel-physdev", "tunnel-dev"},		/* ifupdown2 */
 	{"tx-offload", "ethtool-offload-tx"},		/* ifupdown2 */
 	{"ufo-offload", "ethtool-offload-ufo"},		/* ifupdown2 */
+	{"vendor", "dhcp-vendor"},			/* legacy ifupdown */
 	{"vrf", "vrf-member"},				/* ifupdown2 */
 	{"vxlan-local-tunnelip", "vxlan-local-ip"},	/* ifupdown2 */
 	{"vxlan-remoteip", "vxlan-remote-ip"},		/* ifupdown2 */

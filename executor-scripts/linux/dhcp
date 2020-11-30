@@ -1,6 +1,6 @@
 #!/bin/sh
 # some users provide a shell fragment for the hostname property.
-[ -n "$IF_HOSTNAME" ] && IF_HOSTNAME=$(eval echo $IF_HOSTNAME)
+[ -n "$IF_DHCP_HOSTNAME" ] && IF_DHCP_HOSTNAME=$(eval echo $IF_DHCP_HOSTNAME)
 
 determine_implementation() {
 	[ -n "$IF_DHCP_PROGRAM" ] && echo "$IF_DHCP_PROGRAM" && return
@@ -14,10 +14,10 @@ determine_implementation() {
 start() {
 	case "$1" in
 	dhcpcd)
-		[ -n "$IF_HOSTNAME" ] && optargs="$optargs -h $IF_HOSTNAME"
-		[ -n "$IF_VENDOR" ] && optargs="$optargs -i $IF_VENDOR"
-		[ -n "$IF_CLIENT" ] && optargs="$optargs -i $IF_CLIENT"
-		[ -n "$IF_LEASETIME" ] && optargs="$optargs -l $IF_LEASETIME"
+		[ -n "$IF_DHCP_HOSTNAME" ] && optargs="$optargs -h $IF_DHCP_HOSTNAME"
+		[ -n "$IF_DHCP_VENDOR" ] && optargs="$optargs -i $IF_DHCP_VENDOR"
+		[ -n "$IF_DHCP_CLIENT_ID" ] && optargs="$optargs -i $IF_DHCP_CLIENT_ID"
+		[ -n "$IF_DHCP_LEASETIME" ] && optargs="$optargs -l $IF_DHCP_LEASETIME"
 		${MOCK} /sbin/dhcpcd $optargs $IFACE
 		;;
 	dhclient)
@@ -25,9 +25,9 @@ start() {
 		;;
 	udhcpc)
 		optargs=$(eval echo $IF_UDHCPC_OPTS)
-		[ -n "$IF_HOSTNAME" ] && optargs="$optargs -x hostname:$IF_HOSTNAME"
-		[ -n "$IF_CLIENT" ] && optargs="$optargs -c $IF_CLIENT"
-		[ -n "$IF_SCRIPT" ] && optargs="$optargs -s $IF_SCRIPT"
+		[ -n "$IF_DHCP_HOSTNAME" ] && optargs="$optargs -x hostname:$IF_DHCP_HOSTNAME"
+		[ -n "$IF_DHCP_CLIENT_ID" ] && optargs="$optargs -c $IF_DHCP_CLIENT_ID"
+		[ -n "$IF_DHCP_SCRIPT" ] && optargs="$optargs -s $IF_DHCP_SCRIPT"
 		${MOCK} /sbin/udhcpc -b -R -p /var/run/udhcpc.$IFACE.pid -i $IFACE $optargs
 		;;
 	*)
