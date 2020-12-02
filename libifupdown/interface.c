@@ -93,7 +93,7 @@ lif_address_format_cidr(const struct lif_interface *iface, struct lif_dict_entry
 	if (!addr->netmask)
 	{
 		/* if netmask is not set, default to 255.255.255.0, ifupdown does so too */
-		addr->netmask = 24;
+		addr->netmask = addr->domain == AF_INET6 ? 64 : 24;
 
 		struct lif_dict_entry *entry = lif_dict_find(&iface->vars, "netmask");
 		if (entry != NULL)
