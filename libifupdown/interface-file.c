@@ -256,6 +256,12 @@ handle_iface(struct lif_interface_file_parse_state *state, char *token, char *bu
 		return true;
 	}
 
+	/* if we have a current interface, call lif_interface_finalize to finalize any
+	 * address properties by converting them to CIDR and flushing the netmask property.
+	 */
+	if (state->cur_iface != NULL)
+		lif_interface_finalize(state->cur_iface);
+
 	state->cur_iface = lif_interface_collection_find(state->collection, ifname);
 	if (state->cur_iface == NULL)
 	{
@@ -494,6 +500,11 @@ lif_interface_file_parse(struct lif_interface_file_parse_state *state, const cha
 	}
 
 	fclose(f);
+
+	/* finalize any open interface */
+	if (state->cur_iface != NULL)
+		lif_interface_finalize(state->cur_iface);
+
 	state->cur_filename = old_filename;
 	state->cur_lineno = old_lineno;
 	return true;
