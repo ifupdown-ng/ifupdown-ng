@@ -1,0 +1,14 @@
+# cidr and without-cidr should be equivalent
+iface cidr
+	address 203.0.113.1/32
+
+iface cidr
+	address 203.0.113.2/24
+
+iface without-cidr
+	address 203.0.113.1
+	netmask 32
+
+iface without-cidr
+	address 203.0.113.2
+	netmask 24

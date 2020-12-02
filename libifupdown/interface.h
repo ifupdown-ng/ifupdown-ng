@@ -75,6 +75,7 @@ extern bool lif_interface_address_add(struct lif_interface *interface, const cha
 extern void lif_interface_address_delete(struct lif_interface *interface, const char *address);
 extern void lif_interface_fini(struct lif_interface *interface);
 extern void lif_interface_use_executor(struct lif_interface *interface, const char *executor);
+extern void lif_interface_finalize(struct lif_interface *interface);
 
 extern void lif_interface_collection_init(struct lif_dict *collection);
 extern void lif_interface_collection_fini(struct lif_dict *collection);
