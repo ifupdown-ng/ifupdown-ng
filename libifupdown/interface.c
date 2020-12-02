@@ -84,6 +84,19 @@ count_set_bits(const char *netmask)
 	return r;
 }
 
+static inline size_t
+determine_interface_netmask(const struct lif_interface *iface, const struct lif_address *addr)
+{
+	/* if netmask is not set, default to /24 or /64, ifupdown does so too */
+	size_t netmask = addr->domain == AF_INET6 ? 64 : 24;
+
+	struct lif_dict_entry *entry = lif_dict_find(&iface->vars, "netmask");
+	if (entry != NULL)
+		netmask = count_set_bits(entry->data);
+
+	return netmask;
+}
+
 bool
 lif_address_format_cidr(const struct lif_interface *iface, struct lif_dict_entry *entry, char *buf, size_t buflen)
 {
@@ -91,14 +104,7 @@ lif_address_format_cidr(const struct lif_interface *iface, struct lif_dict_entry
 	size_t orig_netmask = addr->netmask;
 
 	if (!addr->netmask)
-	{
-		/* if netmask is not set, default to 255.255.255.0, ifupdown does so too */
-		addr->netmask = addr->domain == AF_INET6 ? 64 : 24;
-
-		struct lif_dict_entry *entry = lif_dict_find(&iface->vars, "netmask");
-		if (entry != NULL)
-			addr->netmask = count_set_bits(entry->data);
-	}
+		addr->netmask = determine_interface_netmask(iface, addr);
 
 	if (!lif_address_unparse(addr, buf, buflen, true))
 	{
@@ -211,6 +217,36 @@ lif_interface_use_executor(struct lif_interface *interface, const char *executor
 		return;
 
 	lif_dict_add(&interface->vars, "hostname", strdup(un.nodename));
+}
+
+void
+lif_interface_finalize(struct lif_interface *interface)
+{
+	struct lif_node *iter;
+
+	/* convert all addresses to CIDR notation. */
+	LIF_DICT_FOREACH(iter, &interface->vars)
+	{
+		struct lif_dict_entry *entry = iter->data;
+
+		if (strcmp(entry->key, "address"))
+			continue;
+
+		struct lif_address *addr = entry->data;
+
+		if (!addr->netmask)
+			addr->netmask = determine_interface_netmask(interface, addr);
+	}
+
+	/* with all addresses converted to CIDR, netmask property is no longer needed. */
+	struct lif_dict_entry *entry = lif_dict_find(&interface->vars, "netmask");
+
+	if (entry != NULL)
+	{
+		free(entry->data);
+
+		lif_dict_delete_entry(&interface->vars, entry);
+	}
 }
 
 void
