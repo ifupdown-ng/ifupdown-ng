@@ -36,7 +36,9 @@ tests_init \
 	vlan_complex_learned_dependency \
 	wireguard \
 	default_netmask_v4 \
-	default_netmask_v6
+	default_netmask_v6 \
+	stanza_merging_with_cidr \
+	stanza_merging_without_cidr
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -239,4 +241,18 @@ default_netmask_v6_body() {
 	atf_check -s exit:0 \
 		-o match:"2001:470:1f10::1/64" \
 		ifquery -i $FIXTURES/without-netmask.interfaces -p address v6
+}
+
+stanza_merging_with_cidr_body() {
+	atf_check -s exit:0 \
+		-o match:"203.0.113.1/32" \
+		-o match:"203.0.113.2/24" \
+		ifquery -i $FIXTURES/stanza-merging.interfaces -p address cidr
+}
+
+stanza_merging_without_cidr_body() {
+	atf_check -s exit:0 \
+		-o match:"203.0.113.1/32" \
+		-o match:"203.0.113.2/24" \
+		ifquery -i $FIXTURES/stanza-merging.interfaces -p address without-cidr
 }
