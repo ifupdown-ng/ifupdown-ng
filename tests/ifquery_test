@@ -36,7 +36,9 @@ tests_init \
 	vlan_complex_learned_dependency \
 	wireguard \
 	allow_undefined_positive \
-	allow_undefined_negative
+	allow_undefined_negative \
+	default_netmask_v4 \
+	default_netmask_v6
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -241,4 +243,16 @@ allow_undefined_negative_body() {
 		-o ignore \
 		-e ignore \
 		ifquery -i /dev/null -p address foo
+}
+
+default_netmask_v4_body() {
+	atf_check -s exit:0 \
+		-o match:"203.0.113.2/24" \
+		ifquery -i $FIXTURES/without-netmask.interfaces -p address v4
+}
+
+default_netmask_v6_body() {
+	atf_check -s exit:0 \
+		-o match:"2001:470:1f10::1/64" \
+		ifquery -i $FIXTURES/without-netmask.interfaces -p address v6
 }

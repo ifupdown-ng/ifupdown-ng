@@ -1,0 +1,5 @@
+iface v6
+	address 2001:470:1f10::1
+
+iface v4
+	address 203.0.113.2
