@@ -34,7 +34,9 @@ tests_init \
 	vlan_explicit_learned_dependency \
 	vlan_guessed_learned_dependency \
 	vlan_complex_learned_dependency \
-	wireguard
+	wireguard \
+	default_netmask_v4 \
+	default_netmask_v6
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -225,4 +227,16 @@ wireguard_body() {
 		-o match:"requires eth0" \
 		-o match:"use wireguard" \
 		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/wireguard.interfaces wg0
+}
+
+default_netmask_v4_body() {
+	atf_check -s exit:0 \
+		-o match:"203.0.113.2/24" \
+		ifquery -i $FIXTURES/without-netmask.interfaces -p address v4
+}
+
+default_netmask_v6_body() {
+	atf_check -s exit:0 \
+		-o match:"2001:470:1f10::1/64" \
+		ifquery -i $FIXTURES/without-netmask.interfaces -p address v6
 }
