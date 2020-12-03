@@ -30,6 +30,10 @@ die() {
 [ -z "$PHASE" ] && die "PHASE not set"
 PIDFILE="/run/wpa_supplicant.$IFACE.pid"
 
+# Do not allow mixing wifi-config-path and wifi-ssid/wifi-psk.
+[ -n "$IF_WIFI_CONFIG_PATH" -a -n "$IF_WIFI_SSID" ] && die "wifi-config-path cannot be used with wifi-ssid"
+[ -n "$IF_WIFI_CONFIG_PATH" -a -n "$IF_WIFI_PSK" ] && die "wifi-config-path cannot be used with wifi-psk"
+
 # Set IF_WIFI_CONFIG_PATH to the default path if not already set.
 [ -z "$IF_WIFI_CONFIG_PATH" ] && IF_WIFI_CONFIG_PATH="/run/wpa_supplicant.$IFACE.conf"
 
