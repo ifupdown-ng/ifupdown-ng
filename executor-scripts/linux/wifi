@@ -60,7 +60,8 @@ use_supplicant() {
 	return 1
 }
 
-# Start a supplicant process for $IFACE.
+# Either start a supplicant process for $IFACE, or use iwconfig to trigger an
+# association attempt.
 start() {
 	if use_supplicant; then
 		# If there is no config file located at $WIFI_CONFIG_PATH, generate one.
@@ -72,12 +73,13 @@ start() {
 	fi
 }
 
-# Stop the supplicant process for $IFACE.
+# Either stop the supplicant process for $IFACE, or use iwconfig to dissociate
+# from the current SSID.
 stop() {
 	if use_supplicant; then
 		kill -9 $(cat $PIDFILE) 2>/dev/null
-		[ -z "$IF_WIFI_CONFIG_PATH" ] && rm $WIFI_CONFIG_PATH
-		rm $PIDFILE
+		[ -z "$IF_WIFI_CONFIG_PATH" ] && rm -- "$WIFI_CONFIG_PATH"
+		rm -- "$PIDFILE"
 	else
 		/usr/sbin/iwconfig $IFACE essid any
 	fi
