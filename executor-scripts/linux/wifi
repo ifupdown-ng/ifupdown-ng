@@ -1,0 +1,73 @@
+#!/bin/sh
+# Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# This software is provided 'as is' and without any warranty, express or
+# implied.  In no event shall the authors be liable for any damages arising
+# from the use of this software.
+#
+# Manage wifi connections using wpa_supplicant.
+#
+# Vocabulary:
+#   wifi-ssid - The SSID name to connect to.
+#   wifi-psk - The pre-shared key to use.
+#   wifi-config - A path to a wpa_supplicant config file, for special configs.
+#
+# If wifi-config is not set, wifi-ssid and wifi-psk are required, and a config
+# will be generated as /run/wpa_supplicant.$IFACE.conf.
+#
+# The wpa_supplicant PID is stored in /run/wpa_supplicant.$IFACE.pid.
+
+die() {
+	printf "ERROR: %s\n" "$1" >&2
+	exit 1
+}
+
+[ -z "$IFACE" ] && die "IFACE not set"
+[ -z "$PHASE" ] && die "PHASE not set"
+PIDFILE="/run/wpa_supplicant.$IFACE.pid"
+
+# Set IF_WIFI_CONFIG_PATH to the default path if not already set.
+[ -z "$IF_WIFI_CONFIG_PATH" ] && IF_WIFI_CONFIG_PATH="/run/wpa_supplicant.$IFACE.conf"
+
+# Supplicant options.
+WPA_SUPPLICANT_OPTS="-qq -B -i$IFACE -c$IF_WIFI_CONFIG_PATH -P$PIDFILE"
+
+# Given $IF_WIFI_SSID and $IF_WIFI_PSK, generate a config file at $IF_WIFI_CONFIG_PATH.
+generate_config() {
+	[ -z "$IF_WIFI_SSID" ] && die "wifi-ssid not set"
+	[ -z "$IF_WIFI_PSK" ] && die "wifi-psk not set"
+
+	# We use a pipeline here to avoid leaking PSK into the process name.
+	(echo $IF_WIFI_PSK | /sbin/wpa_passphrase $IF_WIFI_SSID) >$IF_WIFI_CONFIG_PATH
+
+	[ ! -e "$IF_WIFI_CONFIG_PATH" ] && die "failed to write temporary config: $IF_WIFI_CONFIG_PATH"
+}
+
+# Start a supplicant process for $IFACE.
+start() {
+	# If there is no config file located at $IF_WIFI_CONFIG_PATH, generate one.
+	[ ! -e "$IF_WIFI_CONFIG_PATH" ] && generate_config
+
+	/sbin/wpa_supplicant $WPA_SUPPLICANT_OPTS
+}
+
+# Stop the supplicant process for $IFACE.
+stop() {
+	kill -9 $(cat $PIDFILE) 2>/dev/null
+	rm $PIDFILE
+}
+
+[ -z "$VERBOSE" ] || set -x
+
+case "$PHASE" in
+pre-up)
+	start
+	;;
+post-down)
+	stop
+	;;
+esac

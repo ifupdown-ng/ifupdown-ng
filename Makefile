@@ -108,7 +108,8 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	gre \
 	wireguard \
 	ethtool \
-	batman
+	batman \
+	wifi
 
 EXECUTOR_SCRIPTS ?= ${EXECUTOR_SCRIPTS_CORE} ${EXECUTOR_SCRIPTS_OPT}
 
