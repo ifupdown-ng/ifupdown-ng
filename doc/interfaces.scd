@@ -178,6 +178,11 @@ most common executors are:
 	The interface is a Virtual Extensible LAN (VXLAN) tunnel
 	endpoint.
 
+*wifi*
+	The interface is a Wi-Fi (IEEE 802.11) client interface.
+	Configuration of the WiFi client interface requires the
+	*wpa_supplicant* package to be installed.
+
 *wireguard*
 	The interface is a Wireguard VPN tunnel endpoint.
 
