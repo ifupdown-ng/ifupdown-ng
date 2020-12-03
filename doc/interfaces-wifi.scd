@@ -10,6 +10,9 @@ Wi-Fi (the IEEE 802.11 family of protocols) is a commonly used wireless
 networking standard.  The following options allow for configuration of
 Wi-Fi client interfaces.
 
+WPA-secured networks are managed using *wpa_supplicant*(8), while insecure
+networks are managed directly with *iwconfig*(8).
+
 # WIFI-RELATED OPTIONS
 
 *wifi-config-path* _path_
@@ -49,6 +52,11 @@ The virtual interfaces can be used with *ifup* and *ifdown*:
 # ifdown wlan0
 # ifup wlan0=wifi-work
 ```
+
+# SEE ALSO
+
+*iwconfig*(8)++
+*wpa_supplicant*(8)
 
 # AUTHORS
 
