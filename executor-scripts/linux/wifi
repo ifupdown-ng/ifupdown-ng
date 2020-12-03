@@ -35,34 +35,52 @@ PIDFILE="/run/wpa_supplicant.$IFACE.pid"
 [ -n "$IF_WIFI_CONFIG_PATH" -a -n "$IF_WIFI_PSK" ] && die "wifi-config-path cannot be used with wifi-psk"
 
 # Set IF_WIFI_CONFIG_PATH to the default path if not already set.
-[ -z "$IF_WIFI_CONFIG_PATH" ] && IF_WIFI_CONFIG_PATH="/run/wpa_supplicant.$IFACE.conf"
+WIFI_CONFIG_PATH="$IF_WIFI_CONFIG_PATH"
+[ -z "$WIFI_CONFIG_PATH" ] && WIFI_CONFIG_PATH="/run/wpa_supplicant.$IFACE.conf"
 
 # Supplicant options.
-WPA_SUPPLICANT_OPTS="-qq -B -i$IFACE -c$IF_WIFI_CONFIG_PATH -P$PIDFILE"
+WPA_SUPPLICANT_OPTS="-qq -B -i$IFACE -c$WIFI_CONFIG_PATH -P$PIDFILE"
 
-# Given $IF_WIFI_SSID and $IF_WIFI_PSK, generate a config file at $IF_WIFI_CONFIG_PATH.
+# Given $IF_WIFI_SSID and $IF_WIFI_PSK, generate a config file at $WIFI_CONFIG_PATH.
 generate_config() {
 	[ -z "$IF_WIFI_SSID" ] && die "wifi-ssid not set"
 	[ -z "$IF_WIFI_PSK" ] && die "wifi-psk not set"
 
 	# We use a pipeline here to avoid leaking PSK into the process name.
-	(echo $IF_WIFI_PSK | /sbin/wpa_passphrase $IF_WIFI_SSID) >$IF_WIFI_CONFIG_PATH
+	(echo $IF_WIFI_PSK | /sbin/wpa_passphrase $IF_WIFI_SSID) >$WIFI_CONFIG_PATH
 
-	[ ! -e "$IF_WIFI_CONFIG_PATH" ] && die "failed to write temporary config: $IF_WIFI_CONFIG_PATH"
+	[ ! -e "$WIFI_CONFIG_PATH" ] && die "failed to write temporary config: $WIFI_CONFIG_PATH"
+}
+
+# Should we use the supplicant?
+use_supplicant() {
+	[ -n "$IF_WIFI_CONFIG_PATH" ] && return 0
+	[ -n "$IF_WIFI_PSK" ] && return 0
+
+	return 1
 }
 
 # Start a supplicant process for $IFACE.
 start() {
-	# If there is no config file located at $IF_WIFI_CONFIG_PATH, generate one.
-	[ ! -e "$IF_WIFI_CONFIG_PATH" ] && generate_config
+	if use_supplicant; then
+		# If there is no config file located at $WIFI_CONFIG_PATH, generate one.
+		[ ! -e "$WIFI_CONFIG_PATH" ] && generate_config
 
-	/sbin/wpa_supplicant $WPA_SUPPLICANT_OPTS
+		/sbin/wpa_supplicant $WPA_SUPPLICANT_OPTS
+	else
+		/usr/sbin/iwconfig $IFACE essid -- "$IF_WIFI_SSID" ap any
+	fi
 }
 
 # Stop the supplicant process for $IFACE.
 stop() {
-	kill -9 $(cat $PIDFILE) 2>/dev/null
-	rm $PIDFILE
+	if use_supplicant; then
+		kill -9 $(cat $PIDFILE) 2>/dev/null
+		[ -z "$IF_WIFI_CONFIG_PATH" ] && rm $WIFI_CONFIG_PATH
+		rm $PIDFILE
+	else
+		/usr/sbin/iwconfig $IFACE essid any
+	fi
 }
 
 [ -z "$VERBOSE" ] || set -x
