@@ -181,7 +181,9 @@ most common executors are:
 *wifi*
 	The interface is a Wi-Fi (IEEE 802.11) client interface.
 	Configuration of the WiFi client interface requires the
-	*wpa_supplicant* package to be installed.
+	*wireless-tools* package to be installed.
+	The *wpa_supplicant* package must also be installed to
+	connect to hotspots using WPA-based security.
 
 *wireguard*
 	The interface is a Wireguard VPN tunnel endpoint.
