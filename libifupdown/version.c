@@ -21,7 +21,7 @@
 void
 lif_common_version(void)
 {
-	printf("%s %s\n"
+	printf(PACKAGE_NAME " " PACKAGE_VERSION "\n"
 	       "\n"
 	       "Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>\n"
 	       "Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>\n"
@@ -34,8 +34,7 @@ lif_common_version(void)
 	       "implied.  In no event shall the authors be liable for any damages arising\n"
 	       "from the use of this software.\n"
 	       "\n"
-	       "Report bugs at <%s>.\n",
-	       PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
+	       "Report bugs at <" PACKAGE_BUGREPORT ">.\n");
 
 	exit(EXIT_SUCCESS);
 }
