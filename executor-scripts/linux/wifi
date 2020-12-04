@@ -1,0 +1,119 @@
+#!/bin/sh
+# Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# This software is provided 'as is' and without any warranty, express or
+# implied.  In no event shall the authors be liable for any damages arising
+# from the use of this software.
+#
+# Manage wifi connections using wpa_supplicant.
+#
+# Vocabulary:
+#   wifi-ssid - The SSID name to connect to.
+#   wifi-psk - The pre-shared key to use.
+#   wifi-config - A path to a wpa_supplicant config file, for special configs.
+#
+# If wifi-config is not set, wifi-ssid and wifi-psk are required, and a config
+# will be generated as /run/wpa_supplicant.$IFACE.conf.
+#
+# The wpa_supplicant PID is stored in /run/wpa_supplicant.$IFACE.pid.
+
+die() {
+	printf "ERROR: %s\n" "$1" >&2
+	exit 1
+}
+
+[ -z "$IFACE" ] && die "IFACE not set"
+[ -z "$PHASE" ] && die "PHASE not set"
+PIDFILE="/run/wpa_supplicant.$IFACE.pid"
+
+# Do not allow mixing wifi-config-path and wifi-ssid/wifi-psk.
+[ -n "$IF_WIFI_CONFIG_PATH" -a -n "$IF_WIFI_SSID" ] && die "wifi-config-path cannot be used with wifi-ssid"
+[ -n "$IF_WIFI_CONFIG_PATH" -a -n "$IF_WIFI_PSK" ] && die "wifi-config-path cannot be used with wifi-psk"
+
+# Set IF_WIFI_CONFIG_PATH to the default path if not already set.
+WIFI_CONFIG_PATH="$IF_WIFI_CONFIG_PATH"
+[ -z "$WIFI_CONFIG_PATH" ] && WIFI_CONFIG_PATH="/run/wpa_supplicant.$IFACE.conf"
+
+# Supplicant options.
+WPA_SUPPLICANT_OPTS="-qq -B -i$IFACE -c$WIFI_CONFIG_PATH -P$PIDFILE"
+
+# Given $IF_WIFI_SSID and $IF_WIFI_PSK, generate a config file at $WIFI_CONFIG_PATH.
+generate_config() {
+	[ -z "$IF_WIFI_SSID" ] && die "wifi-ssid not set"
+	[ -z "$IF_WIFI_PSK" ] && die "wifi-psk not set"
+
+	# We use a pipeline here to avoid leaking PSK into the process name.
+	(echo $IF_WIFI_PSK | /sbin/wpa_passphrase $IF_WIFI_SSID) >$WIFI_CONFIG_PATH
+
+	[ ! -e "$WIFI_CONFIG_PATH" ] && die "failed to write temporary config: $WIFI_CONFIG_PATH"
+}
+
+# Should we use the supplicant?
+use_supplicant() {
+	[ -n "$IF_WIFI_CONFIG_PATH" ] && return 0
+	[ -n "$IF_WIFI_PSK" ] && return 0
+
+	return 1
+}
+
+# Either start a supplicant process for $IFACE, or use iwconfig to trigger an
+# association attempt.
+start() {
+	if use_supplicant; then
+		# If there is no config file located at $WIFI_CONFIG_PATH, generate one.
+		[ ! -e "$WIFI_CONFIG_PATH" ] && generate_config
+
+		/sbin/wpa_supplicant $WPA_SUPPLICANT_OPTS
+	else
+		/usr/sbin/iwconfig $IFACE essid -- "$IF_WIFI_SSID" ap any
+	fi
+}
+
+# Stop wpa_supplicant safely
+stop_wpa_supplicant() {
+	# Remove generated config file
+	[ -z "$IF_WIFI_CONFIG_PATH" ] && rm -- "$WIFI_CONFIG_PATH"
+
+	# If there is no PIDFILE, there is nothing we can do
+	[ ! -d "$PIDFILE" ] && return
+
+	pid=$(cat "$PIDFILE")
+	rm -- "$PIDFILE"
+
+	# If there is no process with this PID running, we're done here
+	if [ ! -d "/proc/$pid/" ]; then
+		return
+	fi
+
+	# Verify that the name of the running process matches wpa_supplicant
+	progname_path=$(readlink -n "/proc/$pid/exe")
+	progname=$(basename "$progname_path")
+	if [ "$progname" = "wpa_supplicant" ]; then
+		kill -9 $pid 2>/dev/null
+	fi
+}
+
+# Either stop the supplicant process for $IFACE, or use iwconfig to dissociate
+# from the current SSID.
+stop() {
+	if use_supplicant; then
+		stop_wpa_supplicant
+	else
+		/usr/sbin/iwconfig $IFACE essid any
+	fi
+}
+
+[ -z "$VERBOSE" ] || set -x
+
+case "$PHASE" in
+pre-up)
+	start
+	;;
+post-down)
+	stop
+	;;
+esac

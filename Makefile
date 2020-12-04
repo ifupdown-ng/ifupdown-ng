@@ -108,7 +108,8 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	gre \
 	wireguard \
 	ethtool \
-	batman
+	batman \
+	wifi
 
 EXECUTOR_SCRIPTS ?= ${EXECUTOR_SCRIPTS_CORE} ${EXECUTOR_SCRIPTS_OPT}
 
@@ -163,6 +164,7 @@ MANPAGES_5 = \
 	doc/interfaces-ppp.5 \
 	doc/interfaces-vrf.5 \
 	doc/interfaces-vxlan.5 \
+	doc/interfaces-wifi.5 \
 	doc/interfaces-wireguard.5
 
 MANPAGES_7 = \
