@@ -127,8 +127,6 @@ multicall_usage(int status)
 		fprintf(stderr, "  %-10s %s\n", applet_table[i]->name, applet_table[i]->desc);
 	}
 
-	fprintf(stderr, "\nReport bugs at <" PACKAGE_BUGREPORT ">.\n");
-
 	exit(status);
 }
 
