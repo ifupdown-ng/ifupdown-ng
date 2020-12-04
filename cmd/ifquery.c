@@ -90,9 +90,9 @@ list_interfaces(struct lif_dict *collection, struct match_options *opts)
 
 	if (opts->dot)
 	{
-		printf("digraph interfaces {\n");
-		printf("edge [color=blue fontname=Sans fontsize=10]\n");
-		printf("node [fontname=Sans fontsize=10]\n");
+		printf("digraph interfaces {\n"
+		       "edge [color=blue fontname=Sans fontsize=10]\n"
+		       "node [fontname=Sans fontsize=10]\n");
 	}
 
 	LIF_DICT_FOREACH(iter, collection)
