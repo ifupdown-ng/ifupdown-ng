@@ -24,7 +24,7 @@ lif_common_version(void)
 	printf("%s %s\n", PACKAGE_NAME, PACKAGE_VERSION);
 
 	printf("\nCopyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>\n");
-	printf("\nCopyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>\n\n");
+	printf("Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>\n\n");
 
 	printf("Permission to use, copy, modify, and/or distribute this software for any\n");
 	printf("purpose with or without fee is hereby granted, provided that the above\n");
