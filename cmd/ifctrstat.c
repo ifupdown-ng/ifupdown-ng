@@ -152,7 +152,7 @@ static struct if_option_group local_option_group = {
 
 struct if_applet ifctrstat_applet = {
 	.name = "ifctrstat",
-	.desc = "Display statistics about an interface",
+	.desc = "display statistics about an interface",
 	.main = ifctrstat_main,
 	.usage = "ifctrstat [options] <interface> <counter>\n  ifctrstat [options] --list",
 	.manpage = "8 ifctrstat",
