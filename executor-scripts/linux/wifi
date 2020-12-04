@@ -73,13 +73,35 @@ start() {
 	fi
 }
 
+# Stop wpa_supplicant safely
+stop_wpa_supplicant() {
+	# Remove generated config file
+	[ -z "$IF_WIFI_CONFIG_PATH" ] && rm -- "$WIFI_CONFIG_PATH"
+
+	# If there is no PIDFILE, there is nothing we can do
+	[ ! -d "$PIDFILE" ] && return
+
+	pid=$(cat "$PIDFILE")
+	rm -- "$PIDFILE"
+
+	# If there is no process with this PID running, we're done here
+	if [ ! -d "/proc/$pid/" ]; then
+		return
+	fi
+
+	# Verify that the name of the running process matches wpa_supplicant
+	progname_path=$(readlink -n "/proc/$pid/exe")
+	progname=$(basename "$progname_path")
+	if [ "$progname" = "wpa_supplicant" ]; then
+		kill -9 $pid 2>/dev/null
+	fi
+}
+
 # Either stop the supplicant process for $IFACE, or use iwconfig to dissociate
 # from the current SSID.
 stop() {
 	if use_supplicant; then
-		kill -9 $(cat $PIDFILE) 2>/dev/null
-		[ -z "$IF_WIFI_CONFIG_PATH" ] && rm -- "$WIFI_CONFIG_PATH"
-		rm -- "$PIDFILE"
+		stop_wpa_supplicant
 	else
 		/usr/sbin/iwconfig $IFACE essid any
 	fi
