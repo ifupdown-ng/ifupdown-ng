@@ -113,18 +113,21 @@ multicall_main(int argc, char *argv[])
 void
 multicall_usage(int status)
 {
-	fprintf(stderr, "usage: ifupdown <applet> [options]\n");
+	fprintf(stderr,
+		PACKAGE_NAME " " PACKAGE_VERSION "\n"
+		"usage: ifupdown <applet> [options]\n"
+		"\n"
+		"Built-in applets:\n");
 
-	fprintf(stderr, "\nBuilt-in applets:\n\t");
 	for (size_t i = 0; i < ARRAY_SIZE(applet_table); i++)
 	{
-		if (i != 0)
-			fprintf(stderr, ", ");
+		if (applet_table[i] == &ifupdown_applet)
+			continue;
 
-		fprintf(stderr, "%s", applet_table[i]->name);
+		fprintf(stderr, "  %s - %s\n", applet_table[i]->name, applet_table[i]->desc);
 	}
 
-	fprintf(stderr, "\n");
+	fprintf(stderr, "\nReport bugs at <" PACKAGE_BUGREPORT ">.\n");
 
 	exit(status);
 }
