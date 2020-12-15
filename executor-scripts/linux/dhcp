@@ -26,7 +26,7 @@ start() {
 			optargs="$optargs -cf $IF_DHCP_CONFIG"
 		fi
 
-		${MOCK} /usr/sbin/dhclient -pf /var/run/dhclient.$IFACE.pid $optarts $IFACE
+		${MOCK} /usr/sbin/dhclient -pf /var/run/dhclient.$IFACE.pid $optargs $IFACE
 		;;
 	udhcpc)
 		optargs=$(eval echo $IF_UDHCPC_OPTS)
