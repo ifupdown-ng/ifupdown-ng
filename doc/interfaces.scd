@@ -158,6 +158,9 @@ most common executors are:
 	Use a DHCP client to learn the IPv4 address of an
 	interface.
 
+*forward*
+	Configures forwarding settings on the interface.
+
 *loopback*
 	Designates the interface as a loopback device.
 

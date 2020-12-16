@@ -99,7 +99,8 @@ EXECUTOR_SCRIPTS_CORE ?= \
 	ipv6-ra \
 	static \
 	link \
-	ppp
+	ppp \
+	forward
 
 EXECUTOR_SCRIPTS_OPT ?= \
 	bridge \
@@ -161,6 +162,7 @@ MANPAGES_5 = \
 	doc/interfaces-bond.5 \
 	doc/interfaces-batman.5 \
 	doc/interfaces-bridge.5 \
+	doc/interfaces-forward.5 \
 	doc/interfaces-ppp.5 \
 	doc/interfaces-vrf.5 \
 	doc/interfaces-vxlan.5 \

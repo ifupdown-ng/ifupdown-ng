@@ -1,0 +1,90 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/forward"
+
+tests_init \
+	up_forward_v4 \
+	up_forward_v6 \
+	up_forward_v4_mc \
+	up_forward_v6_mc
+
+up_forward_v4_body() {
+	export IF_FORWARD_IPV4= IF_FORWARD_IPV6= IF_FORWARD_IPV4_MC= IF_FORWARD_IPV6_MC=
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV4=1
+	atf_check -s exit:0 -o match:'echo 1 > /proc/sys/net/ipv4/conf/eth0/forwarding' \
+		${EXECUTOR}
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV4=yes
+	atf_check -s exit:0 -o match:'echo 1 > /proc/sys/net/ipv4/conf/eth0/forwarding' \
+		${EXECUTOR}
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV4=0
+	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv4/conf/eth0/forwarding' \
+		${EXECUTOR}
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV4=no
+	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv4/conf/eth0/forwarding' \
+		${EXECUTOR}
+}
+
+up_forward_v6_body() {
+	export IF_FORWARD_IPV4= IF_FORWARD_IPV6= IF_FORWARD_IPV4_MC= IF_FORWARD_IPV6_MC=
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV6=1
+	atf_check -s exit:0 -o match:'echo 1 > /proc/sys/net/ipv6/conf/eth0/forwarding' \
+		${EXECUTOR}
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV6=yes
+	atf_check -s exit:0 -o match:'echo 1 > /proc/sys/net/ipv6/conf/eth0/forwarding' \
+		${EXECUTOR}
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV6=0
+	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv6/conf/eth0/forwarding' \
+		${EXECUTOR}
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV6=no
+	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv6/conf/eth0/forwarding' \
+		${EXECUTOR}
+}
+
+up_forward_v4_mc_body() {
+	export IF_FORWARD_IPV4= IF_FORWARD_IPV6= IF_FORWARD_IPV4_MC= IF_FORWARD_IPV6_MC=
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV4_MC=1
+	atf_check -s exit:0 -o match:'echo 1 > /proc/sys/net/ipv4/conf/eth0/mc_forwarding' \
+		${EXECUTOR}
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV4_MC=yes
+	atf_check -s exit:0 -o match:'echo 1 > /proc/sys/net/ipv4/conf/eth0/mc_forwarding' \
+		${EXECUTOR}
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV4_MC=0
+	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv4/conf/eth0/mc_forwarding' \
+		${EXECUTOR}
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV4_MC=no
+	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv4/conf/eth0/mc_forwarding' \
+		${EXECUTOR}
+}
+
+up_forward_v6_mc_body() {
+	export IF_FORWARD_IPV4= IF_FORWARD_IPV6= IF_FORWARD_IPV4_MC= IF_FORWARD_IPV6_MC=
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV6_MC=1
+	atf_check -s exit:0 -o match:'echo 1 > /proc/sys/net/ipv6/conf/eth0/mc_forwarding' \
+		${EXECUTOR}
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV6_MC=yes
+	atf_check -s exit:0 -o match:'echo 1 > /proc/sys/net/ipv6/conf/eth0/mc_forwarding' \
+		${EXECUTOR}
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV6_MC=0
+	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv6/conf/eth0/mc_forwarding' \
+		${EXECUTOR}
+
+	export IFACE=eth0 PHASE=up MOCK=echo IF_FORWARD_IPV6_MC=no
+	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv6/conf/eth0/mc_forwarding' \
+		${EXECUTOR}
+}

@@ -1,0 +1,19 @@
+#!/bin/sh
+
+yesno() {
+	case "$1" in
+	yes|1)	echo 1 ;;
+	*)	echo 0 ;;
+	esac
+}
+
+[ "$PHASE" != "up" ] && exit 0
+[ -z "$VERBOSE" ] || set -x
+
+[ -n "$IF_FORWARD_IPV4" ] && ${MOCK} /bin/sh -c "echo $(yesno $IF_FORWARD_IPV4) > /proc/sys/net/ipv4/conf/$IFACE/forwarding"
+[ -n "$IF_FORWARD_IPV6" ] && ${MOCK} /bin/sh -c "echo $(yesno $IF_FORWARD_IPV6) > /proc/sys/net/ipv6/conf/$IFACE/forwarding"
+
+[ -n "$IF_FORWARD_IPV4_MC" ] && ${MOCK} /bin/sh -c "echo $(yesno $IF_FORWARD_IPV4_MC) > /proc/sys/net/ipv4/conf/$IFACE/mc_forwarding"
+[ -n "$IF_FORWARD_IPV6_MC" ] && ${MOCK} /bin/sh -c "echo $(yesno $IF_FORWARD_IPV6_MC) > /proc/sys/net/ipv6/conf/$IFACE/mc_forwarding"
+
+exit 0
