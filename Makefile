@@ -99,7 +99,8 @@ EXECUTOR_SCRIPTS_CORE ?= \
 	ipv6-ra \
 	static \
 	link \
-	ppp
+	ppp \
+	forward
 
 EXECUTOR_SCRIPTS_OPT ?= \
 	bridge \
