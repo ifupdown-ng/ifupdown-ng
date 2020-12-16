@@ -11,6 +11,9 @@ and interface basis.  The following options allow for this configuration.
 
 # FORWARDING-RELATED OPTIONS
 
+The forward executor will only modify the sysctl configuration if these options
+are provided, otherwise other mechanisms such as /etc/sysctl.conf may be used.
+
 *forward-ipv4* _yes|no_
 	Whether the interface should forward unicast IPv4 packets.
 
