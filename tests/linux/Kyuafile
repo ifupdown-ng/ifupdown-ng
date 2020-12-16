@@ -13,3 +13,4 @@ atf_test_program{name='gre_test'}
 atf_test_program{name='wireguard_test'}
 atf_test_program{name='ethtool_test'}
 atf_test_program{name='vxlan_test'}
+atf_test_program{name='forward_test'}
