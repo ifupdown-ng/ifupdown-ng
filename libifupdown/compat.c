@@ -102,11 +102,81 @@ compat_ifupdown2_bridge_ports_inherit_vlans(struct lif_dict *collection)
 	return true;
 }
 
-extern bool
+static inline bool
+compat_alpine_static_routing_rewrite_keyword(struct lif_interface *iface, const char *orig, const char *new)
+{
+	struct lif_dict_entry *orig_entry = lif_dict_find(&iface->vars, orig);
+
+	if (orig_entry == NULL)
+		return true;
+
+	lif_interface_use_executor(iface, "routing");
+
+	const char *src_p = orig_entry->data;
+	char workbuf[4096] = {}, *dst_p = workbuf;
+
+	/* copy the data, splitting into individual statements */
+	while (*src_p)
+	{
+		if (*src_p == ',')
+		{
+			*dst_p++ = '\0';
+
+			lif_dict_add(&iface->vars, new, strdup(workbuf));
+
+			dst_p = workbuf;
+			*dst_p = '\0';
+		}
+		else
+			*dst_p++ = *src_p;
+
+		src_p++;
+	}
+
+	/* add any remaining value */
+	if (*workbuf)
+	{
+		*dst_p++ = '\0';
+		lif_dict_add(&iface->vars, new, strdup(workbuf));
+		dst_p = workbuf;
+	}
+
+	/* delete original data */
+	free(orig_entry->data);
+	lif_dict_delete_entry(&iface->vars, orig_entry);
+
+	return true;
+}
+
+static bool
+compat_alpine_static_routing(struct lif_dict *collection)
+{
+	struct lif_node *iter;
+
+	/* Loop through all interfaces and search for interfaces with static routes. */
+	LIF_DICT_FOREACH(iter, collection)
+	{
+		struct lif_dict_entry *entry = iter->data;
+		struct lif_interface *iface = entry->data;
+
+		if (!compat_alpine_static_routing_rewrite_keyword(iface, "route", "routing-route"))
+			return false;
+
+		if (!compat_alpine_static_routing_rewrite_keyword(iface, "rule", "routing-rule"))
+			return false;
+	}
+
+	return true;
+}
+
+bool
 lif_compat_apply(struct lif_dict *collection)
 {
 	if (lif_config.compat_ifupdown2_bridge_ports_inherit_vlans &&
 	    !compat_ifupdown2_bridge_ports_inherit_vlans(collection))
+		return false;
+
+	if (!compat_alpine_static_routing(collection))
 		return false;
 
 	return true;
