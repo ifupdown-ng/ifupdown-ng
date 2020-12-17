@@ -240,6 +240,7 @@ iface eth0
 *interfaces-bond*(5)
 *interfaces-bridge*(5)
 *interfaces-forward*(5)
+*interfaces-mpls*(5)
 *interfaces-ppp*(5)
 *interfaces-vrf*(5)
 *interfaces-vxlan*(5)
