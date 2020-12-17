@@ -24,8 +24,14 @@ allow_any_iface_as_template = 1
 # Valid values are 0 and 1, the default is 1.
 auto_executor_selection = 1
 
+# compat_alpine_static_routing:
+# Denotes whether or not to translate route/rule statements used by the
+# Alpine static-routing addon to use the routing vocabulary and executor.
+# Valid values are 0 and 1, the default is 1.
+compat_alpine_static_routing = 1
+
 # compat_create_interfaces:
-# Denotes where or not to create interfaces when compat_* settings are
+# Denotes whether or not to create interfaces when compat_* settings are
 # active and it would be necessary to create an interface to be fully
 # compliant.  This could happen when inheriting bridge VLAN settings to
 # an interface within a bridges bridge-ports setting but no interface

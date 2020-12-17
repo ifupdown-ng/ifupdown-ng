@@ -176,7 +176,8 @@ lif_compat_apply(struct lif_dict *collection)
 	    !compat_ifupdown2_bridge_ports_inherit_vlans(collection))
 		return false;
 
-	if (!compat_alpine_static_routing(collection))
+	if (lif_config.compat_alpine_static_routing &&
+	    !compat_alpine_static_routing(collection))
 		return false;
 
 	return true;

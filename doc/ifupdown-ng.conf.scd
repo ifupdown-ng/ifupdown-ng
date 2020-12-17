@@ -48,6 +48,11 @@ configuration options.
 
 # COMPATIBILITY RELATED OPTIONS
 
+*compat_alpine_static_routing* _bool_
+	Denotes whether or not to translate route/rule statements used by the
+	Alpine static-routing addon to use the routing vocabulary and executor.
+	Valid values are _0_ and _1_, the default is _1_.
+
 *compat_create_interfaces* _bool_
 	Denotes where or not to create interfaces when compat_\* settings are
 	active and it would be necessary to create an interface to be fully
