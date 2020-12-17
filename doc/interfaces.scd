@@ -239,9 +239,11 @@ iface eth0
 *interfaces-batman*(5)
 *interfaces-bond*(5)
 *interfaces-bridge*(5)
+*interfaces-forward*(5)
 *interfaces-ppp*(5)
 *interfaces-vrf*(5)
 *interfaces-vxlan*(5)
+*interfaces-wifi*(5)
 *interfaces-wireguard*(5)
 
 # AUTHORS
