@@ -1,0 +1,8 @@
+iface xlat-route
+	address 192.0.2.12/24
+	route 172.16.0.0/16,10.0.0.0/8 via 172.16.0.1
+
+iface xlat-rule
+	address 192.0.2.12/24
+	route default via 192.0.2.1 mtu 1200 table 123
+	rule dport 25 table 123,dport 587 table 123
