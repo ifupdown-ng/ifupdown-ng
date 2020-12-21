@@ -46,7 +46,7 @@ acquire_state_lock(const char *state_path, const char *lifname)
 
 	snprintf(lockpath, sizeof lockpath, "%s.%s.lock", state_path, lifname);
 
-	int fd = open(lockpath, O_CREAT | O_WRONLY | O_TRUNC);
+	int fd = open(lockpath, O_CREAT | O_WRONLY | O_TRUNC, 0600);
 	if (fd < 0)
 	{
 		if (exec_opts.verbose)
