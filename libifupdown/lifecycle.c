@@ -122,12 +122,17 @@ append_to_buffer(char **buffer, size_t *buffer_len, char **end, const char *valu
 	/* Make sure there is enough room to add the value to the buffer */
 	if (*buffer_len < strlen (*buffer) + value_len + 2)
 	{
-		*buffer = realloc (*buffer, *buffer_len * 2);
-		if (*buffer == NULL)
-			/* XXX Here be dragons */
-			return false;
+		size_t end_offset = *end - *buffer;
+		char *tmp = realloc (*buffer, *buffer_len * 2);
 
-		*buffer_len = *buffer_len * 2;
+		if (tmp != NULL)
+		{
+			*buffer = tmp;
+			*end = tmp + end_offset;
+			*buffer_len = *buffer_len * 2;
+		}
+		else
+			return false;
 	}
 
 	/* Append value to buffer */
