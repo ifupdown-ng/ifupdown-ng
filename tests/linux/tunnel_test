@@ -5,7 +5,9 @@ EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/tunnel"
 
 tests_init \
 	tunnel_bringup \
-	tunnel_teardown
+	tunnel_teardown \
+	gretap_up \
+	gretap_down
 
 tunnel_bringup_body() {
 	export MOCK=echo IFACE=tun0 PHASE=create IF_TUNNEL_MODE=gre \
@@ -13,7 +15,7 @@ tunnel_bringup_body() {
 		IF_TUNNEL_TTL=255
 	atf_check -s exit:0 \
 		-o match:"ip -4 tunnel add tun0" \
-		-o match:"mode 'gre'" \
+		-o match:"mode gre" \
 		-o match:"ttl '255'" \
 		-o match:"local '1.2.3.4'" \
 		-o match:"remote '5.6.7.8'" \
@@ -26,5 +28,25 @@ tunnel_teardown_body() {
 		IF_TUNNEL_TTL=255
 	atf_check -s exit:0 \
 		-o match:"ip -4 tunnel del tun0" \
+		${EXECUTOR}
+}
+
+
+gretap_up_body() {
+	export MOCK=echo IFACE=foo PHASE=create IF_TUNNEL_MODE=gretap \
+		IF_TUNNEL_LOCAL=1.2.3.4 IF_TUNNEL_REMOTE=5.6.7.8
+	atf_check -s exit:0 \
+		-o match:"ip -4 link add foo" \
+		-o match:"type gretap" \
+		-o match:"local '1.2.3.4'" \
+		-o match:"remote '5.6.7.8'" \
+		${EXECUTOR}
+}
+
+gretap_down_body() {
+	export MOCK=echo IFACE=foo PHASE=destroy IF_TUNNEL_MODE=gretap \
+		IF_TUNNEL_LOCAL=1.2.3.4 IF_TUNNEL_REMOTE=5.6.7.8
+	atf_check -s exit:0 \
+		-o match:"ip -4 link del foo" \
 		${EXECUTOR}
 }
