@@ -13,4 +13,5 @@ ifquery
 ifup
 ifdown
 ifctrstat
+ifparse
 *.lock
