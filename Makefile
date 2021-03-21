@@ -103,14 +103,16 @@ EXECUTOR_SCRIPTS_CORE ?= \
 	forward
 
 EXECUTOR_SCRIPTS_OPT ?= \
-	bridge \
-	vrf \
-	tunnel \
-	gre \
-	wireguard \
-	ethtool \
 	batman \
-	wifi
+	bond \
+	bridge \
+	ethtool \
+	gre \
+	tunnel \
+	vrf \
+	vxlan \
+	wifi \
+	wireguard
 
 EXECUTOR_SCRIPTS ?= ${EXECUTOR_SCRIPTS_CORE} ${EXECUTOR_SCRIPTS_OPT}
 
