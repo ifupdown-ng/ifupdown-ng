@@ -70,6 +70,7 @@ static const struct remap_token tokens[] = {
 	{"hardware-irq-coalesce-tx-usecs-irq", "ethtool-coalesce-tx-usecs-irq"},		/* Debian ethtool integration */
 	{"hardware-irq-coalesce-tx-usecs-low", "ethtool-coalesce-tx-usecs-low"},		/* Debian ethtool integration */
 	{"hostname", "dhcp-hostname"},			/* legacy ifupdown */
+	{"key", "tunnel-key"},				/* legacy ifupdown */
 	{"leasetime", "dhcp-leastime"},			/* legacy ifupdown */
 	{"link-autoneg", "ethtool-ethernet-autoneg"},	/* ifupdown2 */
 	{"link-duplex", "ethtool-link-duplex"},		/* Debian ethtool integration */

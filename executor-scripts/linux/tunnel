@@ -2,23 +2,38 @@
 # Based on alpine's tunnel configuration script.
 # Copyright (c) 2017 Kaarle Ritvanen
 # Copyright (c) 2020 Ariadne Conill (extended for ifupdown-ng)
+# Copyright (c) 2021 Maximilian Wilhelm (make sure mode/type is 1st parameter)
 
 [ -z "$IF_TUNNEL_LOCAL" ] && exit 1
 [ -z "$IF_TUNNEL_REMOTE" ] && exit 1
 [ -z "$IF_TUNNEL_MODE" ] && exit 1
 
-COMMAND="tunnel"
+[ -n "$VERBOSE" ] && set -x
+
+# Figure out address familiy
 FAMILY="-4"
 
 case "$IF_TUNNEL_MODE" in
-gretap)
-	COMMAND="link"
-	;;
 vti6|ipip6|ip6*)
 	FAMILY="-6"
 	;;
 esac
 
+# Figure out object type - gretap tunnels have to create using ip link
+# and therefor require 'type' keyword instead of 'mode'
+OBJECT="tunnel"
+TYPE_KW="mode"
+if [ "${IF_TUNNEL_MODE}" = "gretap" ]; then
+	OBJECT="link"
+	TYPE_KW="type"
+fi
+
+# Store tunnel type/mode separaltely and unset input variable to exclude it
+# from PARAMS below
+TUNNEL_MODE="$IF_TUNNEL_MODE"
+unset IF_TUNNEL_MODE
+
+# Mangle residual IF_TUNNEL_* params into single string
 PARAMS=$(set | sed -E '
 	s/^IF_TUNNEL_([A-Z0-9_]+)=(.+)/\1\n\2/
 	ta
@@ -35,10 +50,10 @@ PARAMS=$(set | sed -E '
 
 case "$PHASE" in
 create)
-	${MOCK} eval ip $FAMILY $COMMAND add $IFACE $PARAMS
+	${MOCK} eval ip $FAMILY $OBJECT add $IFACE $TYPE_KW $TUNNEL_MODE $PARAMS
 	;;
 destroy)
-	${MOCK} ip $FAMILY $COMMAND del $IFACE
+	${MOCK} ip $FAMILY $OBJECT del $IFACE
 	;;
 depend)
 	echo "$IF_TUNNEL_DEV"
