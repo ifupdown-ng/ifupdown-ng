@@ -1,0 +1,30 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/bond"
+
+tests_init \
+	create_lacp_basic \
+	create_lacp_real
+
+create_lacp_basic_body() {
+	export IFACE=bond0 PHASE=create MOCK=echo IF_BOND_MODE=802.3ad IF_BOND_MEMBERS="eth0 eth1"
+	atf_check -s exit:0 \
+		-o match:'ip link add bond0 type bond mode 802.3ad' \
+		-o match:'ip link set eth0 down' \
+		-o match:'ip link set master bond0 eth0' \
+		-o match:'ip link set eth0 up' \
+		-o match:'ip link set master bond0 eth1' \
+		${EXECUTOR}
+}
+
+create_lacp_real_body() {
+	export IFACE=bond0 PHASE=create MOCK=echo IF_BOND_MODE=802.3ad IF_BOND_MEMBERS="eth0 eth1" \
+		IF_BOND_MIN_LINKS="1" IF_BOND_XMIT_HASH_POLICY="layer3+4"
+	atf_check -s exit:0 \
+		-o match:'ip link add bond0 type bond' \
+		-o match:'mode 802.3ad' \
+		-o match:'min_links 1' \
+		-o match:'xmit_hash_policy layer3\+4' \
+		${EXECUTOR}
+}
