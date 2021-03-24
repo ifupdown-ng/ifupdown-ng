@@ -41,9 +41,9 @@ case "$PHASE" in
 		# Add members to bundle
 		for member_iface in ${IF_BOND_MEMBERS}; do
 			# Work around the current execution order
-			ip link set "${member_iface}" down
-			ip link set master "${IFACE}" "${member_iface}"
-			ip link set "${member_iface}" up
+			${MOCK} ip link set "${member_iface}" down
+			${MOCK} ip link set master "${IFACE}" "${member_iface}"
+			${MOCK} ip link set "${member_iface}" up
 		done
 		;;
 
