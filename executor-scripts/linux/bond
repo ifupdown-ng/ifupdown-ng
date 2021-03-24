@@ -9,7 +9,7 @@
 
 get_bond_options() {
 	# We only care for options of format IF_BOND_<OPTION_NAME>
-	env | grep '^IF_BOND_[A-Z0-9_]\+$' | while IFS="=" read opt value; do
+	env | grep '^IF_BOND_[A-Z0-9_]\+' | while IFS="=" read opt value; do
 		# Members are handled seperately
 		if [ "${opt}" = "IF_BOND_MEMBERS" ]; then
 			continue
