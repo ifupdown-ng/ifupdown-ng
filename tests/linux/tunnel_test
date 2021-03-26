@@ -7,7 +7,8 @@ tests_init \
 	tunnel_bringup \
 	tunnel_teardown \
 	gretap_up \
-	gretap_down
+	gretap_down \
+	ip6gretap_up
 
 tunnel_bringup_body() {
 	export MOCK=echo IFACE=tun0 PHASE=create IF_TUNNEL_MODE=gre \
@@ -50,3 +51,15 @@ gretap_down_body() {
 		-o match:"ip -4 link del foo" \
 		${EXECUTOR}
 }
+
+ip6gretap_up_body() {
+	export MOCK=echo IFACE=foo PHASE=create IF_TUNNEL_MODE=ip6gretap \
+		IF_TUNNEL_LOCAL=2001:db8::aaaa IF_TUNNEL_REMOTE=2001:db8::eeee
+	atf_check -s exit:0 \
+		-o match:"ip -6 link add foo" \
+		-o match:"type gretap" \
+		-o match:"local '2001:db8::aaaa'" \
+		-o match:"remote '2001:db8::eeee'" \
+		${EXECUTOR}
+}
+

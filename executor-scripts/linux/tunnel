@@ -23,15 +23,23 @@ esac
 # and therefor require 'type' keyword instead of 'mode'
 OBJECT="tunnel"
 TYPE_KW="mode"
-if [ "${IF_TUNNEL_MODE}" = "gretap" ]; then
+case "${IF_TUNNEL_MODE}" in
+*gretap)
 	OBJECT="link"
 	TYPE_KW="type"
-fi
 
-# Store tunnel type/mode separaltely and unset input variable to exclude it
-# from PARAMS below
-TUNNEL_MODE="$IF_TUNNEL_MODE"
-unset IF_TUNNEL_MODE
+	# Strip possible "ip6" from tunnel mode
+	TUNNEL_MODE="gretap"
+	;;
+
+*)
+	# Store tunnel type/mode separaltely and unset input variable to exclude it
+	# from PARAMS below
+	TUNNEL_MODE="$IF_TUNNEL_MODE"
+	unset IF_TUNNEL_MODE
+	;;
+esac
+
 
 # Mangle residual IF_TUNNEL_* params into single string
 PARAMS=$(set | sed -E '
