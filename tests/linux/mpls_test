@@ -1,0 +1,23 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/mpls"
+
+tests_init \
+	mpls_enable \
+	mpls_disable
+
+mpls_enable_body() {
+	export MOCK=echo IFACE=vlan2342 PHASE=pre-up IF_MPLS_ENABLE=yes
+	atf_check -s exit:0 \
+		-o match:"modprobe mpls_iptunnel" \
+		-o match:"echo 1 > /proc/sys/net/mpls/conf/vlan2342/input" \
+		${EXECUTOR}
+}
+
+mpls_disable_body() {
+	export MOCK=echo IFACE=vlan2342 PHASE=pre-up IF_MPLS_ENABLE=no
+	atf_check -s exit:0 \
+		-o match:"echo 0 > /proc/sys/net/mpls/conf/vlan2342/input" \
+		${EXECUTOR}
+}

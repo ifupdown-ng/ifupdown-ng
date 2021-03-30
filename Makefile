@@ -108,6 +108,7 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	bridge \
 	ethtool \
 	gre \
+	mpls \
 	tunnel \
 	vrf \
 	vxlan \

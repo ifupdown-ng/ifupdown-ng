@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# Maximilian Wilhelm <max@sdn.clinic>
+#  --  Thu, 17 Dec 2020 03:02:10 +0100
+#
+# This executor is responsible for setting up MPLS decapsulation on a given interface.
+#
+# See interfaces-mpls(5) for a list of supported options.
+#
+
+yesno() {
+	case "$1" in
+	yes|1)	echo 1 ;;
+	*)	echo 0 ;;
+	esac
+}
+
+[ -z "$VERBOSE" ] || set -x
+
+# We only operate in pre-up phase
+[ "$PHASE" != "pre-up" ] && exit 0
+
+
+if [ "$IF_MPLS_ENABLE" ]; then
+	value=$(yesno $IF_MPLS_ENABLE)
+
+	# Load mpls module if we should enable MPLS decap on (at least) one interface
+	if [ "${value}" = 1 ]; then
+		${MOCK} modprobe mpls_iptunnel
+	fi
+
+	# If MPLS support isn't loaded and we are not MOCKing, carry on
+	if [ -f "/proc/sys/net/mpls/conf/$IFACE/input" -o "${MOCK}" ]; then
+		${MOCK} /bin/sh -c "echo ${value} > /proc/sys/net/mpls/conf/$IFACE/input"
+	fi
+fi
