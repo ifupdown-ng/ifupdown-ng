@@ -216,7 +216,7 @@ lif_interface_use_executor(struct lif_interface *interface, const char *executor
 	if (uname(&un) < 0)
 		return;
 
-	lif_dict_add(&interface->vars, "hostname", strdup(un.nodename));
+	lif_dict_add(&interface->vars, "dhcp-hostname", strdup(un.nodename));
 }
 
 void
