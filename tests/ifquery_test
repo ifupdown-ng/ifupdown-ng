@@ -40,7 +40,10 @@ tests_init \
 	default_netmask_v4 \
 	default_netmask_v6 \
 	stanza_merging_with_cidr \
-	stanza_merging_without_cidr
+	stanza_merging_without_cidr \
+	dhcp_hostname_rewrite \
+	dhcp_hostname_inference \
+	dhcp_hostname_replacement
 
 noargs_body() {
 	atf_check -s exit:1 -e ignore ifquery -S/dev/null
@@ -271,4 +274,23 @@ stanza_merging_without_cidr_body() {
 		-o match:"203.0.113.1/32" \
 		-o match:"203.0.113.2/24" \
 		ifquery -i $FIXTURES/stanza-merging.interfaces -p address without-cidr
+}
+
+dhcp_hostname_rewrite_body() {
+	atf_check -s exit:0 \
+		-o match:"dhcp-hostname foo" \
+		ifquery -i $FIXTURES/dhcp-hostname-rewrite.interfaces -P eth0
+}
+
+dhcp_hostname_inference_body() {
+	hostname=$(uname -n)
+	atf_check -s exit:0 \
+		-o match:"dhcp-hostname $hostname" \
+		ifquery -i $FIXTURES/dhcp-hostname-rewrite.interfaces -P eth1
+}
+
+dhcp_hostname_replacement_body() {
+	atf_check -s exit:0 \
+		-o match:"dhcp-hostname bar" \
+		ifquery -i $FIXTURES/dhcp-hostname-rewrite.interfaces -P eth2
 }

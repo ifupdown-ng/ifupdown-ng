@@ -1,0 +1,10 @@
+iface eth0
+	use dhcp
+	hostname foo
+
+iface eth1
+	use dhcp
+
+iface eth2
+	use dhcp
+	dhcp-hostname bar
