@@ -250,8 +250,8 @@ handle_hostname(struct lif_interface_file_parse_state *state, char *token, char 
 		return true;
 	}
 
-	lif_dict_delete(&state->cur_iface->vars, token);
-	lif_dict_add(&state->cur_iface->vars, token, strdup(hostname));
+	lif_dict_delete(&state->cur_iface->vars, "dhcp-hostname");
+	lif_dict_add(&state->cur_iface->vars, "dhcp-hostname", strdup(hostname));
 
 	return true;
 }
@@ -447,6 +447,7 @@ struct parser_keyword {
 static const struct parser_keyword keywords[] = {
 	{"address", handle_address},
 	{"auto", handle_auto},
+	{"dhcp-hostname", handle_hostname},
 	{"gateway", handle_gateway},
 	{"hostname", handle_hostname},
 	{"iface", handle_iface},
