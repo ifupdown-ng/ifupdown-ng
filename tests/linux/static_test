@@ -8,9 +8,7 @@ tests_init \
 	up_ptp \
 	down \
 	vrf_up \
-	vrf_down \
-	metric_up \
-	metric_down
+	metric_up
 
 up_body() {
 	export IFACE=eth0 PHASE=up MOCK=echo IF_ADDRESSES="203.0.113.2/24 2001:db8:1000:2::2/64" \
@@ -38,10 +36,7 @@ down_body() {
 	export IFACE=eth0 PHASE=down MOCK=echo IF_ADDRESSES="203.0.113.2/24 2001:db8:1000:2::2/64" \
 		IF_GATEWAYS="203.0.113.1 2001:db8:1000:2::1"
 	atf_check -s exit:0 \
-		-o match:'addr del 203.0.113.2/24 dev eth0' \
-		-o match:'addr del 2001:db8:1000:2::2/64 dev eth0' \
-		-o match:'route del default via 203.0.113.1 metric 1 dev eth0' \
-		-o match:'route del default via 2001:db8:1000:2::1 metric 1 dev eth0' \
+		-o match:'addr flush dev eth0' \
 		${EXECUTOR}
 }
 
@@ -52,23 +47,9 @@ vrf_up_body() {
 		${EXECUTOR}
 }
 
-vrf_down_body() {
-	export IFACE=vrf-red PHASE=down MOCK=echo IF_GATEWAYS=203.0.113.2 IF_VRF_TABLE=1
-	atf_check -s exit:0 \
-		-o match:'route del default via 203.0.113.2 table 1' \
-		${EXECUTOR}
-}
-
 metric_up_body() {
 	export IFACE=vrf-red PHASE=up MOCK=echo IF_GATEWAYS=203.0.113.2 IF_VRF_TABLE=1 IF_METRIC=20
 	atf_check -s exit:0 \
 		-o match:'route add default via 203.0.113.2 table 1 metric 20' \
-		${EXECUTOR}
-}
-
-metric_down_body() {
-	export IFACE=vrf-red PHASE=down MOCK=echo IF_GATEWAYS=203.0.113.2 IF_VRF_TABLE=1 IF_METRIC=20
-	atf_check -s exit:0 \
-		-o match:'route del default via 203.0.113.2 table 1 metric 20' \
 		${EXECUTOR}
 }
