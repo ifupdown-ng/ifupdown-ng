@@ -11,7 +11,7 @@ interfaces are configured.  The file is processed by *ifquery*(8),
 *ifup*(8) and *ifdown*(8) to introspect and change system state.
 
 In most cases, syntax from legacy implementations is supported as
-well, but that syntax is not discussed here.
+well, but that syntax is not discussed in detail here.
 
 # FILE SYNTAX
 
@@ -23,6 +23,8 @@ A stanza is a collection of triples, where a triple is a key and
 value combination that is related to an *object*.  Triples which
 are not associated with an *object* are considered to be part
 of the root of the configuration tree.
+
+All keywords are case-sensitive and are expected to be lower-case.
 
 The following is a simple example of a stanza:
 
@@ -64,11 +66,11 @@ the system will only respond to certain keywords by default:
 
 *address* _address_
 	Associates an IPv4 or IPv6 address in CIDR notation with
-	the parent interface.
-
-*gateway* _address_
-	Associates an IPv4 or IPv6 address with the parent interface
-	for use as a default route (gateway).
+	the parent interface.  If an IP address without a prefix
+	length is given a given _netmask_ attribute is used if present.
+	If neither a prefix length nor a _netmask_ are given a /24 or /64
+	prefix length is presumed for IPv4 / IPv6 as of compatibility
+	reasons to classic ifupdown.
 
 *netmask* _netmask_
 	Associates a fallback netmask with the parent interface for
@@ -82,6 +84,11 @@ the system will only respond to certain keywords by default:
 	familiy and only makes sense in combination with a /32 netmask.
 	For compatiblity with ifupdown and ifupdown2, _pointopoint_ is
 	an alias for this parameter.
+
+*gateway* _address_
+	Associates an IPv4 or IPv6 address with the parent interface
+	for use as a default route (gateway).  This usually is given
+	once for IPv4 and once for IPv6 (in a Dual-Stack setup).
 
 *link-type* _link-type_
 	Denotes the link-type of the interface. When set to _dummy_,
