@@ -39,7 +39,7 @@ set_include_pattern(const char *opt_arg)
 static void
 set_exclude_pattern(const char *opt_arg)
 {
-	match_opts.include_pattern = opt_arg;
+	match_opts.exclude_pattern = opt_arg;
 }
 
 static struct if_option match_options[] = {
