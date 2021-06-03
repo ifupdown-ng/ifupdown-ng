@@ -272,4 +272,4 @@ used for an interface, use the ifquery(8) command.
 
 If you have further questions about how to use ifupdown-ng to
 configure a specific scenario, drop by the
-[ifupdown-ng IRC channel](irc://irc.as7007.net/#ifupdown-ng).
+[ifupdown-ng IRC channel](irc://irc.oftc.net/#ifupdown-ng).
