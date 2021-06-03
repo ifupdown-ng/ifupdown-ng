@@ -4,18 +4,18 @@
 # Copyright (c) 2020 Ariadne Conill (extended for ifupdown-ng)
 # Copyright (c) 2021 Maximilian Wilhelm (make sure mode/type is 1st parameter)
 
-[ -z "$IF_TUNNEL_LOCAL" ] && exit 1
+[ -z "$IF_TUNNEL_LOCAL" -a -z "$IF_TUNNEL_LOCAL_DEV" ] && exit 1
 [ -z "$IF_TUNNEL_REMOTE" ] && exit 1
 [ -z "$IF_TUNNEL_MODE" ] && exit 1
 
 [ -n "$VERBOSE" ] && set -x
 
 # Figure out address familiy
-FAMILY="-4"
+FAMILY="4"
 
 case "$IF_TUNNEL_MODE" in
 vti6|ipip6|ip6*)
-	FAMILY="-6"
+	FAMILY="6"
 	;;
 esac
 
@@ -41,6 +41,35 @@ case "${IF_TUNNEL_MODE}" in
 esac
 
 
+# If 'tunnel-local <IP>' was not given but 'tunnel-local-dev <iface>' is given try
+# to figure out the IP of the underlay device (wrt the address family used for this
+# tunnel) and use this to set up the tunnel
+if [ ${PHASE} = "create" -a ! "${IF_TUNNEL_LOCAL}" -a "${IF_TUNNEL_LOCAL_DEV}" ]; then
+	if [ "${FAMILY}" = "4" ]; then
+		ip=$(ip -4 -brief addr show dev "${IF_TUNNEL_LOCAL_DEV}" 2>/dev/null | awk '{ print $3 }' | cut -d/ -f1)
+
+	# For IPv6 we try to use a non-temporary address (-> privacy extensions)
+	else
+		# Get all IPv6 addres configured on $IF_TUNNEL_LOCAL_DEV which are not
+		# temporary (due to privacy extensions). We do not filter for "mgmtaddr"
+		# "scope global" etc. as we don't want to make further assumptions on
+		# whether a user wants to use a link local address configured to this interface.
+		#
+		# The assumption that a temporary address configured by PE isn't suited
+		# to terminate a tunnel should hold in nearly all setups, I hope.
+		ip=$(ip -6 addr show dev "${IF_TUNNEL_LOCAL_DEV}" -temporary | grep inet6 | head -n1 | awk '{ print $2 }' | cut -d/ -f1)
+	fi
+
+	if [ ! "${ip}" ]; then
+		echo "Unable to determine the IPv${FAMILIY} address of tunnel-local-dev ${IF_TUNNEL_LOCAL_DEV}!"
+		exit 1
+	fi
+
+	unset IF_TUNNEL_LOCAL_DEV
+	export IF_TUNNEL_LOCAL="${ip}"
+fi
+
+
 # Mangle residual IF_TUNNEL_* params into single string
 PARAMS=$(set | sed -E '
 	s/^IF_TUNNEL_([A-Z0-9_]+)=(.+)/\1\n\2/
@@ -58,12 +87,12 @@ PARAMS=$(set | sed -E '
 
 case "$PHASE" in
 create)
-	${MOCK} eval ip $FAMILY $OBJECT add $IFACE $TYPE_KW $TUNNEL_MODE $PARAMS
+	${MOCK} eval ip -$FAMILY $OBJECT add $IFACE $TYPE_KW $TUNNEL_MODE $PARAMS
 	;;
 destroy)
-	${MOCK} ip $FAMILY $OBJECT del $IFACE
+	${MOCK} ip -$FAMILY $OBJECT del $IFACE
 	;;
 depend)
-	echo "$IF_TUNNEL_DEV"
+	echo "${IF_TUNNEL_DEV}" "${IF_TUNNEL_LOCAL_DEV}"
 	;;
 esac
