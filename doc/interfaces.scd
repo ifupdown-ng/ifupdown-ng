@@ -178,7 +178,8 @@ most common executors are:
 
 *tunnel*
 	The interface is a tunnel.  Configuration of tunnels
-	requires the *tunnel* package to be installed.
+	requires the *tunnel* package to be installed on Alpine
+	Linux.
 
 *vrf*
 	The interface is a VRF.  Configuration of VRFs requires
@@ -249,6 +250,7 @@ iface eth0
 *interfaces-forward*(5)
 *interfaces-mpls*(5)
 *interfaces-ppp*(5)
+*interfaces-tunnel*(5)
 *interfaces-vrf*(5)
 *interfaces-vxlan*(5)
 *interfaces-wifi*(5)
