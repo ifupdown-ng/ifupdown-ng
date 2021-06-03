@@ -2,13 +2,20 @@
 # Based on alpine's tunnel configuration script.
 # Copyright (c) 2017 Kaarle Ritvanen
 # Copyright (c) 2020 Ariadne Conill (extended for ifupdown-ng)
-# Copyright (c) 2021 Maximilian Wilhelm (make sure mode/type is 1st parameter)
+# Copyright (c) 2021 Maximilian Wilhelm (make sure mode/type is 1st parameter, add more options)
 
 [ -z "$IF_TUNNEL_LOCAL" -a -z "$IF_TUNNEL_LOCAL_DEV" ] && exit 1
 [ -z "$IF_TUNNEL_REMOTE" ] && exit 1
 [ -z "$IF_TUNNEL_MODE" ] && exit 1
 
 [ -n "$VERBOSE" ] && set -x
+
+yesno() {
+        case "$1" in
+        yes|1)  echo 1 ;;
+        *)      echo 0 ;;
+        esac
+}
 
 # Figure out address familiy
 FAMILY="4"
@@ -70,6 +77,29 @@ if [ ${PHASE} = "create" -a ! "${IF_TUNNEL_LOCAL}" -a "${IF_TUNNEL_LOCAL_DEV}" ]
 fi
 
 
+# Handle boolean switches
+MORE_PARAMS=""
+if [ "${IF_TUNNEL_IGNORE_DF}" ]; then
+	if $(yesno "${IF_TUNNEL_IGNORE_DF}"); then
+		MORE_PARAMS="ignore-df"
+	else
+		MORE_PARAMS="noignore-df"
+	fi
+
+	unset IF_TUNNEL_IGNORE_DF
+fi
+
+if [ "${IF_TUNNEL_PMTUDISC}" ]; then
+	if $(yesno "${IF_TUNNEL_PMTUDISC}"); then
+		MORE_PARAMS="pmtudisc"
+	else
+		MORE_PARAMS="nopmtudisc"
+	fi
+
+	unset IF_TUNNEL_PMTUDISC
+fi
+
+
 # Mangle residual IF_TUNNEL_* params into single string
 PARAMS=$(set | sed -E '
 	s/^IF_TUNNEL_([A-Z0-9_]+)=(.+)/\1\n\2/
@@ -87,7 +117,7 @@ PARAMS=$(set | sed -E '
 
 case "$PHASE" in
 create)
-	${MOCK} eval ip -$FAMILY $OBJECT add $IFACE $TYPE_KW $TUNNEL_MODE $PARAMS
+	${MOCK} eval ip -$FAMILY $OBJECT add $IFACE $TYPE_KW $TUNNEL_MODE $PARAMS $MORE_PARAMS
 	;;
 destroy)
 	${MOCK} ip -$FAMILY $OBJECT del $IFACE
