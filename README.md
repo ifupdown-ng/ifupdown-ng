@@ -46,4 +46,4 @@ the documentation requires scdoc (`apk add scdoc` / `apt install scdoc`).
 
 ## Discussion
 
-Discuss ifupdown-ng on IRC: irc.as7007.net #ifupdown-ng
+Discuss ifupdown-ng on IRC: irc.oftc.net #ifupdown-ng
