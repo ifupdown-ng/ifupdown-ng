@@ -18,6 +18,15 @@ allow to set up Wireguard VPN tunnels.
 	used. In the latter case _use wireguard_ has to be explicitly
 	set to the interface configuration.
 
+	Be aware that the given configuration file will be loaded using
+	*wg setconf* and not with *wg-quick*.  The file format for both
+	tools isn't compatible so you have to make sure you provide a
+	valid configuration file for the *wg* tool.  If you already have
+	a configuration file for *wg-quick* you can set up the tunnel
+	manually once and then dump the configuration using *wg showconf*
+	and save this to _path_.
+
+
 # EXAMPLES
 
 A Wireguard VPN tunnel with explicit configuration file specified
