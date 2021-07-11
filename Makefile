@@ -119,6 +119,8 @@ EXECUTOR_SCRIPTS ?= ${EXECUTOR_SCRIPTS_CORE} ${EXECUTOR_SCRIPTS_OPT}
 
 EXECUTOR_SCRIPTS_STUB ?=
 
+EXECUTOR_SCRIPTS_NATIVE ?=
+
 TARGET_LIBS = ${LIBIFUPDOWN_LIB}
 LIBS += ${TARGET_LIBS} ${LIBBSD_LIBS}
 
@@ -152,6 +154,9 @@ install: all
 	done
 	for i in ${EXECUTOR_SCRIPTS_STUB}; do \
 		install -D -m755 executor-scripts/stub/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
+	done
+	for i in ${EXECUTOR_SCRIPTS_NATIVE}; do \
+		install -D -m755 executor-scripts/${LAYOUT}-native/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
 	done
 	install -D -m644 dist/ifupdown-ng.conf.example ${DESTDIR}${CONFIG_FILE}.example
 
