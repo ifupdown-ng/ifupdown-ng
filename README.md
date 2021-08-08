@@ -39,7 +39,7 @@ On glibc systems, you must install `libbsd-dev` or equivalent and additionally d
     make LIBBSD_CFLAGS="$(pkg-config --cflags libbsd-overlay)" LIBBSD_LIBS="$(pkg-config --cflags --libs libbsd-overlay)"
     make install
 
-To run the tests, do `make check`. Running the checks requires `kyua` (`apk add kyua`, not packaged for Debian).
+To run the tests, do `make check`. Running the checks requires `kyua` (`apk add kyua` / `apt install kyua`).
 
 To build the documentation, do `make docs` and `make install_docs`.  Building
 the documentation requires scdoc (`apk add scdoc` / `apt install scdoc`).
