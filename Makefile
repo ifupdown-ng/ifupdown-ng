@@ -14,7 +14,8 @@ CONFIG_FILE := /etc/network/ifupdown-ng.conf
 EXECUTOR_PATH := /usr/libexec/ifupdown-ng
 
 CFLAGS ?= -ggdb3 -Os
-CFLAGS += -Wall -Wextra
+CFLAGS += -Wall -Wextra -Werror
+CFLAGS += -Wmissing-declarations -Wmissing-prototypes -Wcast-align -Wpointer-arith -Wreturn-type
 CFLAGS += ${LIBBSD_CFLAGS}
 CPPFLAGS = -I.
 CPPFLAGS += -DINTERFACES_FILE=\"${INTERFACES_FILE}\"
