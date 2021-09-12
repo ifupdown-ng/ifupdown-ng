@@ -17,6 +17,7 @@
 #define LIBIFUPDOWN__COMPAT_H
 
 #include "libifupdown/config-file.h"
+#include "libifupdown/dict.h"
 
 extern bool lif_compat_apply (struct lif_dict *collection);
 
