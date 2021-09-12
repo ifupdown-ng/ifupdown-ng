@@ -15,11 +15,14 @@
  */
 
 #include <ctype.h>
+#include <dirent.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <dirent.h>
-#include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include "libifupdown/libifupdown.h"
 
 /* internally rewrite problematic ifupdown2 tokens to ifupdown-ng equivalents */
@@ -405,11 +408,27 @@ handle_source_directory(struct lif_interface_file_parse_state *state, char *toke
 	struct dirent *dirent_p;
 	for (dirent_p = readdir(source_dir); dirent_p != NULL; dirent_p = readdir(source_dir))
 	{
-		if (dirent_p->d_type != DT_REG)
+		/* We only care for regular files and symlinks */
+		if (dirent_p->d_type != DT_REG && dirent_p->d_type != DT_LNK)
 			continue;
 
 		char pathbuf[4096];
 		snprintf(pathbuf, sizeof pathbuf, "%s/%s", source_directory, dirent_p->d_name);
+
+		/* Check if symlink points to a file */
+		if (dirent_p->d_type == DT_LNK)
+		{
+			struct stat sb;
+			if (stat(pathbuf, &sb) != 0) {
+				report_error(state, "failed to stat '%s' (%s), ignoring file", pathbuf, strerror(errno));
+				/* Broken but not fatal */
+				continue;
+			}
+
+			/* Ignore dirent if it's not a link to a regular file */
+			if ((sb.st_mode & S_IFMT) != S_IFREG)
+				continue;
+		}
 
 		if (!lif_interface_file_parse(state, pathbuf))
 		{
