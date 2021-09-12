@@ -17,6 +17,7 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
+#include <libgen.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -497,17 +498,41 @@ lif_interface_file_parse(struct lif_interface_file_parse_state *state, const cha
 		return true;
 	}
 
-	FILE *f = fopen(filename, "r");
+	/*
+	 * When sourcing files or directories, if a path doesn't have a leading slash, it's
+	 * considered relative to the directory containing the file in which the keyword is
+	 * placed.  In the example above, if the file is located at /etc/network/interfaces,
+	 * paths to the included files are understood to be under /etc/network.
+	 */
+	char *filepath = (char *) filename;
+	if (filename[0] != '/') {
+		filepath = calloc (4096, 1);
+		if (! filepath) {
+			report_error(state, "failed to allocate memory for 'source' file path");
+			/* Bad but not fatal */
+			return true;
+		}
+
+		const char *dirpath = dirname(strdup(state->cur_filename));
+		if (dirpath == NULL) {
+			report_error(state, "failed to allocate memory for dir path");
+			/* Bad but not fatal */
+			return true;
+		}
+		snprintf(filepath, 4096, "%s/%s", dirpath, filename);
+	}
+
+	FILE *f = fopen(filepath, "r");
 	if (f == NULL)
 		return false;
 
 	const char *old_filename = state->cur_filename;
-	state->cur_filename = filename;
+	state->cur_filename = filepath;
 
 	size_t old_lineno = state->cur_lineno;
 	state->cur_lineno = 0;
 
-	lif_dict_add(&state->loaded, filename, NULL);
+	lif_dict_add(&state->loaded, filepath, NULL);
 
 	char linebuf[4096];
 	while (lif_fgetline(linebuf, sizeof linebuf, f) != NULL)
