@@ -1,8 +1,8 @@
 /*
- * libifupdown/compat.h
- * Purpose: compatiblity glue to other implementations
+ * cmd/ifctrstat-linux.c
+ * Purpose: Implement ifctrstat system-specific routines for Linux
  *
- * Copyright (c) 2020 Maximilian Wilhelm <max@sdn.clinic>
+ * Copyright (c) 2021 Maximilian Wilhelm <max@sdn.clinic>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,12 +13,10 @@
  * from the use of this software.
  */
 
-#ifndef LIBIFUPDOWN__COMPAT_H
-#define LIBIFUPDOWN__COMPAT_H
 
-#include "libifupdown/config-file.h"
-#include "libifupdown/dict.h"
+#ifndef IFUPDOWN_IFCTRSTAT_LINUX__H__GUARD
+#define IFUPDOWN_IFCTRSTAT_LINUX__H__GUARD
 
-extern bool lif_compat_apply (struct lif_dict *collection);
+extern const char * read_counter(const char *interface, const char *counter);
 
 #endif

@@ -114,7 +114,7 @@ query_dependents_from_executors(const struct lif_execute_opts *opts, char *const
 	return true;
 }
 
-bool
+static bool
 append_to_buffer(char **buffer, size_t *buffer_len, char **end, const char *value)
 {
 	size_t value_len = strlen (value);

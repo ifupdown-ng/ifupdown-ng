@@ -17,7 +17,8 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
-#include "multicall.h"
+#include "cmd/multicall.h"
+#include "cmd/ifctrstat-linux.h"
 
 struct counter_desc {
 	const char *name;
@@ -41,7 +42,7 @@ counter_compare(const void *key, const void *candidate)
 	return strcasecmp((const char *)key, ((struct counter_desc *)candidate)->name);
 }
 
-char *
+const char *
 read_counter(const char *interface, const char *counter)
 {
 	FILE *fp;

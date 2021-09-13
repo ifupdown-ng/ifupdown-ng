@@ -22,7 +22,7 @@
 #include "cmd/multicall.h"
 #include "cmd/pretty-print-iface.h"
 
-void
+static void
 print_interface_dot(struct lif_dict *collection, struct lif_interface *iface, struct lif_interface *parent)
 {
 	if (!lif_lifecycle_query_dependents(&exec_opts, iface, iface->ifname))
@@ -57,7 +57,7 @@ print_interface_dot(struct lif_dict *collection, struct lif_interface *iface, st
 	}
 }
 
-void
+static void
 print_interface_property(struct lif_interface *iface, const char *property)
 {
 	struct lif_node *iter;
@@ -83,7 +83,7 @@ print_interface_property(struct lif_interface *iface, const char *property)
 	}
 }
 
-void
+static void
 list_interfaces(struct lif_dict *collection, struct match_options *opts)
 {
 	struct lif_node *iter;
@@ -126,7 +126,7 @@ list_interfaces(struct lif_dict *collection, struct match_options *opts)
 static bool listing = false, listing_stat = false, listing_running = false;
 static bool allow_undefined = false;
 
-void
+static void
 list_state(struct lif_dict *state, struct match_options *opts)
 {
 	struct lif_node *iter;
@@ -217,7 +217,7 @@ static struct if_option_group local_option_group = {
 	.group = local_options
 };
 
-int
+static int
 ifquery_main(int argc, char *argv[])
 {
 	struct lif_dict state = {};

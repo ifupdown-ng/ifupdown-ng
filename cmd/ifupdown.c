@@ -27,7 +27,7 @@
 
 static bool up;
 
-bool
+static bool
 is_ifdown()
 {
 	if (strstr(argv0, "ifdown") != NULL)
@@ -36,7 +36,7 @@ is_ifdown()
 	return false;
 }
 
-int
+static int
 acquire_state_lock(const char *state_path, const char *lifname)
 {
 	if (exec_opts.mock || exec_opts.no_lock)
@@ -94,7 +94,7 @@ acquire_state_lock(const char *state_path, const char *lifname)
 	return fd;
 }
 
-bool
+static bool
 skip_interface(struct lif_interface *iface, const char *ifname, struct lif_dict *state, bool update_state)
 {
 	if (iface->is_template)
@@ -146,7 +146,7 @@ skip_interface(struct lif_interface *iface, const char *ifname, struct lif_dict 
 	return false;
 }
 
-bool
+static bool
 change_interface(struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *ifname, bool update_state)
 {
 	int lockfd = acquire_state_lock(exec_opts.state_file, ifname);
@@ -194,7 +194,7 @@ change_interface(struct lif_interface *iface, struct lif_dict *collection, struc
 	return true;
 }
 
-bool
+static bool
 change_auto_interfaces(struct lif_dict *collection, struct lif_dict *state, struct match_options *opts)
 {
 	struct lif_node *iter;
@@ -222,7 +222,7 @@ change_auto_interfaces(struct lif_dict *collection, struct lif_dict *state, stru
 	return true;
 }
 
-int
+static int
 update_state_file_and_exit(int rc, struct lif_dict *state)
 {
 	if (exec_opts.mock)
@@ -243,7 +243,7 @@ update_state_file_and_exit(int rc, struct lif_dict *state)
 	return rc;
 }
 
-int
+static int
 ifupdown_main(int argc, char *argv[])
 {
 	up = !is_ifdown();

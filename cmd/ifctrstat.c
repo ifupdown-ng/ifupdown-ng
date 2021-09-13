@@ -20,11 +20,10 @@
 #include <string.h>
 #include "libifupdown/libifupdown.h"
 #include "cmd/multicall.h"
+#include "cmd/ifctrstat-linux.h"
 
 extern struct counter_desc { const char *name; const void *data; } avail_counters[];
 extern int avail_counters_count;
-
-extern const char *read_counter(const char *interface, const char *counter);
 
 static bool show_label = true;
 
@@ -96,7 +95,7 @@ ifctrstat_set_nolabel(const char *opt_arg)
 	show_label = false;
 }
 
-int
+static int
 ifctrstat_main(int argc, char *argv[])
 {
 	if (optind >= argc)

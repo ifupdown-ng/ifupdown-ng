@@ -131,7 +131,7 @@ pp_impl_cmp(const void *a, const void *b)
 	return strcmp(key, impl->name);
 }
 
-int
+static int
 ifparse_main(int argc, char *argv[])
 {
 	struct lif_dict state = {};

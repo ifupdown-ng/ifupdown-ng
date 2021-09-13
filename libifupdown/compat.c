@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include "libifupdown/compat.h"
 #include "libifupdown/config-file.h"
 #include "libifupdown/dict.h"
 #include "libifupdown/interface.h"
@@ -102,7 +103,7 @@ compat_ifupdown2_bridge_ports_inherit_vlans(struct lif_dict *collection)
 	return true;
 }
 
-extern bool
+bool
 lif_compat_apply(struct lif_dict *collection)
 {
 	if (lif_config.compat_ifupdown2_bridge_ports_inherit_vlans &&

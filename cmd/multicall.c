@@ -62,7 +62,7 @@ struct if_applet *applet_table[] = {
 	&ifupdown_applet,
 };
 
-int
+static int
 applet_cmp(const void *a, const void *b)
 {
 	const char *key = a;
@@ -101,7 +101,7 @@ main(int argc, char *argv[])
 	return self_applet->main(argc, argv);
 }
 
-int
+static int
 multicall_main(int argc, char *argv[])
 {
 	if (argc < 2)
