@@ -27,6 +27,7 @@ struct lif_execute_opts {
 	const char *executor_path;
 	const char *interfaces_file;
 	const char *state_file;
+	int timeout;
 };
 
 extern bool lif_execute_fmt(const struct lif_execute_opts *opts, char *const envp[], const char *fmt, ...);

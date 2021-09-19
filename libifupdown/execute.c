@@ -30,6 +30,31 @@
 
 #define SHELL	"/bin/sh"
 
+/* TODO: Add support for Linux process descriptors once it is okay to require
+ * Linux 5.3 or newer.
+ */
+static inline bool
+lif_process_monitor(const char *cmdbuf, pid_t child, int timeout_sec)
+{
+	int status;
+	int ticks = 0;
+
+	while (ticks < timeout_sec)
+	{
+		if (waitpid(child, &status, WNOHANG) == child)
+			return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+
+		sleep(1);
+		ticks++;
+	}
+
+	fprintf(stderr, "execution of '%s': timeout after %d seconds\n", cmdbuf, timeout_sec);
+	kill(child, SIGKILL);
+	waitpid(child, &status, 0);
+
+	return false;
+}
+
 bool
 lif_execute_fmt(const struct lif_execute_opts *opts, char *const envp[], const char *fmt, ...)
 {
@@ -55,10 +80,7 @@ lif_execute_fmt(const struct lif_execute_opts *opts, char *const envp[], const c
 		return false;
 	}
 
-	int status;
-	waitpid(child, &status, 0);
-
-	return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+	return lif_process_monitor(cmdbuf, child, opts->timeout);
 }
 
 bool
@@ -118,11 +140,8 @@ lif_execute_fmt_with_result(const struct lif_execute_opts *opts, char *buf, size
 		return false;
 	}
 
-	int status;
 no_result:
-	waitpid(child, &status, 0);
-
-	return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+	return lif_process_monitor(cmdbuf, child, opts->timeout);
 }
 
 bool

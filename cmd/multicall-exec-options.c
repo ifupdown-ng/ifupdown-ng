@@ -21,10 +21,13 @@
 #include <getopt.h>
 #include "cmd/multicall.h"
 
+#define DEFAULT_TIMEOUT		300
+
 struct lif_execute_opts exec_opts = {
 	.interfaces_file = INTERFACES_FILE,
 	.executor_path = EXECUTOR_PATH,
-	.state_file = STATE_FILE
+	.state_file = STATE_FILE,
+	.timeout = DEFAULT_TIMEOUT,
 };
 
 static void
@@ -74,6 +77,14 @@ set_force(const char *opt_arg)
 	exec_opts.force = true;
 }
 
+static void
+set_timeout(const char *opt_arg)
+{
+	exec_opts.timeout = atoi(opt_arg);
+	if (exec_opts.timeout < 0)
+		exec_opts.timeout = DEFAULT_TIMEOUT;
+}
+
 static struct if_option exec_options[] = {
 	{'f', "force", NULL, "force (de)configuration", false, set_force},
 	{'i', "interfaces", "interfaces FILE", "use FILE for interface definitions", true, set_interfaces_file},
@@ -82,6 +93,7 @@ static struct if_option exec_options[] = {
 	{'v', "verbose", NULL, "show what commands are being run", false, set_verbose},
 	{'E', "executor-path", "executor-path PATH", "use PATH for executor directory", true, set_executor_path},
 	{'S', "state-file", "state-file FILE", "use FILE for state", true, set_state_file},
+	{'T', "timeout", "timeout TIMEOUT", "wait TIMEOUT seconds for executors to complete", true, set_timeout},
 };
 
 struct if_option_group exec_option_group = {

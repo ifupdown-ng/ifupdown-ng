@@ -94,7 +94,8 @@ query_dependents_from_executors(const struct lif_execute_opts *opts, char *const
 		struct lif_execute_opts exec_opts = {
 			.verbose = opts->verbose,
 			.executor_path = opts->executor_path,
-			.interfaces_file = opts->interfaces_file
+			.interfaces_file = opts->interfaces_file,
+			.timeout = opts->timeout,
 		};
 
 		if (strcmp(entry->key, "use"))
