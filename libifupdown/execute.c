@@ -40,7 +40,7 @@ lif_process_monitor_busyloop(pid_t child, int timeout_sec, int *status)
 {
 	int ticks = 0;
 
-	while (ticks < timeout_sec * 10)
+	while (ticks < timeout_sec * 20)
 	{
 		/* Ugly hack: most executors finish very quickly,
 		 * so give them a chance to finish before sleeping.
@@ -50,7 +50,7 @@ lif_process_monitor_busyloop(pid_t child, int timeout_sec, int *status)
 		if (waitpid(child, status, WNOHANG) == child)
 			return true;
 
-		usleep(99950);
+		usleep(49950);
 		ticks++;
 	}
 
