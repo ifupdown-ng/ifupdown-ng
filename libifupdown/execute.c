@@ -30,23 +30,78 @@
 
 #define SHELL	"/bin/sh"
 
-/* TODO: Add support for Linux process descriptors once it is okay to require
- * Linux 5.3 or newer.
- */
+#if defined(__linux__)
+# include <sys/syscall.h>
+#endif
+
+/* POSIX compatible fallback using waitpid(2) and usleep(3) */
+static inline bool
+lif_process_monitor_busyloop(pid_t child, int timeout_sec, int *status)
+{
+	int ticks = 0;
+
+	while (ticks < timeout_sec * 10)
+	{
+		/* Ugly hack: most executors finish very quickly,
+		 * so give them a chance to finish before sleeping.
+		 */
+		usleep(50);
+
+		if (waitpid(child, status, WNOHANG) == child)
+			return true;
+
+		usleep(99950);
+		ticks++;
+	}
+
+	return false;
+}
+
+#if defined(__linux__) && defined(__NR_pidfd_open)
+
+/* TODO: remove this wrapper once musl and glibc gain pidfd_open() directly. */
+static inline int
+lif_pidfd_open(pid_t pid, unsigned int flags)
+{
+	return syscall(__NR_pidfd_open, pid, flags);
+}
+
+static inline bool
+lif_process_monitor_procdesc(pid_t child, int timeout_sec, int *status)
+{
+	int pidfd = lif_pidfd_open(child, 0);
+
+	/* pidfd_open() not available, fall back to busyloop */
+	if (pidfd == -1 && errno == ENOSYS)
+		return lif_process_monitor_busyloop(child, timeout_sec, status);
+
+	struct pollfd pfd = {
+		.fd = pidfd,
+		.events = POLLIN,
+	};
+
+	if (poll(&pfd, 1, timeout_sec * 1000) < 1)
+		return false;
+
+	waitpid(child, status, 0);
+	close(pidfd);
+	return true;
+}
+
+#endif
+
 static inline bool
 lif_process_monitor(const char *cmdbuf, pid_t child, int timeout_sec)
 {
 	int status;
-	int ticks = 0;
 
-	while (ticks < timeout_sec)
-	{
-		if (waitpid(child, &status, WNOHANG) == child)
-			return WIFEXITED(status) && WEXITSTATUS(status) == 0;
-
-		sleep(1);
-		ticks++;
-	}
+#if defined(__linux__) && defined(__NR_pidfd_open)
+	if (lif_process_monitor_procdesc(child, timeout_sec, &status))
+		return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+#else
+	if (lif_process_monitor_busyloop(child, timeout_sec, &status))
+		return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+#endif
 
 	fprintf(stderr, "execution of '%s': timeout after %d seconds\n", cmdbuf, timeout_sec);
 	kill(child, SIGKILL);
