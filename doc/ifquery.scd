@@ -62,6 +62,10 @@ configuration file to the current format.
 *-S, --state-file* _FILE_
 	Use _FILE_ as the state database.
 
+*-T, --timeout* _TIMEOUT_
+	Wait up to _TIMEOUT_ seconds for executors to complete before
+	raising an error.
+
 *-V, --version*
 	Print the ifupdown-ng version and exit.
 
