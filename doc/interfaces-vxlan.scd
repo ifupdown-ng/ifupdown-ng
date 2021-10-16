@@ -32,7 +32,8 @@ other options are optional.
 
 *vxlan-physdev* _interface_
 	Specifies the physical ("underlay") device to use for tunnel
-	endpoint communication.
+	endpoint communication.  This is required for setups using
+	multicast.
 
 *vxlan-local-ip* _address_
 	Specifies the source IP address to use in outgoing packets.
@@ -53,11 +54,11 @@ other options are optional.
 	is an alias for this option, too.
 
 *vxlan-peer-group* _multicast group_
-	Specifies the multicast group IP address to join. This parameter
-	cannot be specified with the _vxlan-peer-ip_ parameter.
-	For compatibility with ifupdown2 _vxlan-svcnodeip_ is an alias for
-	this option and for compatibility with previos version of ifupdown-ng
-	_vxlan-remote-group_ is an alias, too.
+	Specifies the multicast group address to join, requires _vxlan-phsydev_
+	to be set as well.  This parameter cannot be specified in combination
+	with the _vxlan-peer-ips_ parameter.  For compatibility with ifupdown2
+	_vxlan-svcnodeip_ is an alias for this option and for compatibility
+	with previos version of ifupdown-ng _vxlan-remote-group_ is an alias, too.
 
 *vxlan-learning* _on/off_
 	Specifies if unknown source link layer addresses and IP addresses
