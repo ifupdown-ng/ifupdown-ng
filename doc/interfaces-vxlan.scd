@@ -39,19 +39,25 @@ other options are optional.
 	For compatiblity with ifupdown2 _vxlan-local-tunnelip_ is an
 	alias for this parameter.
 
-*vxlan-remote-ip* _address_
-	Specifies the unicast destination IP address to use in outgoing
+*vxlan-peer-ips* _list of IP addresses_
+	Specifies the unicast destination IP address(es) to use in outgoing
 	packets when the destination link layer address is not known in
-	the VXLAN device forwarding database. This parameter cannot be
-	specified with the _vxlan-remote-group_ parameter.
-	For compatiblity with ifupdown2 _vxlan-remoteip_ is an alias for
-	this parameter.
+	the VXLAN device forwarding database.  This option can be used to
+	form Point-to-Point as well as Point-to-Multipoint VXLAN tunnels/
+	overlays depending on how many peer IPs are given.  If more than one
+	IP address is given a Point-to-Multipoint overlay is being set up
+	and ingress / head-end replication will be used by the Linux Kernel.
+	This option cannot be used together with _vxlan-peer-group_ option.
+	For compatiblity with ifupdown2 _vxlan-remoteip_ is an alias for this option
+	and for compatibility with previos versions of ifupdown-ng _vxlan-remote-ip_
+	is an alias for this option, too.
 
-*vxlan-remote-group* _multicast group_
+*vxlan-peer-group* _multicast group_
 	Specifies the multicast group IP address to join. This parameter
-	cannot be specified with the _vxlan-remote-ip_ parameter.
+	cannot be specified with the _vxlan-peer-ip_ parameter.
 	For compatibility with ifupdown2 _vxlan-svcnodeip_ is an alias for
-	this parameter.
+	this option and for compatibility with previos version of ifupdown-ng
+	_vxlan-remote-group_ is an alias, too.
 
 *vxlan-learning* _on/off_
 	Specifies if unknown source link layer addresses and IP addresses
@@ -79,20 +85,44 @@ iface vx_v1001_padcty
 	mtu 1560
 ```
 
+The same works just fine with IPv6 in the underlay:
+
+```
+auto vx_v1400_padcty
+iface vx_v1400_padcty
+        vxlan-id           917505
+        vxlan-physdev      vlan1400
+        vxlan-peer-group   ff42:1400::1
+        #
+        hwaddress f2:00:0d:01:14:00
+        mtu 1560
+```
+
 Note that the underlay must have an MTU of at least 1610 to
-carry the encapsulated packets.
+carry the encapsulated packets of the two VTEPs above.
 
 
-A VTEP with one peer (point-to-point configuration):
+A VTEP with one peer (unicast point-to-point configuration):
 
 ```
 auto vx_ptp1
 iface vx_ptp1
 	vxlan-id        2342
 	vxlan-local-ip  192.0.2.42
-	vxlan-remote-ip 198.51.100.23
+	vxlan-peer-ips  198.51.100.23
 	#
 	hwaddress f2:00:c1:01:10:01
+```
+
+
+A VTEP with multiple peers (unicast point-to-multipoint with ingress / head-end replication):
+
+```
+auto vx_her
+iface vx_her
+	vxlan-id	1337
+	vxlan-local-ip	2001:db8:1::1
+	vxlan-peer-ips  2001:db8:2::23 2001:db8:3::42 2001:db8:4::84
 ```
 
 # AUTHORS

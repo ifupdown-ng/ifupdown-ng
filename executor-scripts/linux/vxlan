@@ -10,8 +10,8 @@
 # IF_VXLAN_ID		The VXLAN Network Identifier (VNI)
 # IF_VXLAN_PHYSDEV	Specifies the physical device to use for tunnel endpoint communication
 # IF_VXLAN_LOCAL_IP	Specifies the source IP address to use in outgoing packets
-# IF_VXLAN_REMOTE_IP	IP of the remote VTEP endpoint (for ptp mode)
-# IF_VXLAN_REMOTE_GROUP	Multicast group to use for this VNI (for ptmp mode)
+# IF_VXLAN_PEER_IPS	Space separated list of IPs of the remote VTEP endpoint (for ptp/ptmp mode with ingress replication)
+# IF_VXLAN_PEER_GROUP	Multicast group to use for this VNI (for ptmp mode with multicast)
 # IF_VXLAN_LEARNING	Wether to activate MAC learning on this instance (on/off)
 # IF_VXLAN_AGEING	Specifies the lifetime in seconds of FDB entries learnt by the kernel
 # IF_VXLAN_DSTPORT	UDP destination port to communicate to the remote VXLAN tunnel endpoint (default 4789)
@@ -36,17 +36,27 @@ case "$PHASE" in
 		fi
 
 		# Input validation
-		if [ "${IF_VXLAN_REMOTE_IP}" -a "${IF_VXLAN_REMOTE_GROUP}" ]; then
-			echo "Error on ${IFACE} (vxlan): Only one of 'remote' and 'group' can be given!" >&2
+		if [ "${IF_VXLAN_PEER_IPS}" -a "${IF_VXLAN_PEER_GROUP}" ]; then
+			echo "Error on ${IFACE} (vxlan): Only one of 'vxlan-peer-ips' and 'vxlan-peer-group' can be used!" >&2
 			exit 1
+		fi
+
+		# Check if we should operate in unicast ptp or ptmp mode
+		if [ "${IF_VXLAN_PEER_IPS}" ]; then
+			# If it's only one thing which looks like an IPv4/IPv6 address we assume it's ptp
+			if echo "${IF_VXLAN_PEER_IPS}" | grep -q '^[[:space:]]*[[:xdigit:].:]\+[[:space:]]*$'; then
+				UCAST_MODE="ptp"
+			else
+				UCAST_MODE="ptmp"
+			fi
 		fi
 
 		# Gather arguments
 		ARGS=""
 		[ "${IF_VXLAN_PHYSDEV}" ] && ARGS="${ARGS} dev ${IF_VXLAN_PHYSDEV}"
 		[ "${IF_VXLAN_LOCAL_IP}" ] && ARGS="${ARGS} local ${IF_VXLAN_LOCAL_IP}"
-		[ "${IF_VXLAN_REMOTE_IP}" ] && ARGS="${ARGS} remote ${IF_VXLAN_REMOTE_IP}"
-		[ "${IF_VXLAN_REMOTE_GROUP}" ] && ARGS="${ARGS} group ${IF_VXLAN_REMOTE_GROUP}"
+		[ "${UCAST_MODE}" = "ptp" ] && ARGS="${ARGS} remote ${IF_VXLAN_PEER_IPS}"
+		[ "${IF_VXLAN_PEER_GROUP}" ] && ARGS="${ARGS} group ${IF_VXLAN_PEER_GROUP}"
 		[ "${IF_VXLAN_AGEING}" ] && ARGS="${ARGS} ageing ${IF_VXLAN_AGEING}"
 
 		# Linux uses non-standard default port - WTF?
@@ -67,6 +77,13 @@ case "$PHASE" in
 		esac
 
 		${MOCK} ip link add "${IFACE}" type vxlan id "${IF_VXLAN_ID}" ${ARGS}
+
+		# Set up FDB entries for peer VTEPs
+		if [ "${UCAST_MODE}" = "ptmp" ]; then
+			for peer in ${IF_VXLAN_PEER_IPS}; do
+				${MOCK} bridge fdb append 00:00:00:00:00:00 dev "${IFACE}" dst "${peer}" self permanent
+			done
+		fi
 		;;
 
 	destroy)
