@@ -5,7 +5,8 @@ EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/vxlan"
 
 tests_init \
 	create_simple \
-	create_ucast \
+	create_ucast_ptp \
+	create_ucast_ptmp \
 	create_mcast \
 	create_physdev \
 	create_dstport \
@@ -18,14 +19,24 @@ create_simple_body() {
 		${EXECUTOR}
 }
 
-create_ucast_body() {
-	export IFACE=vx_foo PHASE=create MOCK=echo IF_VXLAN_ID=2342 IF_VXLAN_REMOTE_IP=192.2.0.42
+create_ucast_ptp_body() {
+	export IFACE=vx_foo PHASE=create MOCK=echo IF_VXLAN_ID=2342 IF_VXLAN_PEER_IPS=192.2.0.42
 	atf_check -s exit:0 -o match:'ip link add vx_foo type vxlan id 2342 remote 192.2.0.42' \
 		${EXECUTOR}
 }
 
+create_ucast_ptmp_body() {
+	export IFACE=vx_foo PHASE=create MOCK=echo IF_VXLAN_ID=2342 IF_VXLAN_PEER_IPS="10.0.0.1 10.0.0.2 10.0.0.3"
+	atf_check -s exit:0 \
+		-o match:'ip link add vx_foo type vxlan id 2342 dstport 4789' \
+		-o match:'bridge fdb append 00:00:00:00:00:00 dev vx_foo dst 10.0.0.1 self permanent' \
+		-o match:'bridge fdb append 00:00:00:00:00:00 dev vx_foo dst 10.0.0.2 self permanent' \
+		-o match:'bridge fdb append 00:00:00:00:00:00 dev vx_foo dst 10.0.0.3 self permanent' \
+		${EXECUTOR}
+}
+
 create_mcast_body() {
-	export IFACE=vx_foo PHASE=create MOCK=echo IF_VXLAN_ID=2342 IF_VXLAN_REMOTE_GROUP=225.0.8.15
+	export IFACE=vx_foo PHASE=create MOCK=echo IF_VXLAN_ID=2342 IF_VXLAN_PEER_GROUP=225.0.8.15
 	atf_check -s exit:0 -o match:'ip link add vx_foo type vxlan id 2342 group 225.0.8.15' \
 		${EXECUTOR}
 }

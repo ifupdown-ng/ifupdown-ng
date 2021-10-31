@@ -100,8 +100,10 @@ static const struct remap_token tokens[] = {
 	{"vendor", "dhcp-vendor"},			/* legacy ifupdown */
 	{"vrf", "vrf-member"},				/* ifupdown2 */
 	{"vxlan-local-tunnelip", "vxlan-local-ip"},	/* ifupdown2 */
-	{"vxlan-remoteip", "vxlan-remote-ip"},		/* ifupdown2 */
-	{"vxlan-svcnodeip", "vxlan-remote-group"},	/* ifupdown2 */
+	{"vxlan-remote-group", "vxlan-peer-group"},	/* ifupdown-ng */
+	{"vxlan-remoteip", "vxlan-peer-ips"},		/* ifupdown2 */
+	{"vxlan-remote-ip", "vxlan-peer-ips"},		/* ifupdown-ng */
+	{"vxlan-svcnodeip", "vxlan-peer-group"},	/* ifupdown2 */
 };
 
 static int
