@@ -79,7 +79,7 @@ stop_wpa_supplicant() {
 	[ -z "$IF_WIFI_CONFIG_PATH" ] && rm -- "$WIFI_CONFIG_PATH"
 
 	# If there is no PIDFILE, there is nothing we can do
-	[ ! -d "$PIDFILE" ] && return
+	[ ! -f "$PIDFILE" ] && return
 
 	pid=$(cat "$PIDFILE")
 	rm -- "$PIDFILE"
