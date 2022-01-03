@@ -7,6 +7,7 @@ PACKAGE_NAME := ifupdown-ng
 PACKAGE_VERSION := 0.11.3
 PACKAGE_BUGREPORT := https://github.com/ifupdown-ng/ifupdown-ng/issues/new
 
+SBINDIR := /sbin
 
 INTERFACES_FILE := /etc/network/interfaces
 STATE_FILE := /run/ifstate
@@ -146,9 +147,9 @@ check: ${LIBIFUPDOWN_LIB} ${CMDS}
 	kyua test || (kyua report --verbose && exit 1)
 
 install: all
-	install -D -m755 ${MULTICALL} ${DESTDIR}/sbin/${MULTICALL}
+	install -D -m755 ${MULTICALL} ${DESTDIR}${SBINDIR}/${MULTICALL}
 	for i in ${CMDS}; do \
-		ln -s /sbin/${MULTICALL} ${DESTDIR}/sbin/$$i; \
+		ln -s ${SBINDIR}/${MULTICALL} ${DESTDIR}${SBINDIR}/$$i; \
 	done
 	for i in ${EXECUTOR_SCRIPTS}; do \
 		install -D -m755 executor-scripts/${LAYOUT}/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
