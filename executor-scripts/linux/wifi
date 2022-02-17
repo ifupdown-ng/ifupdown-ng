@@ -47,7 +47,7 @@ generate_config() {
 	[ -z "$IF_WIFI_PSK" ] && die "wifi-psk not set"
 
 	# We use a pipeline here to avoid leaking PSK into the process name.
-	(echo $IF_WIFI_PSK | /sbin/wpa_passphrase $IF_WIFI_SSID) >$WIFI_CONFIG_PATH
+	(echo "$IF_WIFI_PSK" | /sbin/wpa_passphrase "$IF_WIFI_SSID") >$WIFI_CONFIG_PATH
 
 	[ ! -e "$WIFI_CONFIG_PATH" ] && die "failed to write temporary config: $WIFI_CONFIG_PATH"
 }
