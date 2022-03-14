@@ -66,20 +66,25 @@ handle_single_executor_for_phase(const struct lif_dict_entry *entry, const struc
 static bool
 handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp[], const struct lif_interface *iface, bool up, const char *phase)
 {
+	bool ret = true;
 	const struct lif_node *iter;
 
 	if (up)
 	{
-		LIF_DICT_FOREACH(iter, &iface->vars)
-			handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname);
+		LIF_DICT_FOREACH(iter, &iface->vars) {
+			if (!handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname))
+				ret = false;
+		}
 	}
 	else
 	{
-		LIF_DICT_FOREACH_REVERSE(iter, &iface->vars)
-			handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname);
+		LIF_DICT_FOREACH_REVERSE(iter, &iface->vars) {
+			if (!handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname))
+				ret = false;
+		}
 	}
 
-	return true;
+	return ret;
 }
 
 static bool
