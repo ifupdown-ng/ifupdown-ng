@@ -1,0 +1,11 @@
+#!/bin/sh
+[ -n "$VERBOSE" ] && set -x
+
+case "$PHASE" in
+create)
+	${MOCK} wg-quick up $IFACE
+	;;
+destroy)
+	${MOCK} wg-quick down $IFACE
+	;;
+esac
