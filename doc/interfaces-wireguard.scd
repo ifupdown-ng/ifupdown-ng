@@ -26,6 +26,10 @@ allow to set up Wireguard VPN tunnels.
 	manually once and then dump the configuration using *wg showconf*
 	and save this to _path_.
 
+*wireguard-quick*
+	Use this executor for rely on *wg-quick* instead and use working
+	*wg-quick* configurations.
+
 
 # EXAMPLES
 
@@ -49,6 +53,14 @@ iface wg-bar
 	#
 	address 192.0.2.23/42
 	address 2001:db8::23/64
+```
+
+A Wireguard VPN tunnel with wg-quick:
+
+```
+auto wg-bar
+iface wg-bar
+	use wireguard-quick
 ```
 
 # AUTHORS

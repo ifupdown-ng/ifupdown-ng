@@ -115,7 +115,8 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	vrf \
 	vxlan \
 	wifi \
-	wireguard
+	wireguard \
+	wireguard-quick
 
 EXECUTOR_SCRIPTS ?= ${EXECUTOR_SCRIPTS_CORE} ${EXECUTOR_SCRIPTS_OPT}
 
