@@ -43,24 +43,8 @@ extern struct if_applet ifparse_applet;
 struct if_applet ifupdown_applet;
 const struct if_applet *self_applet = NULL;
 
-struct if_applet *applet_table[] = {
-#ifdef CONFIG_IFCTRSTAT
-	&ifctrstat_applet,
-#endif
-#ifdef CONFIG_IFUPDOWN
-	&ifdown_applet,
-#endif
-#ifdef CONFIG_IFPARSE
-	&ifparse_applet,
-#endif
-#ifdef CONFIG_IFQUERY
-	&ifquery_applet,
-#endif
-#ifdef CONFIG_IFUPDOWN
-	&ifup_applet,
-#endif
-	&ifupdown_applet,
-};
+static struct if_applet **applet_table = NULL;
+static size_t applet_count = 0;
 
 static int
 applet_cmp(const void *a, const void *b)
@@ -69,6 +53,25 @@ applet_cmp(const void *a, const void *b)
 	const struct if_applet *applet = *(void **)b;
 
 	return strcmp(key, applet->name);
+}
+
+static int
+applet_scmp(const void *a, const void *b)
+{
+	const struct if_applet *key = *(void **)a;
+	const struct if_applet *applet = *(void **)b;
+
+	return strcmp(key->name, applet->name);
+}
+
+void
+applet_register(struct if_applet *applet)
+{
+	++applet_count;
+	applet_table = reallocarray(applet_table, applet_count, sizeof (void *));
+	applet_table[applet_count - 1] = applet;
+
+	qsort(applet_table, applet_count, sizeof (void *), applet_scmp);
 }
 
 void multicall_usage(int status) __attribute__((noreturn));
@@ -84,7 +87,7 @@ main(int argc, char *argv[])
 	lif_config_load(CONFIG_FILE);
 
 	app = bsearch(argv0, applet_table,
-		      ARRAY_SIZE(applet_table), sizeof(*applet_table),
+		      applet_count, sizeof (void *),
 		      applet_cmp);
 
 	if (app == NULL)
@@ -119,7 +122,7 @@ multicall_usage(int status)
 		"\n"
 		"Built-in applets:\n");
 
-	for (size_t i = 0; i < ARRAY_SIZE(applet_table); i++)
+	for (size_t i = 0; i < applet_count; i++)
 	{
 		if (applet_table[i] == &ifupdown_applet)
 			continue;
