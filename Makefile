@@ -59,7 +59,6 @@ CONFIG_IFUPDOWN ?= Y
 IFUPDOWN_SRC = cmd/ifupdown.c
 MULTICALL_${CONFIG_IFUPDOWN}_OBJ += ${IFUPDOWN_SRC:.c=.o}
 CMDS_${CONFIG_IFUPDOWN} += ifup ifdown
-CPPFLAGS_${CONFIG_IFUPDOWN} += -DCONFIG_IFUPDOWN
 
 # enable ifquery applet (+4 KB)
 # [+20 KB without ifup/ifdown]
@@ -67,21 +66,18 @@ CONFIG_IFQUERY ?= Y
 IFQUERY_SRC = cmd/ifquery.c
 MULTICALL_${CONFIG_IFQUERY}_OBJ += ${IFQUERY_SRC:.c=.o}
 CMDS_${CONFIG_IFQUERY} += ifquery
-CPPFLAGS_${CONFIG_IFQUERY} += -DCONFIG_IFQUERY
 
 # enable ifctrstat applet (+1 KB)
 CONFIG_IFCTRSTAT ?= Y
 IFCTRSTAT_SRC = cmd/ifctrstat.c cmd/ifctrstat-${LAYOUT}.c
 MULTICALL_${CONFIG_IFCTRSTAT}_OBJ += ${IFCTRSTAT_SRC:.c=.o}
 CMDS_${CONFIG_IFCTRSTAT} += ifctrstat
-CPPFLAGS_${CONFIG_IFCTRSTAT} += -DCONFIG_IFCTRSTAT
 
 # enable ifparse applet (+1 KB)
 CONFIG_IFPARSE ?= Y
 IFPARSE_SRC = cmd/ifparse.c
 MULTICALL_${CONFIG_IFPARSE}_OBJ += ${IFPARSE_SRC:.c=.o}
 CMDS_${CONFIG_IFPARSE} += ifparse
-CPPFLAGS_${CONFIG_IFPARSE} += -DCONFIG_IFPARSE
 
 # enable YAML support (+2 KB)
 CONFIG_YAML ?= Y
