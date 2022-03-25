@@ -4,7 +4,7 @@ LIBBSD_CFLAGS =
 LIBBSD_LIBS =
 
 PACKAGE_NAME := ifupdown-ng
-PACKAGE_VERSION := 0.11.3
+PACKAGE_VERSION := 0.12.0
 PACKAGE_BUGREPORT := https://github.com/ifupdown-ng/ifupdown-ng/issues/new
 
 SBINDIR := /sbin
