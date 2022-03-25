@@ -51,6 +51,10 @@ iface wg-bar
 	address 2001:db8::23/64
 ```
 
+# SEE ALSO
+
+*interfaces-wireguard-quick*(5)
+
 # AUTHORS
 
 Maximilian Wilhelm <max@sdn.clinic>
