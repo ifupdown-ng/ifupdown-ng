@@ -23,23 +23,6 @@
 
 char *argv0;
 
-#ifdef CONFIG_IFQUERY
-extern struct if_applet ifquery_applet;
-#endif
-
-#ifdef CONFIG_IFUPDOWN
-extern struct if_applet ifup_applet;
-extern struct if_applet ifdown_applet;
-#endif
-
-#ifdef CONFIG_IFCTRSTAT
-extern struct if_applet ifctrstat_applet;
-#endif
-
-#ifdef CONFIG_IFPARSE
-extern struct if_applet ifparse_applet;
-#endif
-
 struct if_applet ifupdown_applet;
 const struct if_applet *self_applet = NULL;
 
