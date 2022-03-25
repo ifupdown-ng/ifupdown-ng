@@ -309,3 +309,4 @@ struct if_applet ifquery_applet = {
 	.manpage = "8 ifquery",
 	.groups = { &global_option_group, &match_option_group, &exec_option_group, &local_option_group },
 };
+APPLET_REGISTER(ifquery_applet)
