@@ -69,6 +69,11 @@ extern struct if_option_group match_option_group;
 extern struct lif_execute_opts exec_opts;
 extern struct if_option_group exec_option_group;
 
+extern void applet_register(struct if_applet *applet);
+
 void generic_usage(const struct if_applet *applet, int result);
+
+#define APPLET_REGISTER(x) \
+__attribute__((constructor)) static void __register_##x(void) { applet_register(&x); }
 
 #endif
