@@ -157,3 +157,4 @@ struct if_applet ifctrstat_applet = {
 	.manpage = "8 ifctrstat",
 	.groups = { &global_option_group, &local_option_group, NULL }
 };
+APPLET_REGISTER(ifctrstat_applet)

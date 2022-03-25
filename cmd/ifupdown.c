@@ -341,6 +341,7 @@ struct if_applet ifup_applet = {
 	.manpage = "8 ifup",
 	.groups = { &global_option_group, &match_option_group, &exec_option_group, },
 };
+APPLET_REGISTER(ifup_applet)
 
 struct if_applet ifdown_applet = {
 	.name = "ifdown",
@@ -350,3 +351,4 @@ struct if_applet ifdown_applet = {
 	.manpage = "8 ifdown",
 	.groups = { &global_option_group, &match_option_group, &exec_option_group, },
 };
+APPLET_REGISTER(ifdown_applet)

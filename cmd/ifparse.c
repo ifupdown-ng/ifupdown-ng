@@ -222,3 +222,4 @@ struct if_applet ifparse_applet = {
 	.manpage = "8 ifparse",
 	.groups = { &global_option_group, &match_option_group, &exec_option_group, &local_option_group },
 };
+APPLET_REGISTER(ifparse_applet)

@@ -138,3 +138,5 @@ struct if_applet ifupdown_applet = {
 	.main = multicall_main,
 	.groups = { &global_option_group, NULL }
 };
+
+APPLET_REGISTER(ifupdown_applet)
