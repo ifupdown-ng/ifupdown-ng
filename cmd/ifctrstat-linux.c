@@ -13,6 +13,7 @@
  * from the use of this software.
  */
 
+#define _GNU_SOURCE
 #include <errno.h>
 #include <limits.h>
 #include <stdio.h>
@@ -47,7 +48,7 @@ read_counter(const char *interface, const char *counter)
 {
 	FILE *fp;
 	const char *path;
-	char full_path[PATH_MAX];
+	char *full_path;
 	char buffer[1024];
 	size_t in_count;
 	struct counter_desc *ctrdata;
@@ -62,9 +63,8 @@ read_counter(const char *interface, const char *counter)
 		return NULL;
 	}
 
-	if (snprintf(full_path, PATH_MAX, "/sys/class/net/%s/statistics/%s", interface, path) > PATH_MAX)
+	if (asprintf(&full_path, "/sys/class/net/%s/statistics/%s", interface, path) < 0)
 	{
-		errno = ENOMEM;
 		return NULL;
 	}
 
@@ -73,6 +73,9 @@ read_counter(const char *interface, const char *counter)
 	{
 		return NULL;
 	}
+
+	free(full_path);
+	full_path = NULL;
 
 	in_count = fread(buffer, 1, sizeof(buffer), fp);
 
