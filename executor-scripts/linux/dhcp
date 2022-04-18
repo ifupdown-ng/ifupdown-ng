@@ -62,6 +62,6 @@ impl=$(determine_implementation)
 
 case "$PHASE" in
 up) start $impl ;;
-down) stop $impl ;;
+down) stop $impl || true ;;
 *) ;;
 esac
