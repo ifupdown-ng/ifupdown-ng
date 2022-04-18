@@ -1,4 +1,10 @@
 #!/bin/sh
+
+if ! [ -x /etc/network/if-pre-up.d/bridge ] && [ -e /etc/alpine-release ]; then
+	echo 'bridge support requires "apk add bridge"' 1>&2
+	exit 1
+fi
+
 case "$PHASE" in
 depend)
 	if [ "$IF_BRIDGE_PORTS" != "none" ]; then
