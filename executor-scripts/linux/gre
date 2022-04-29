@@ -11,7 +11,7 @@ FAMILY="-4"
 PARAMS="mode $IF_GRE_MODE local '$IF_GRE_LOCAL'"
 [ -n "$IF_GRE_REMOTE"] && PARAMS="$PARAMS remote '$IF_GRE_REMOTE'"
 [ -n "$IF_GRE_TTL" ] && PARAMS="$PARAMS ttl '$IF_GRE_TTL'"
-[ -n "$IF_GRE_KEY" ] && PARAMS="$PARAMS ttl '$IF_GRE_KEY'"
+[ -n "$IF_GRE_KEY" ] && PARAMS="$PARAMS key '$IF_GRE_KEY'"
 [ -n "$IF_GRE_FLAGS" ] && PARAMS="$PARAMS $IF_GRE_FLAGS"
 
 [ -n "$PARAMS" ] || exit 0
