@@ -42,13 +42,11 @@ configure_addresses() {
 is_busybox() {                                                                   
         local a                                                                  
         for a in $(ls -l $(which ip)); do                                        
-                if [ -n "$(echo $a|grep busybox)" ]; then                        
+                if [ "$(echo $a|grep busybox)" == "busybox" ]; then                        
                         return 0                                                 
-                else                                                             
-                        continue                                                 
-                fi                                                               
-                return 1                                                         
-        done                                                                     
+                fi                                                                                                               
+        done
+	return 1
 }                                                                                
                                                                                  
 dad_wait() {                                                                     
