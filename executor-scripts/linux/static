@@ -39,10 +39,59 @@ configure_addresses() {
 	done
 }
 
+is_busybox() {                                                                   
+        local a                                                                  
+        for a in $(ls -l $(which ip)); do                                        
+                if [ -n "$(echo $a|grep busybox)" ]; then                        
+                        return 0                                                 
+                else                                                             
+                        continue                                                 
+                fi                                                               
+                return 1                                                         
+        done                                                                     
+}                                                                                
+                                                                                 
+dad_wait() {                                                                     
+        echo -ne "Waiting DAD from $1..."                                        
+        local c=0                                                                
+        local max=$1                                                             
+        if is_busybox; then                                                      
+                echo "W: IProute from busybox. Dad feature test is not supported. Using sleep method." >&2
+                sleep $1                                                                                  
+                return 0                                                                                  
+        fi                                                                                                
+        while true; do                                                                                    
+                sleep 1                                                                                   
+                c=$((${c}+1))                                                                             
+                local dad=$(ip  addr show dev $IFACE tentative|grep -c 'tentative')                       
+                if [[ "$dad" == "0" ]]; then                                                              
+                        echo -ne "OK\n"                                                                   
+                        return 0                                                                          
+                fi                                                                                        
+                                                                                                          
+                if [[ "$c" == "$max" ]]; then                                                             
+                        echo "DAD failed from $1\n"                                                       
+                        return 1                                                                          
+                fi                                                                                        
+        done                                                                                              
+                                                                                                          
+}                     
+
 configure_gateways() {
 	for gw in ${IF_GATEWAYS}; do
 		addrfam=$(addr_family ${gw})
-		${MOCK} ip "${addrfam}" route "${1}" default via "${gw}" ${VRF_TABLE} ${METRIC} dev "${IFACE}"
+		if [ "${addrfam}" == "-4" ]; then                                                         
+                        if [ -n "${IF_SOURCE4}" ]; then                                                   
+                                local SRC="src ${IF_SOURCE4}"                                             
+                        fi                                                         
+                elif [ "${addrfam}" == "-6" ]; then                                
+                        if [ -n "${IF_SOURCE6}" ]; then                            
+                                local SRC="src ${IF_SOURCE6}"                      
+                                dad_wait 8                                  
+                        fi                                                         
+                fi        
+		
+		${MOCK} ip "${addrfam}" route "${1}" default via "${gw}" ${VRF_TABLE} ${METRIC} dev "${IFACE}" ${SRC}
 	done
 }
 
