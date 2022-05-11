@@ -8,7 +8,7 @@ COMMAND="link"
 FAMILY="-4"
 [ "$IF_GRE_MODE" = "ip6gre" ] && FAMILY="-6"
 
-PARAMS="mode $IF_GRE_MODE local '$IF_GRE_LOCAL'"
+PARAMS="type $IF_GRE_MODE local '$IF_GRE_LOCAL'"
 [ -n "$IF_GRE_REMOTE" ] && PARAMS="$PARAMS remote '$IF_GRE_REMOTE'"
 [ -n "$IF_GRE_TTL" ] && PARAMS="$PARAMS ttl '$IF_GRE_TTL'"
 [ -n "$IF_GRE_KEY" ] && PARAMS="$PARAMS key '$IF_GRE_KEY'"
