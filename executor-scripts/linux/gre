@@ -2,12 +2,9 @@
 # Executor for advanced GRE tunnel management.
 
 is_busybox() {                                                                   
-        local a                                                                  
-        for a in $(ls -l $(which ip)); do                                        
-                if [ "$(echo $a|grep busybox)" == "busybox" ]; then                        
-                        return 0                                                 
-                fi                                                                                                               
-        done
+       if [ -L "$(which ip)" ]; then                        
+               return 0                                                 
+       fi                                                                                                               
 	return 1
 } 
 
