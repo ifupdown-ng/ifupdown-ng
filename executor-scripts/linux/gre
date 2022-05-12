@@ -18,9 +18,10 @@ COMMAND="link"
 FAMILY="-4"
 [ "$IF_GRE_MODE" = "ip6gre" ] && FAMILY="-6"
 
-TYP="type"
 if is_busybox; then
 	TYP="mode"
+else
+	TYP="type"
 fi
 
 PARAMS="$TYP $IF_GRE_MODE local '$IF_GRE_LOCAL'"
