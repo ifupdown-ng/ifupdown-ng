@@ -72,15 +72,19 @@ handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp
 	if (up)
 	{
 		LIF_DICT_FOREACH(iter, &iface->vars) {
-			if (!handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname))
+			if (!handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname)) {
 				ret = false;
+				break;
+			}
 		}
 	}
 	else
 	{
 		LIF_DICT_FOREACH_REVERSE(iter, &iface->vars) {
-			if (!handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname))
+			if (!handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname)) {
 				ret = false;
+				break;
+			}
 		}
 	}
 
