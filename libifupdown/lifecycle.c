@@ -435,8 +435,6 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 bool
 lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *lifname, bool up)
 {
-	struct waitif_iface wif;
-
 	/* if we're already pending, exit */
 	if (iface->is_pending)
 		return true;
@@ -460,6 +458,7 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 		if (!lif_lifecycle_run_phase(opts, iface, "create", lifname, up))
 			return false;
 
+		struct waitif_iface wif;
 		if (!lif_waitif_setup(&wif, lifname))
 			return false;
 		if (!lif_lifecycle_run_phase(opts, iface, "pre-up", lifname, up))
