@@ -16,9 +16,9 @@ lif_waitif_setup(struct waitif_iface *iface, const char *name)
 }
 
 bool
-lif_waitif_wait(struct waitif_iface *wif, unsigned timeout)
+lif_waitif_wait(struct waitif_iface *iface, unsigned timeout)
 {
-	(void) wif;
+	(void) iface;
 	(void) timeout;
 
 	return true;

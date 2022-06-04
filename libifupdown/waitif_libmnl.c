@@ -112,14 +112,14 @@ lif_waitif_setup(struct waitif_iface *iface, const char *name)
 }
 
 bool
-lif_waitif_wait(struct waitif_iface *wif, unsigned timeout)
+lif_waitif_wait(struct waitif_iface *iface, unsigned timeout)
 {
 	struct timespec ts;
 
 	if (clock_gettime(CLOCK_REALTIME, &ts))
 		return false;
 	ts.tv_sec += timeout;
-	if (sem_timedwait(&wif->sema, &ts) == -1)
+	if (sem_timedwait(&iface->sema, &ts) == -1)
 		return false;
 
 	return true;
