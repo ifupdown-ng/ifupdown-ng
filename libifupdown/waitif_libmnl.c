@@ -40,14 +40,17 @@ netlink_cb(const struct nlmsghdr *nlh, void *arg)
 
 	pthread_mutex_lock(&ln->ifs_mtx);
 	struct lif_dict_entry *entry;
-	if (!(entry = lif_dict_find(&ln->ifs, ifname)))
+	if (!(entry = lif_dict_find(&ln->ifs, ifname))) {
+		pthread_mutex_unlock(&ln->ifs_mtx);
 		return MNL_CB_OK; /* no link state handling requested */
+	}
 
 	struct waitif_iface *iface;
 	iface = (struct waitif_iface *)entry->data;
-	if (ifm->ifi_flags & iface->target_state)
+	if (ifm->ifi_flags & iface->target_state) {
 		sem_post(&iface->sema);
-	lif_dict_delete(&ln->ifs, ifname);
+		lif_dict_delete(&ln->ifs, ifname);
+	}
 	pthread_mutex_unlock(&ln->ifs_mtx);
 
 	return MNL_CB_OK;
