@@ -59,7 +59,7 @@ netlink_cb(const struct nlmsghdr *nlh, void *arg)
 static void *
 netlink_loop(void *arg)
 {
-	static char buf[8192];
+	char buf[MNL_SOCKET_BUFFER_SIZE];
 	struct waitif_listener *ln = (struct waitif_listener*)arg;
 
 	ssize_t ret = mnl_socket_recvfrom(listener.nl, buf, sizeof(buf));
