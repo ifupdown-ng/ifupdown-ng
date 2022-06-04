@@ -15,7 +15,7 @@
 
 struct waitif_listener {
 	pthread_t pthread;
-	pthread_mutex_t mtx;
+	pthread_mutex_t ifs_mtx;
 	struct lif_dict ifs;
 };
 
@@ -36,7 +36,7 @@ netlink_cb(const struct nlmsghdr *nlh, void *arg)
 		return MNL_CB_OK; /* continue processing other ifaces */
 	}
 
-	pthread_mutex_lock(&ln->mtx);
+	pthread_mutex_lock(&ln->ifs_mtx);
 	struct lif_dict_entry *entry;
 	if (!(entry = lif_dict_find(&ln->ifs, ifname)))
 		return MNL_CB_OK; /* no link state handling requested */
@@ -46,7 +46,7 @@ netlink_cb(const struct nlmsghdr *nlh, void *arg)
 	if (ifm->ifi_flags & iface->target_state)
 		sem_post(&iface->sema);
 	lif_dict_delete(&ln->ifs, ifname);
-	pthread_mutex_unlock(&ln->mtx);
+	pthread_mutex_unlock(&ln->ifs_mtx);
 
 	return MNL_CB_OK;
 }
@@ -87,7 +87,7 @@ bool
 lif_waitif_init(void)
 {
 	lif_dict_init(&listener.ifs);
-	if (pthread_mutex_init(&listener.mtx, NULL))
+	if (pthread_mutex_init(&listener.ifs_mtx, NULL))
 		return false;
 	if (pthread_create(&listener.pthread, NULL, netlink_loop, &listener))
 		return false;
@@ -102,10 +102,10 @@ lif_waitif_setup(struct waitif_iface *iface, const char *name)
 	if (sem_init(&iface->sema, 1, 0))
 		return false;
 
-	if (pthread_mutex_lock(&listener.mtx))
+	if (pthread_mutex_lock(&listener.ifs_mtx))
 		return false;
 	lif_dict_add(&listener.ifs, name, iface);
-	if (pthread_mutex_unlock(&listener.mtx))
+	if (pthread_mutex_unlock(&listener.ifs_mtx))
 		return false;
 
 	return true;
