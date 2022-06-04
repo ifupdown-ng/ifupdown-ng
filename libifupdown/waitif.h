@@ -13,6 +13,6 @@ struct waitif_iface {
 
 extern bool lif_waitif_init(void);
 extern bool lif_waitif_setup(struct waitif_iface *iface, const char *name);
-extern bool lif_waitif_wait(struct waitif_iface *iface, int timeout);
+extern bool lif_waitif_wait(struct waitif_iface *iface, unsigned timeout);
 
 #endif
