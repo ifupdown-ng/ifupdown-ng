@@ -16,6 +16,7 @@
 
 struct waitif_listener {
 	pthread_t pthread;
+	struct mnl_socket *nl;
 	struct lif_dict ifs;
 	pthread_mutex_t ifs_mtx;
 };
@@ -55,32 +56,19 @@ netlink_cb(const struct nlmsghdr *nlh, void *arg)
 static void *
 netlink_loop(void *arg)
 {
-	char buf[MNL_SOCKET_BUFFER_SIZE];
+	static char buf[8192];
+	struct waitif_listener *ln = (struct waitif_listener*)arg;
 
-	struct waitif_listener *ln;
-	ln = (struct waitif_listener *)arg;
-
-	struct mnl_socket *nl;
-	nl = mnl_socket_open(NETLINK_ROUTE);
-	if (nl == NULL)
-		goto err0;
-	if (mnl_socket_bind(nl, RTMGRP_LINK, MNL_SOCKET_AUTOPID) < 0)
-		goto err1;
-
-	ssize_t ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+	ssize_t ret = mnl_socket_recvfrom(listener.nl, buf, sizeof(buf));
 	while (ret > 0) {
 		ret = mnl_cb_run(buf, (size_t)ret, 0, 0, netlink_cb, (void *)ln);
 		if (ret <= 0)
 			break;
-		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+		ret = mnl_socket_recvfrom(listener.nl, buf, sizeof(buf));
 	}
 	if (ret == -1)
-		goto err1;
+		fprintf(stderr, "ifupdown: netlink_loop failed %s\n", strerror(errno));
 
-err1:
-	mnl_socket_close(nl);
-err0:
-	fprintf(stderr, "ifupdown: netlink_loop failed %s\n", strerror(errno));
 	return NULL;
 }
 
@@ -90,6 +78,14 @@ lif_waitif_init(void)
 	lif_dict_init(&listener.ifs);
 	if (pthread_mutex_init(&listener.ifs_mtx, NULL))
 		return false;
+
+	if (!(listener.nl = mnl_socket_open(NETLINK_ROUTE)))
+		return false;
+	if (mnl_socket_bind(listener.nl, RTMGRP_LINK, MNL_SOCKET_AUTOPID) < 0) {
+		mnl_socket_close(listener.nl);
+		return false;
+	}
+
 	if (pthread_create(&listener.pthread, NULL, netlink_loop, &listener))
 		return false;
 
