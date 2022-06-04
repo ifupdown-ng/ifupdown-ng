@@ -80,7 +80,7 @@ create)
 		${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" type vlan id "${IF_VLAN_ID}"
 	fi
 	;;
-up)
+pre-up)
 	IF_LINK_OPTIONS="$IF_LINK_OPTIONS"
 	[ -n "$IF_MTU" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS mtu $IF_MTU"
 	[ -n "$IF_HWADDRESS" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS address $IF_HWADDRESS"
