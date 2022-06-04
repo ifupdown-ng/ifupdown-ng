@@ -116,10 +116,10 @@ bool
 lif_waitif_wait(struct waitif_iface *iface, unsigned timeout)
 {
 	struct timespec ts;
-
 	if (clock_gettime(CLOCK_REALTIME, &ts))
 		return false;
 	ts.tv_sec += timeout;
+
 	if (sem_timedwait(&iface->sema, &ts) == -1)
 		return false;
 
