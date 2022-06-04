@@ -15,8 +15,8 @@
 
 struct waitif_listener {
 	pthread_t pthread;
-	pthread_mutex_t ifs_mtx;
 	struct lif_dict ifs;
+	pthread_mutex_t ifs_mtx;
 };
 
 /* Only one listener will be needed for ifupdown, thus global. */
