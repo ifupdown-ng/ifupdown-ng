@@ -11,6 +11,7 @@
 #include <linux/if_link.h>
 #include <linux/rtnetlink.h>
 
+#include "libifupdown/dict.h"
 #include "libifupdown/waitif.h"
 
 struct waitif_listener {

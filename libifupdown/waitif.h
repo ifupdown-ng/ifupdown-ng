@@ -4,8 +4,6 @@
 #include <stdbool.h>
 #include <semaphore.h>
 
-#include "libifupdown/dict.h"
-
 struct waitif_iface {
 	int target_state;
 	sem_t sema;
