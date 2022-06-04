@@ -30,6 +30,7 @@
 #include "libifupdown/config-file.h"
 #include "libifupdown/config-parser.h"
 #include "libifupdown/compat.h"
+#include "libifupdown/waitif.h"
 
 #ifndef ARRAY_SIZE
 # define ARRAY_SIZE(x)   (sizeof(x) / sizeof(*x))

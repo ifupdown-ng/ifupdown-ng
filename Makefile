@@ -1,7 +1,9 @@
 LAYOUT ?= linux
 SCDOC := scdoc
 LIBBSD_CFLAGS =
+LIBMNL_CFLAGS =
 LIBBSD_LIBS =
+LIBMNL_LIBS =
 
 PACKAGE_NAME := ifupdown-ng
 PACKAGE_VERSION := 0.12.1
@@ -18,6 +20,7 @@ CFLAGS ?= -ggdb3 -Os
 CFLAGS += -Wall -Wextra -Werror
 CFLAGS += -Wmissing-declarations -Wmissing-prototypes -Wcast-align -Wpointer-arith -Wreturn-type
 CFLAGS += ${LIBBSD_CFLAGS}
+CFLAGS += ${LIBMNL_CFLAGS}
 CPPFLAGS = -I.
 CPPFLAGS += -DINTERFACES_FILE=\"${INTERFACES_FILE}\"
 CPPFLAGS += -DSTATE_FILE=\"${STATE_FILE}\"
@@ -79,6 +82,16 @@ IFPARSE_SRC = cmd/ifparse.c
 MULTICALL_${CONFIG_IFPARSE}_OBJ += ${IFPARSE_SRC:.c=.o}
 CMDS_${CONFIG_IFPARSE} += ifparse
 
+# enable libmnl support
+CONFIG_LIBMNL ?= N
+LIBIFUPDOWN_LIBMNL_Y_SRC = libifupdown/waitif_libmnl.c
+LIBIFUPDOWN_LIBMNL_N_SRC = libifupdown/waitif_stub.c
+LIBIFUPDOWN_LIBMNL_${CONFIG_LIBMNL}_LIBS = -pthread
+LIBMNL_SRC = ${LIBIFUPDOWN_LIBMNL_${CONFIG_LIBMNL}_SRC}
+
+LIBIFUPDOWN_OBJ += ${LIBMNL_SRC:.c=.o}
+LIBS += ${LIBIFUPDOWN_LIBMNL_Y_LIBS}
+
 # enable YAML support (+2 KB)
 CONFIG_YAML ?= Y
 YAML_SRC = \
@@ -121,7 +134,7 @@ EXECUTOR_SCRIPTS_STUB ?=
 EXECUTOR_SCRIPTS_NATIVE ?=
 
 TARGET_LIBS = ${LIBIFUPDOWN_LIB}
-LIBS += ${TARGET_LIBS} ${LIBBSD_LIBS}
+LIBS += ${TARGET_LIBS} ${LIBBSD_LIBS} ${LIBMNL_LIBS}
 
 all: ${MULTICALL} ${CMDS}
 

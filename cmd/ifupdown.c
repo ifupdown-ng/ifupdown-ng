@@ -255,6 +255,7 @@ ifupdown_main(int argc, char *argv[])
 	};
 
 	lif_interface_collection_init(&collection);
+	lif_waitif_init();
 
 	if (!lif_state_read_path(&state, exec_opts.state_file))
 	{

@@ -27,6 +27,7 @@
 #include "libifupdown/state.h"
 #include "libifupdown/tokenize.h"
 #include "libifupdown/config-file.h"
+#include "libifupdown/waitif.h"
 
 #define BUFFER_LEN 4096
 
@@ -434,6 +435,8 @@ handle_dependents(const struct lif_execute_opts *opts, struct lif_interface *par
 bool
 lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *iface, struct lif_dict *collection, struct lif_dict *state, const char *lifname, bool up)
 {
+	struct waitif_iface wif;
+
 	/* if we're already pending, exit */
 	if (iface->is_pending)
 		return true;
@@ -457,8 +460,17 @@ lif_lifecycle_run(const struct lif_execute_opts *opts, struct lif_interface *ifa
 		if (!lif_lifecycle_run_phase(opts, iface, "create", lifname, up))
 			return false;
 
+		if (!lif_waitif_setup(&wif, lifname))
+			return false;
 		if (!lif_lifecycle_run_phase(opts, iface, "pre-up", lifname, up))
 			return false;
+		if (opts->verbose)
+			fprintf(stderr, "ifupdown: waiting for interface %s to change to up state\n", lifname);
+		if (!lif_waitif_wait(&wif, 10)) { /* TODO: Make timeout configurable */
+			if (opts->verbose)
+				fprintf(stderr, "ifupdown: interface %s did not become ready after pre-up\n", lifname);
+			return false;
+		}
 
 		if (!lif_lifecycle_run_phase(opts, iface, "up", lifname, up))
 			return false;
