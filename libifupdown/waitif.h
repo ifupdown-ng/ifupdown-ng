@@ -2,10 +2,7 @@
 #define LIBIFUPDOWN_WAITIF_H__GUARD
 
 #include <stdbool.h>
-#include <pthread.h>
-#include <sys/sem.h>
 #include <semaphore.h>
-#include <libmnl/libmnl.h>
 
 #include "libifupdown/dict.h"
 
