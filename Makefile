@@ -129,7 +129,7 @@ ${CMDS}: ${MULTICALL}
 	ln -sf ifupdown $@
 
 ${MULTICALL}: ${TARGET_LIBS} ${MULTICALL_OBJ}
-	${CC} -o $@ ${MULTICALL_OBJ} ${LIBS}
+	${CC} ${LDFLAGS} -o $@ ${MULTICALL_OBJ} ${LIBS}
 
 ${LIBIFUPDOWN_LIB}: ${LIBIFUPDOWN_OBJ}
 	${AR} -rcs $@ ${LIBIFUPDOWN_OBJ}
