@@ -1,0 +1,18 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/ipv6-tempaddr"
+
+tests_init pre_up pre_down
+
+pre_up_body() {
+	export IFACE=lo PHASE=pre-up MOCK=echo MOCK_ESC=\\
+	atf_check -s exit:0 -o match:'echo 2 > /proc/sys/net/ipv6/conf/lo/use_tempaddr' \
+		${EXECUTOR}
+}
+
+pre_down_body() {
+	export IFACE=lo PHASE=pre-down MOCK=echo MOCK_ESC=\\
+	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv6/conf/lo/use_tempaddr' \
+		${EXECUTOR}
+}

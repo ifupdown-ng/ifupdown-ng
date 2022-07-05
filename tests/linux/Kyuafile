@@ -8,6 +8,7 @@ atf_test_program{name='ethtool_test'}
 atf_test_program{name='forward_test'}
 atf_test_program{name='gre_test'}
 atf_test_program{name='ipv6-ra_test'}
+atf_test_program{name='ipv6-tempaddr_test'}
 atf_test_program{name='link_test'}
 atf_test_program{name='mpls_test'}
 atf_test_program{name='ppp_test'}
