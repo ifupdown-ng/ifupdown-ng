@@ -77,7 +77,11 @@ create)
 			fi
 		fi
 
-		${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" type vlan id "${IF_VLAN_ID}"
+		if [ "$IF_VLAN_PROTOCOL" = "802.1ad" -o "$IF_VLAN_PROTOCOL" = "QinQ" ]; then
+			${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" ${IF_LINK_OPTIONS} type vlan id "${IF_VLAN_ID}" protocol 802.1ad
+		else
+			${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" type vlan id "${IF_VLAN_ID}" protocol 802.1Q
+		fi
 	fi
 	;;
 up)
