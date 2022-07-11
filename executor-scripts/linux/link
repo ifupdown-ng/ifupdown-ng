@@ -12,7 +12,7 @@ is_vlan() {
 			return 1
 			;;
 		*.*)
-			IF_VLAN_RAW_DEVICE="${IFACE%.*}"
+			[ -z "${IF_VLAN_RAW_DEVICE:-}" ] && IF_VLAN_RAW_DEVICE="${IFACE%.*}"
 			IF_VLAN_ID="${IFACE##*.}"
 			return 0
 			;;
@@ -77,10 +77,17 @@ create)
 			fi
 		fi
 
+		IF_VLAN_OPTIONS=""
+		[ -n "$VLAN_REORDER_HDR" ] && IF_VLAN_OPTIONS="reorder-hdr $VLAN_REORDER_HDR"
+		[ -n "$VLAN_VLAN_GVRP" ] && IF_VLAN_OPTIONS="$IF_VLAN_OPTIONS gvrp $VLAN_GVRP"
+		[ -n "$VLAN_VLAN_MVRP" ] && IF_VLAN_OPTIONS="$IF_VLAN_OPTIONS mvrp $VLAN_MVRP"
+		[ -n "$VLAN_LOOSE_BINDING" ] && IF_VLAN_OPTIONS="$IF_VLAN_OPTIONS loose-binding $VLAN_LOOSE_BINDING"
+		[ -n "$VLAN_BRIDGE_BINDING" ] && IF_VLAN_OPTIONS="$IF_VLAN_OPTIONS bridge-binding $VLAN_BRIDGE_BINDING"
+
 		if [ "$IF_VLAN_PROTOCOL" = "802.1ad" -o "$IF_VLAN_PROTOCOL" = "QinQ" ]; then
-			${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" ${IF_LINK_OPTIONS} type vlan id "${IF_VLAN_ID}" protocol 802.1ad
+			${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" ${IF_LINK_OPTIONS} type vlan id "${IF_VLAN_ID}" protocol 802.1ad ${IF_VLAN_OPTIONS}
 		else
-			${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" type vlan id "${IF_VLAN_ID}" protocol 802.1Q
+			${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" type vlan id "${IF_VLAN_ID}" protocol 802.1Q ${IF_VLAN_OPTIONS}
 		fi
 	fi
 	;;
