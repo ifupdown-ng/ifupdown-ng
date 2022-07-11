@@ -24,6 +24,13 @@ is_vlan() {
 	esac
 }
 
+onoff() {
+	case "$1" in
+	on|1)   echo on ;;
+	*)      echo off ;;
+	esac
+}
+
 case "$PHASE" in
 depend)
 	# vlan-raw-device
@@ -77,7 +84,36 @@ create)
 			fi
 		fi
 
-		${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" type vlan id "${IF_VLAN_ID}"
+		IF_VLAN_OPTIONS=""
+		if [ -n "$IF_VLAN_REORDER_HDR" ]; then
+			value=$(onoff $IF_VLAN_REORDER_HDR)
+			IF_VLAN_OPTIONS="reorder_hdr $value"
+		fi
+		if [ -n "$IF_VLAN_GVRP" ]; then
+			value=$(onoff $IF_VLAN_GVRP)
+		        IF_VLAN_OPTIONS="$IF_VLAN_OPTIONS gvrp $value"
+		fi
+		if [ -n "$IF_VLAN_MVRP" ]; then
+			value=$(onoff $IF_VLAN_MVRP)
+			 IF_VLAN_OPTIONS="$IF_VLAN_OPTIONS mvrp $value"
+		fi
+		if [ -n "$IF_VLAN_LOOSE_BINDING" ]; then
+			value=$(onoff $IF_VLAN_LOOSE_BINDING)
+			IF_VLAN_OPTIONS="$IF_VLAN_OPTIONS loose_binding $value"
+		fi
+		if [ -n "$IF_VLAN_BRIDGE_BINDING" ]; then
+			value=$(onoff $IF_VLAN_BRIDGE_BINDING)
+			IF_VLAN_OPTIONS="$IF_VLAN_OPTIONS bridge_binding $value"
+		fi
+		IF_VLAN_PROTOCOL=$(echo $IF_VLAN_PROTOCOL | tr "[:upper:]" "[:lower:]")
+		case "$IF_VLAN_PROTOCOL" in
+		    802.1ad|qinq|q-in-q)
+			${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" ${IF_LINK_OPTIONS} type vlan id "${IF_VLAN_ID}" protocol 802.1ad ${IF_VLAN_OPTIONS}
+			;;
+		    *)
+			${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" type vlan id "${IF_VLAN_ID}" protocol 802.1Q ${IF_VLAN_OPTIONS}
+			;;
+		esac
 	fi
 	;;
 up)
