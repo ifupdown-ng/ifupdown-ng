@@ -198,6 +198,7 @@ static bool
 change_auto_interfaces(struct lif_dict *collection, struct lif_dict *state, struct match_options *opts)
 {
 	struct lif_node *iter;
+	bool ret = true;
 
 	LIF_DICT_FOREACH(iter, collection)
 	{
@@ -215,11 +216,14 @@ change_auto_interfaces(struct lif_dict *collection, struct lif_dict *state, stru
 		    fnmatch(opts->include_pattern, iface->ifname, 0))
 			continue;
 
-		if (!change_interface(iface, collection, state, iface->ifname, false))
-			return false;
+		if (!change_interface(iface, collection, state, iface->ifname, false)) {
+			ret = false;
+			fprintf(stderr, "%s: failed to change state for interface %s\n", argv0, iface->ifname);
+			continue;
+		}
 	}
 
-	return true;
+	return ret;
 }
 
 static int
