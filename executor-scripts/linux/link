@@ -38,6 +38,11 @@ depend)
 
 create)
 	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
+		if [ ! -d /sys/module/dummy ]; then
+			echo "Loading dummy kernel module"
+			${MOCK} modprobe dummy
+		fi
+
 		if [ -d "/sys/class/net/${IFACE}" ]; then
 			iface_type=$(ip -d link show dev "${IFACE}" | head -n3 | tail -n1 | awk '{ print $1 }')
 			if [ "${iface_type}" != 'dummy' ]; then
