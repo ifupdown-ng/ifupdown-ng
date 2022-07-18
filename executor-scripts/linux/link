@@ -39,7 +39,6 @@ depend)
 create)
 	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
 		if [ ! -d /sys/module/dummy ]; then
-			echo "Loading dummy kernel module"
 			${MOCK} modprobe dummy
 		fi
 
