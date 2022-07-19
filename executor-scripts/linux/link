@@ -38,6 +38,10 @@ depend)
 
 create)
 	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
+		if [ ! -d /sys/module/dummy ]; then
+			${MOCK} modprobe dummy
+		fi
+
 		if [ -d "/sys/class/net/${IFACE}" ]; then
 			if [ ! -d "/sys/devices/virtual/net/${IFACE}" ]; then
 				echo "Interface ${IFACE} exists but is not a virtual interface"
