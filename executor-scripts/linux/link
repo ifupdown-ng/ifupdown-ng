@@ -39,9 +39,8 @@ depend)
 create)
 	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
 		if [ -d "/sys/class/net/${IFACE}" ]; then
-			iface_type=$(ip -d link show dev "${IFACE}" | head -n3 | tail -n1 | awk '{ print $1 }')
-			if [ "${iface_type}" != 'dummy' ]; then
-				echo "Interface ${IFACE} exists but is of type ${iface_type} instead of dummy"
+			if [ ! -d "/sys/devices/virtual/net/${IFACE}" ]; then
+				echo "Interface ${IFACE} exists but is not a virtual interface"
 				exit 1
 			fi
 
