@@ -16,6 +16,9 @@ handle_init() {
 		${MOCK} /sbin/ip rule $1 iif $IFACE table $IF_VRF_TABLE
 		${MOCK} /sbin/ip rule $1 oif $IFACE table $IF_VRF_TABLE
 	fi
+	if [ "$1" = "add" ]; then
+		${MOCK} /sbin/ip link set up dev $IFACE
+	fi
 }
 
 handle_member() {
@@ -26,13 +29,19 @@ handle_member() {
 
 case "$PHASE" in
 create)
-	[ -n "$IF_VRF_TABLE" ] && handle_init "add"
+	if [ -n "$IF_VRF_TABLE" ]; then
+		handle_init "add"
+	fi
 	;;
 pre-up)
-	[ -n "$IF_VRF_MEMBER" ] && handle_member
+	if [ -n "$IF_VRF_MEMBER" ]; then
+		handle_member
+	fi
 	;;
 destroy)
-	[ -n "$IF_VRF_TABLE" ] && handle_init "del"
+	if [ -n "$IF_VRF_TABLE" ]; then
+		handle_init "del"
+	fi
 	;;
 depend)
 	echo "$IF_VRF_MEMBER"
