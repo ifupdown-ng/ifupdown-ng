@@ -1,0 +1,139 @@
+#!/bin/sh
+# This executor is responsible for setting up the Virtual Router Redundancy Protocol (VRRP) overlay interfaces.
+#
+# Copyright (C) 2022 EasyNetDev <devel@easynet.dev>
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# This software is provided 'as is' and without any warranty, express or
+# implied. In no event shall the authors be liable for any damages arising
+# from the use of this software.
+#
+# Sun, 18 Dec 2022 22:55:31 +0200
+#  -- EasyNetDev <devel@easynet.dev>
+#
+# This executor will do the configuration for MACVLAN virtual interfaces 
+# You have to define a configuration of a virtual interface under which
+# you have to add the necessary config.
+#
+# Known options for the main interface are:
+#
+# IF_VRRP_RAW_DEVICE   The main interfaces to which this MACVLAN belongs
+# IF_VRRP_ID           VRID list to create the interfaces only
+# IF_VRRP_ADDRESS      IP list to create the interfaces and add IPs
+#
+
+[ -n "$VERBOSE" ] && set -x
+
+################################################################################
+#                        VRRP management functions                             #
+################################################################################
+
+
+addr_family() {
+	if [ "$1" != "${1#*[0-9].[0-9]}" ]; then
+		echo "IPv4"
+	elif [ "$1" != "${1#*:[0-9a-fA-F]}" ]; then
+		echo "IPv6"
+	else
+		echo ""
+	fi
+}
+
+is_vrid() {
+	#local VRID=$1
+	if [ -z "$(echo $1 |sed 's/\([0-9]\{1,3\}\)\(.*\)/\2/g')" ]; then
+		if [ $1 -gt 0 -a $1 -le 255 ]; then
+		    return 0
+		else
+		    echo "VRRP ID $1 is invalid! VRRP ID must have values between 1 and 255!"
+		    return 1
+		fi
+	else
+		# Could be IPv4 or IPv6 address
+		return 2
+	fi
+}
+
+get_vrrp_mac() {
+	# Compute the MAC address the VRRP interface
+	if [ ! -z ${IF_VRRP_IPV6+z} ]; then
+	    VRRP_MAC="00:00:5e:00:02:"$(printf "%02x\n" $1)
+	    return
+	fi
+	# By default, create a VRRP for IPv4
+	VRRP_MAC="00:00:5e:00:01:"$(printf "%02x\n" $1)
+	return
+}
+
+lookup_vrid() {
+	while [ $1 ]; do
+	    echo $1
+	    shift
+	done
+}
+
+
+# If we don't have vrrp-id and vrrp-raw-device, then don't do anything.
+# For the VRRP we need at least
+if [ ! "$IF_VRRP_ID" -a ! "$IF_VRRP_RAW_DEVICE" ]; then
+    exit 0
+fi
+
+case "$PHASE" in
+depend)
+	if [ "$IF_VRRP_RAW_DEVICE" ]; then
+	    echo $IF_VRRP_RAW_DEVICE
+	fi
+	exit 0
+	;;
+
+create)
+	# Check if main interface vrrp-raw-device exists in system. If not then skip.
+	[ ! -d /sys/class/net/$IF_VRRP_RAW_DEVICE ] && exit 0
+
+	# Check if the VRRP interface itself exists. If yes then skip.
+	[ -d /sys/class/net/$IFACE ] && exit 0
+
+	VRRP_MAC=""
+
+	get_vrrp_mac $IF_VRRP_ID
+
+	# Get the VRF for the vrrp-raw-device. VRRP interface MUST be in the same VRF as the vrrp-raw-device is.
+	VRRP_VRF=$(ifquery -p vrf-member ${IF_VRRP_RAW_DEVICE} | head -1)
+
+	if [ ! -d "/sys/class/net/$IFACE" ]; then
+		# Create MACVLAN interfaces for VRRP
+		${MOCK} ip link add link ${IF_VRRP_RAW_DEVICE} name $IFACE addrgenmode random type macvlan mode bridge
+		${MOCK} ip link set dev $IFACE address $VRRP_MAC
+		# In case of boot, we must set protodown to on until FRRouting will takeover the control of the interface
+		${MOCK} ip link set dev $IFACE protodown on
+		### Always disable IPv6 on VRRP IPv4 interface
+		if [ -z ${IF_VRRP_IPV6+z} ]; then
+		    echo 1 > /proc/sys/net/ipv6/conf/$IFACE/disable_ipv6
+		fi
+		# In case we have VRF, add VRRP interface under VRF
+		if [ -n "${VRRP_VRF}" ]; then
+		    ${MOCK} ip link set $IFACE master $VRRP_VRF
+		fi
+		#${MOCK} ip link set dev $IFACE up
+	fi
+	;;
+
+pre-up)
+	;;
+
+post-down)
+	# VRRP interfaces should be destroied in post-down, becase if you have a bond, bridge or teaming interfaces, these are destroied in "destroy" stage.
+	[ -d /sys/class/net/$IFACE ] || exit 0
+
+	if [ -d "/sys/class/net/$IFACE" ]; then
+		${MOCK} ip link del ${IFACE} type macvlan
+	fi
+	;;
+
+destroy)
+	;;
+esac
