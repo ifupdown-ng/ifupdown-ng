@@ -225,6 +225,10 @@ build_environment(char **envp[], const struct lif_execute_opts *opts, const stru
 			if (iface->is_bridge)
 				lif_environment_push(envp, "IF_BRIDGE_PORTS", (const char *) entry->data);
 		}
+		else if (!strcmp(entry->key, "dhcp-client"))
+		{
+			lif_environment_push(envp, "IF_DHCP_PROGRAM", (const char *) entry->data);
+		}
 
 		char envkey[4096] = "IF_";
 		strlcat(envkey, entry->key, sizeof envkey);

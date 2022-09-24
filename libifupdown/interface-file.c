@@ -187,6 +187,22 @@ handle_auto(struct lif_interface_file_parse_state *state, char *token, char *buf
 }
 
 static bool
+handle_dhcp_client(struct lif_interface_file_parse_state *state, char *token, char *bufp)
+{
+	char *client = lif_next_token(&bufp);
+
+	if (state->cur_iface == NULL)
+	{
+		report_error(state, "%s '%s' without interface", token, client);
+		/* Ignore dhcp-client, but don't fail */
+		return true;
+	}
+
+	lif_dict_add(&state->cur_iface->vars, token, strdup(client));
+	return true;
+}
+
+static bool
 handle_gateway(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
 	(void) token;
@@ -449,6 +465,7 @@ struct parser_keyword {
 static const struct parser_keyword keywords[] = {
 	{"address", handle_address},
 	{"auto", handle_auto},
+    {"dhcp-client", handle_dhcp_client},
 	{"dhcp-hostname", handle_hostname},
 	{"gateway", handle_gateway},
 	{"hostname", handle_hostname},
