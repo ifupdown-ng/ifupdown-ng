@@ -1,5 +1,5 @@
 /*
- * libifupdown/interface-file.h
+ * libifupdown/interface-file.c
  * Purpose: /etc/network/interfaces parser
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
