@@ -9,7 +9,7 @@ PACKAGE_BUGREPORT := https://github.com/ifupdown-ng/ifupdown-ng/issues/new
 
 SBINDIR := /sbin
 
-ARTIFACTS_PATH ?= ./
+ARTIFACTS_DIR ?= ./
 
 INTERFACES_FILE := /etc/network/interfaces
 STATE_FILE := /run/ifstate
@@ -122,25 +122,25 @@ EXECUTOR_SCRIPTS_STUB ?=
 
 EXECUTOR_SCRIPTS_NATIVE ?=
 
-TARGET_LIBS = $(addprefix ${ARTIFACTS_PATH},${LIBIFUPDOWN_LIB})
+TARGET_LIBS = $(addprefix ${ARTIFACTS_DIR},${LIBIFUPDOWN_LIB})
 LIBS += ${TARGET_LIBS} ${LIBBSD_LIBS}
 
 all: ${MULTICALL} ${CMDS}
 
 ${CMDS}: ${MULTICALL}
-	ln -sf ifupdown $(addprefix ${ARTIFACTS_PATH},$@)
+	ln -sf ifupdown $(addprefix ${ARTIFACTS_DIR},$@)
 
 ${MULTICALL}: ${TARGET_LIBS} ${MULTICALL_OBJ}
-	${CC} ${LDFLAGS} -o ${ARTIFACTS_PATH}$@ ${MULTICALL_OBJ} ${LIBS}
+	${CC} ${LDFLAGS} -o ${ARTIFACTS_DIR}$@ ${MULTICALL_OBJ} ${LIBS}
 
 ${LIBIFUPDOWN_LIB}: ${LIBIFUPDOWN_OBJ}
-	${AR} -rcs ${ARTIFACTS_PATH}$@ ${LIBIFUPDOWN_OBJ}
+	${AR} -rcs ${ARTIFACTS_DIR}$@ ${LIBIFUPDOWN_OBJ}
 
 clean:
 	rm -f ${LIBIFUPDOWN_OBJ} ${MULTICALL_OBJ}
 	rm -f $(addprefix ${ARIFACTS_PATH},${LIBIFUPDOWN_LIB})
-	rm -f $(addprefix ${ARTIFACTS_PATH},${CMDS}) ${ARTIFACTS_PATH}${MULTICALL}
-	rm -f ${ARTIFACTS_PATH}${MANPAGES}
+	rm -f $(addprefix ${ARTIFACTS_DIR},${CMDS}) ${ARTIFACTS_DIR}${MULTICALL}
+	rm -f ${ARTIFACTS_DIR}${MANPAGES}
 
 check: ${LIBIFUPDOWN_LIB} ${CMDS}
 	kyua test || (kyua report --verbose && exit 1)
@@ -162,7 +162,7 @@ install: all
 	install -D -m644 dist/ifupdown-ng.conf.example ${DESTDIR}${CONFIG_FILE}.example
 
 .scd.1 .scd.2 .scd.3 .scd.4 .scd.5 .scd.6 .scd.7 .scd.8:
-	${SCDOC} < $< > ${ARTIFACTS_PATH}$@
+	${SCDOC} < $< > ${ARTIFACTS_DIR}$@
 
 MANPAGES_5 = \
 	doc/ifstate.5 \
