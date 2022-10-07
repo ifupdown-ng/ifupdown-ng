@@ -158,7 +158,7 @@ check: ${LIBIFUPDOWN_LIB} ${CMDS}
 
 install: all
 	install -D -m755 ${ARTIFACTS_DIR}${MULTICALL} ${DESTDIR}${SBINDIR}/${MULTICALL}
-	for i in $(addprefix ${ARTIFACTS_DIR},${CMDS}); do \
+	for i in ${CMDS}; do \
 		ln -s ${SBINDIR}/${MULTICALL} ${DESTDIR}${SBINDIR}/$$i; \
 	done
 	for i in ${EXECUTOR_SCRIPTS}; do \
