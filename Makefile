@@ -9,7 +9,12 @@ PACKAGE_BUGREPORT := https://github.com/ifupdown-ng/ifupdown-ng/issues/new
 
 SBINDIR := /sbin
 
-ARTIFACTS_DIR ?= ./
+ARTIFACTS_DIR ?= 
+
+#vpath %.c libifupdown cmd
+#vpath %.h libifupdown cmd
+
+# vpath %.o ${ARTIFACTS_DIR}libifupdown ${ARTIFACTS_DIR}cmd
 
 INTERFACES_FILE := /etc/network/interfaces
 STATE_FILE := /run/ifstate
@@ -27,7 +32,7 @@ CPPFLAGS += -DCONFIG_FILE=\"${CONFIG_FILE}\"
 CPPFLAGS += -DPACKAGE_NAME=\"${PACKAGE_NAME}\"
 CPPFLAGS += -DPACKAGE_VERSION=\"${PACKAGE_VERSION}\"
 CPPFLAGS += -DPACKAGE_BUGREPORT=\"${PACKAGE_BUGREPORT}\"
-CPPFLAGS += -DEXECUTOR_PATH=\"${EXECUTOR_ФPATH}\"
+CPPFLAGS += -DEXECUTOR_PATH=\"${EXECUTOR_PATH}\"
 
 
 LIBIFUPDOWN_SRC = \
@@ -122,23 +127,29 @@ EXECUTOR_SCRIPTS_STUB ?=
 
 EXECUTOR_SCRIPTS_NATIVE ?=
 
-TARGET_LIBS = $(addprefix ${ARTIFACTS_DIR},${LIBIFUPDOWN_LIB})
-LIBS += ${TARGET_LIBS} ${LIBBSD_LIBS}
+TARGET_LIBS = ${LIBIFUPDOWN_LIB}
+LIBS += $(addprefix ${ARTIFACTS_DIR},${TARGET_LIBS}) ${LIBBSD_LIBS}
 
-all: ${MULTICALL} ${CMDS}
+all: ${ARTIFACTS_DIR}${MULTICALL} $(addprefix ${ARTIFACTS_DIR},${CMDS})
 
-${CMDS}: ${MULTICALL}
-	ln -sf ifupdown $(addprefix ${ARTIFACTS_DIR},$@)
+$(addprefix ${ARTIFACTS_DIR},${CMDS}): ${ARTIFACTS_DIR}${MULTICALL}
+	ln -sf ifupdown $@
 
-${MULTICALL}: ${TARGET_LIBS} ${MULTICALL_OBJ}
-	${CC} ${LDFLAGS} -o ${ARTIFACTS_DIR}$@ ${MULTICALL_OBJ} ${LIBS}
+${ARTIFACTS_DIR}${MULTICALL}: ${ARTIFACTS_DIR}${TARGET_LIBS} $(addprefix ${ARTIFACTS_DIR},${MULTICALL_OBJ})
+	${CC} ${LDFLAGS} -o $@ \
+		$(addprefix ${ARTIFACTS_DIR},${MULTICALL_OBJ}) ${LIBS}
 
-${LIBIFUPDOWN_LIB}: ${LIBIFUPDOWN_OBJ}
-	${AR} -rcs ${ARTIFACTS_DIR}$@ ${LIBIFUPDOWN_OBJ}
+${ARTIFACTS_DIR}${LIBIFUPDOWN_LIB}: $(addprefix ${ARTIFACTS_DIR},${LIBIFUPDOWN_OBJ})
+	${AR} -rcs $@ \
+		$(addprefix ${ARTIFACTS_DIR},${LIBIFUPDOWN_OBJ})
+
+${ARTIFACTS_DIR}%.o: %.c
+	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ -c $<
 
 clean:
-	rm -f ${LIBIFUPDOWN_OBJ} ${MULTICALL_OBJ}
-	rm -f $(addprefix ${ARIFACTS_PATH},${LIBIFUPDOWN_LIB})
+	rm -f $(addprefix ${ARTIFACTS_DIR},${LIBIFUPDOWN_OBJ}) \
+		$(addprefix ${ARTIFACTS_DIR},${MULTICALL_OBJ})
+	rm -f $(addprefix ${ARTIFACTS_DIR},${LIBIFUPDOWN_LIB})
 	rm -f $(addprefix ${ARTIFACTS_DIR},${CMDS}) ${ARTIFACTS_DIR}${MULTICALL}
 	rm -f ${ARTIFACTS_DIR}${MANPAGES}
 
@@ -146,8 +157,8 @@ check: ${LIBIFUPDOWN_LIB} ${CMDS}
 	kyua test || (kyua report --verbose && exit 1)
 
 install: all
-	install -D -m755 ${MULTICALL} ${DESTDIR}${SBINDIR}/${MULTICALL}
-	for i in ${CMDS}; do \
+	install -D -m755 ${ARTIFACTS_DIR}${MULTICALL} ${DESTDIR}${SBINDIR}/${MULTICALL}
+	for i in $(addprefix ${ARTIFACTS_DIR},${CMDS}); do \
 		ln -s ${SBINDIR}/${MULTICALL} ${DESTDIR}${SBINDIR}/$$i; \
 	done
 	for i in ${EXECUTOR_SCRIPTS}; do \
@@ -162,6 +173,7 @@ install: all
 	install -D -m644 dist/ifupdown-ng.conf.example ${DESTDIR}${CONFIG_FILE}.example
 
 .scd.1 .scd.2 .scd.3 .scd.4 .scd.5 .scd.6 .scd.7 .scd.8:
+	mkdir -p ${ARTIFACTS_DIR}doc
 	${SCDOC} < $< > ${ARTIFACTS_DIR}$@
 
 MANPAGES_5 = \
@@ -195,15 +207,15 @@ MANPAGES = ${MANPAGES_5} ${MANPAGES_7} ${MANPAGES_8}
 docs: ${MANPAGES}
 
 install_docs: docs
-	for i in ${MANPAGES_5}; do \
+	for i in $(addprefix ${ARTIFACTS_DIR},${MANPAGES_5}); do \
 		target=$$(basename $$i); \
 		install -D -m644 $$i ${DESTDIR}/usr/share/man/man5/$$target; \
 	done
-	for i in ${MANPAGES_7}; do \
+	for i in $(addprefix ${ARTIFACTS_DIR},${MANPAGES_7}); do \
 		target=$$(basename $$i); \
 		install -D -m644 $$i ${DESTDIR}/usr/share/man/man7/$$target; \
 	done
-	for i in ${MANPAGES_8}; do \
+	for i in $(addprefix ${ARTIFACTS_DIR},${MANPAGES_8}); do \
 		target=$$(basename $$i); \
 		install -D -m644 $$i ${DESTDIR}/usr/share/man/man8/$$target; \
 	done
