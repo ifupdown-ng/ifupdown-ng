@@ -153,8 +153,8 @@ clean:
 	rm -f $(addprefix ${ARTIFACTS_DIR},${CMDS}) ${ARTIFACTS_DIR}${MULTICALL}
 	rm -f ${ARTIFACTS_DIR}${MANPAGES}
 
-check: ${LIBIFUPDOWN_LIB} ${CMDS}
-	kyua test || (kyua report --verbose && exit 1)
+check: $(addprefix ${ARTIFACTS_DIR},${LIBIFUPDOWN_LIB}) $(addprefix ${ARTIFACTS_DIR},${CMDS})
+	PATH=${ARTIFACTS_DIR}:$$PATH kyua test || (kyua report --verbose && exit 1)
 
 install: all
 	install -D -m755 ${ARTIFACTS_DIR}${MULTICALL} ${DESTDIR}${SBINDIR}/${MULTICALL}
