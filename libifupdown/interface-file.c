@@ -15,11 +15,15 @@
  */
 
 #include <ctype.h>
+#include <dirent.h>
+#include <errno.h>
+#include <libgen.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <dirent.h>
-#include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include "libifupdown/libifupdown.h"
 
 /* internally rewrite problematic ifupdown2 tokens to ifupdown-ng equivalents */
@@ -407,11 +411,27 @@ handle_source_directory(struct lif_interface_file_parse_state *state, char *toke
 	struct dirent *dirent_p;
 	for (dirent_p = readdir(source_dir); dirent_p != NULL; dirent_p = readdir(source_dir))
 	{
-		if (dirent_p->d_type != DT_REG)
+		/* We only care for regular files and symlinks */
+		if (dirent_p->d_type != DT_REG && dirent_p->d_type != DT_LNK)
 			continue;
 
 		char pathbuf[4096];
 		snprintf(pathbuf, sizeof pathbuf, "%s/%s", source_directory, dirent_p->d_name);
+
+		/* Check if symlink points to a file */
+		if (dirent_p->d_type == DT_LNK)
+		{
+			struct stat sb;
+			if (stat(pathbuf, &sb) != 0) {
+				report_error(state, "failed to stat '%s' (%s), ignoring file", pathbuf, strerror(errno));
+				/* Broken but not fatal */
+				continue;
+			}
+
+			/* Ignore dirent if it's not a link to a regular file */
+			if ((sb.st_mode & S_IFMT) != S_IFREG)
+				continue;
+		}
 
 		if (!lif_interface_file_parse(state, pathbuf))
 		{
@@ -480,17 +500,41 @@ lif_interface_file_parse(struct lif_interface_file_parse_state *state, const cha
 		return true;
 	}
 
-	FILE *f = fopen(filename, "r");
+	/*
+	 * When sourcing files or directories, if a path doesn't have a leading slash, it's
+	 * considered relative to the directory containing the file in which the keyword is
+	 * placed.  In the example above, if the file is located at /etc/network/interfaces,
+	 * paths to the included files are understood to be under /etc/network.
+	 */
+	char *filepath = (char *) filename;
+	if (filename[0] != '/') {
+		filepath = calloc (4096, 1);
+		if (! filepath) {
+			report_error(state, "failed to allocate memory for 'source' file path");
+			/* Bad but not fatal */
+			return true;
+		}
+
+		const char *dirpath = dirname(strdup(state->cur_filename));
+		if (dirpath == NULL) {
+			report_error(state, "failed to allocate memory for dir path");
+			/* Bad but not fatal */
+			return true;
+		}
+		snprintf(filepath, 4096, "%s/%s", dirpath, filename);
+	}
+
+	FILE *f = fopen(filepath, "r");
 	if (f == NULL)
 		return false;
 
 	const char *old_filename = state->cur_filename;
-	state->cur_filename = filename;
+	state->cur_filename = filepath;
 
 	size_t old_lineno = state->cur_lineno;
 	state->cur_lineno = 0;
 
-	lif_dict_add(&state->loaded, filename, NULL);
+	lif_dict_add(&state->loaded, filepath, NULL);
 
 	char linebuf[4096];
 	while (lif_fgetline(linebuf, sizeof linebuf, f) != NULL)
