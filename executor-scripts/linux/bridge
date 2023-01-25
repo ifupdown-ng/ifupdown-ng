@@ -58,6 +58,7 @@ add_ports() {
 		if [ -n "$IF_BRIDGE_HW" ]; then
 			ip link set dev $port addr $IF_BRIDGE_HW
 		fi
+		echo 1 > /proc/sys/net/ipv6/conf/$port/disable_ipv6
 		ip link set dev $port master $IFACE && ip link set dev $port up
 	done
 }
@@ -67,6 +68,7 @@ del_ports() {
 	for port in $PORTS; do
 		ip link set dev $port down
 		ip link set dev $port nomaster
+		echo 0 > /proc/sys/net/ipv6/conf/$port/disable_ipv6
 	done
 }
 
