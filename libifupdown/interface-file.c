@@ -20,6 +20,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
+#include <sys/stat.h>
 #include "libifupdown/libifupdown.h"
 
 /* internally rewrite problematic ifupdown2 tokens to ifupdown-ng equivalents */
@@ -407,11 +408,12 @@ handle_source_directory(struct lif_interface_file_parse_state *state, char *toke
 	struct dirent *dirent_p;
 	for (dirent_p = readdir(source_dir); dirent_p != NULL; dirent_p = readdir(source_dir))
 	{
-		if (dirent_p->d_type != DT_REG)
-			continue;
-
 		char pathbuf[4096];
+		struct stat st;
+
 		snprintf(pathbuf, sizeof pathbuf, "%s/%s", source_directory, dirent_p->d_name);
+		if (stat(pathbuf, &st) || !S_ISREG(st.st_mode))
+			continue;
 
 		if (!lif_interface_file_parse(state, pathbuf))
 		{
