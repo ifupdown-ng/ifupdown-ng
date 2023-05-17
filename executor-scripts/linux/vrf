@@ -45,6 +45,7 @@ depend)
 	echo "$IF_VRF_MEMBER"
 	;;
 *)
-	exit 0
 	;;
 esac
+
+exit 0
