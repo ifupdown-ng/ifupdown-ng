@@ -9,7 +9,7 @@ SyslogIdentifier=networking
 TimeoutStopSec=30s
 ExecStart=/usr/share/ifupdown-ng/sbin/networking start
 ExecStop=/usr/share/ifupdown-ng/sbin/networking stop
-ExecRestart=/usr/share/ifupdown-ng/sbin/networking restart
+ExecReload=/usr/share/ifupdown-ng/sbin/networking restart
 
 [Install]
 WantedBy=basic.target network.target multi-user.target network-online.target
