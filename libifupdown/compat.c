@@ -15,7 +15,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
+#include <bsd/string.h>
 #include "libifupdown/compat.h"
 #include "libifupdown/config-file.h"
 #include "libifupdown/dict.h"

@@ -17,7 +17,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <string.h>
+#include <bsd/string.h>
 #include <dirent.h>
 #include <errno.h>
 #include <sys/stat.h>

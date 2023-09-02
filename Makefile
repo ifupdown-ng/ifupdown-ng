@@ -1,7 +1,7 @@
 LAYOUT ?= linux
 SCDOC := scdoc
 LIBBSD_CFLAGS =
-LIBBSD_LIBS =
+LIBBSD_LIBS = -lbsd
 
 PACKAGE_NAME := ifupdown-ng
 PACKAGE_VERSION := 0.12.1

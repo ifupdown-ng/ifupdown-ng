@@ -16,7 +16,7 @@
 #define _GNU_SOURCE
 #include <fnmatch.h>
 #include <stdio.h>
-#include <string.h>
+#include <bsd/string.h>
 #include <getopt.h>
 #include "libifupdown/libifupdown.h"
 #include "cmd/multicall.h"

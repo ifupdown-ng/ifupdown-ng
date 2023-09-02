@@ -15,7 +15,7 @@
  */
 
 #include <stdio.h>
-#include <string.h>
+#include <bsd/string.h>
 #include <sys/utsname.h>
 #include "libifupdown/interface.h"
 #include "libifupdown/config-file.h"

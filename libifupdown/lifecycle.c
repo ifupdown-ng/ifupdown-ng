@@ -15,7 +15,7 @@
  */
 
 #include <ctype.h>
-#include <string.h>
+#include <bsd/string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>

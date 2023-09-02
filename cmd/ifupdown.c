@@ -17,7 +17,7 @@
 #define _GNU_SOURCE
 #include <fnmatch.h>
 #include <stdio.h>
-#include <string.h>
+#include <bsd/string.h>
 #include <getopt.h>
 #include <fcntl.h>
 #include <errno.h>
