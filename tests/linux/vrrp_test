@@ -1,0 +1,47 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/vrrp"
+
+tests_init \
+	leader_bringup \
+	leader_teardown \
+	address_config
+
+leader_bringup_body() {
+	export MOCK=echo IFACE=eth0 PHASE=create IF_VRRP_ID="10 20" IF_VRRP_ADDRESS="10 192.168.1.1/24 fc00:192:168:1::1/64 20 192.168.2.1/24 fc00:192:168:1::1/64"
+	atf_check -s exit:0 \
+		-o match:'ip link add link eth0 name vf5b9c9a2-0a-4 type macvlan mode bridge' \
+		-o match:'ip link set dev vf5b9c9a2-0a-4 address 00:00:5e:00:01:0a' \
+		-o match:'ip link set dev vf5b9c9a2-0a-4 protodown on' \
+		-o match:'ip link add link eth0 name vf5b9c9a2-0a-6 type macvlan mode bridge' \
+		-o match:'ip link set dev vf5b9c9a2-0a-6 address 00:00:5e:00:02:0a' \
+		-o match:'ip link set dev vf5b9c9a2-0a-6 protodown on' \
+		-o match:'ip link add link eth0 name vf5b9c9a2-14-4 type macvlan mode bridge' \
+		-o match:'ip link set dev vf5b9c9a2-14-4 address 00:00:5e:00:01:14' \
+		-o match:'ip link set dev vf5b9c9a2-14-4 protodown on' \
+		-o match:'ip link add link eth0 name vf5b9c9a2-14-6 type macvlan mode bridge' \
+		-o match:'ip link set dev vf5b9c9a2-14-6 address 00:00:5e:00:02:14' \
+		-o match:'ip link set dev vf5b9c9a2-14-6 protodown on' \
+		${EXECUTOR}
+}
+
+leader_teardown_body() {
+	export MOCK=echo IFACE=eth0 PHASE=pre-down IF_VRRP_ID="10 20" IF_VRRP_ADDRESS="10 192.168.1.1/24 fc00:192:168:1::1/64 20 192.168.2.1/24 fc00:192:168:1::1/64"
+	atf_check -s exit:0 \
+		-o match:'ip link del vf5b9c9a2-0a-4 type macvlan' \
+		-o match:'ip link del vf5b9c9a2-0a-6 type macvlan' \
+		-o match:'ip link del vf5b9c9a2-14-4 type macvlan' \
+		-o match:'ip link del vf5b9c9a2-14-6 type macvlan' \
+		${EXECUTOR}
+}
+
+address_config_body() {
+	export MOCK=echo IFACE=eth0 PHASE=pre-up IF_VRRP_ID="10 20" IF_VRRP_ADDRESS="10 192.168.1.1/24 fc00:192:168:1::1/64 20 192.168.2.1/24 fc00:192:168:1::1/64"
+	atf_check -s exit:0 \
+		-o match:'ip address add 192.168.1.1/24 dev vf5b9c9a2-0a-4' \
+		-o match:'ip -6 address add fc00:192:168:1::1/64 dev vf5b9c9a2-0a-6' \
+		-o match:'ip address add 192.168.2.1/24 dev vf5b9c9a2-14-4' \
+		-o match:'ip -6 address add fc00:192:168:1::1/64 dev vf5b9c9a2-14-6' \
+		${EXECUTOR}
+}

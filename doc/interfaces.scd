@@ -252,6 +252,7 @@ iface eth0
 *interfaces-ppp*(5)
 *interfaces-tunnel*(5)
 *interfaces-vrf*(5)
+*interfaces-vrrp*(5)
 *interfaces-vxlan*(5)
 *interfaces-wifi*(5)
 *interfaces-wireguard*(5)

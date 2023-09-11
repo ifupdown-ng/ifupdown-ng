@@ -8,6 +8,7 @@ PACKAGE_VERSION := 0.12.1
 PACKAGE_BUGREPORT := https://github.com/ifupdown-ng/ifupdown-ng/issues/new
 
 SBINDIR := /sbin
+BINDIR := /bin
 
 INTERFACES_FILE := /etc/network/interfaces
 STATE_FILE := /run/ifstate
@@ -87,6 +88,12 @@ YAML_SRC = \
 LIBIFUPDOWN_${CONFIG_YAML}_OBJ += ${YAML_SRC:.c=.o}
 CPPFLAGS_${CONFIG_YAML} += -DCONFIG_YAML
 
+# enable VRRP crc32b tool (+15 KB)
+CONFIG_CRC32B ?= Y
+CRC32B_SRC = tools/crc32b.c
+CRC32B_${CONFIG_CRC32B}_OBJ += ${CRC32B_SRC:.c=.o}
+CRC32B_${CONFIG_CRC32B} += crc32b
+
 LIBIFUPDOWN_OBJ += ${LIBIFUPDOWN_Y_OBJ}
 MULTICALL_OBJ += ${MULTICALL_Y_OBJ}
 CMDS += ${CMDS_Y}
@@ -109,6 +116,7 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	mpls \
 	tunnel \
 	vrf \
+	vrrp \
 	vxlan \
 	wifi \
 	wireguard \
@@ -123,13 +131,16 @@ EXECUTOR_SCRIPTS_NATIVE ?=
 TARGET_LIBS = ${LIBIFUPDOWN_LIB}
 LIBS += ${TARGET_LIBS} ${LIBBSD_LIBS}
 
-all: ${MULTICALL} ${CMDS}
+all: ${MULTICALL} ${CMDS} ${CRC32B_Y}
 
 ${CMDS}: ${MULTICALL}
 	ln -sf ifupdown $@
 
 ${MULTICALL}: ${TARGET_LIBS} ${MULTICALL_OBJ}
 	${CC} ${LDFLAGS} -o $@ ${MULTICALL_OBJ} ${LIBS}
+
+${CRC32B_Y}: ${CRC32B_Y_OBJ}
+	${CC} ${LDFLAGS} -o $@ ${CRC32B_Y_OBJ};
 
 ${LIBIFUPDOWN_LIB}: ${LIBIFUPDOWN_OBJ}
 	${AR} -rcs $@ ${LIBIFUPDOWN_OBJ}
@@ -138,6 +149,7 @@ clean:
 	rm -f ${LIBIFUPDOWN_OBJ} ${MULTICALL_OBJ}
 	rm -f ${LIBIFUPDOWN_LIB}
 	rm -f ${CMDS} ${MULTICALL}
+	rm -f ${CRC32B_Y} ${CRC32B_Y_OBJ}
 	rm -f ${MANPAGES}
 
 check: ${LIBIFUPDOWN_LIB} ${CMDS}
@@ -145,6 +157,8 @@ check: ${LIBIFUPDOWN_LIB} ${CMDS}
 
 install: all
 	install -D -m755 ${MULTICALL} ${DESTDIR}${SBINDIR}/${MULTICALL}
+	# Install crc32b tool to bin
+	install -D -m755 ${CRC32B_Y} ${DESTDIR}${BINDIR}/${CRC32B_Y}
 	for i in ${CMDS}; do \
 		ln -s ${SBINDIR}/${MULTICALL} ${DESTDIR}${SBINDIR}/$$i; \
 	done
@@ -173,6 +187,7 @@ MANPAGES_5 = \
 	doc/interfaces-ppp.5 \
 	doc/interfaces-tunnel.5 \
 	doc/interfaces-vrf.5 \
+	doc/interfaces-vrrp.5 \
 	doc/interfaces-vxlan.5 \
 	doc/interfaces-wifi.5 \
 	doc/interfaces-wireguard.5 \
