@@ -200,15 +200,18 @@ create)
 	    ${MOCK} ip link set dev ${IFACE_VRRP_4} address ${VRRP_MAC_4}
 	    # In case of boot, we must set protodown to on until FRRouting will takeover the control of the interface
 	    ${MOCK} ip link set dev ${IFACE_VRRP_4} protodown on
+	    ${MOCK} ip link set dev ${IFACE_VRRP_4} up
 	    ### Always disable IPv6 on VRRP IPv4 interface
 	    if [ -z "${MOCK}" ]; then
 		echo 1 > /proc/sys/net/ipv6/conf/${IFACE_VRRP_4}/disable_ipv6
 	    fi
 	    # Create MACVLAN interfaces for VRRP IPv6
 	    ${MOCK} ip link add link ${IFACE} name ${IFACE_VRRP_6} type macvlan mode bridge
+	    ${MOCK} ip link set dev ${IFACE_VRRP_6} addrgenmode random
 	    ${MOCK} ip link set dev ${IFACE_VRRP_6} address ${VRRP_MAC_6}
 	    # In case of OS booting, we must set protodown to on until FRRouting will takeover the control of the interface
 	    ${MOCK} ip link set dev ${IFACE_VRRP_6} protodown on
+	    ${MOCK} ip link set dev ${IFACE_VRRP_6} up
 
 	    # In case we have VRF, add VRRP interfaces under VRF
 	    if [ -n "${VRRP_VRF}" ]; then

@@ -14,13 +14,18 @@ leader_bringup_body() {
 		-o match:'ip link add link eth0 name vf5b9c9a2-0a-4 type macvlan mode bridge' \
 		-o match:'ip link set dev vf5b9c9a2-0a-4 address 00:00:5e:00:01:0a' \
 		-o match:'ip link set dev vf5b9c9a2-0a-4 protodown on' \
+		-o match:'ip link set dev vf5b9c9a2-0a-4 up' \
 		-o match:'ip link add link eth0 name vf5b9c9a2-0a-6 type macvlan mode bridge' \
+		-o match:'ip link set dev vf5b9c9a2-0a-6 addrgenmode random' \
 		-o match:'ip link set dev vf5b9c9a2-0a-6 address 00:00:5e:00:02:0a' \
 		-o match:'ip link set dev vf5b9c9a2-0a-6 protodown on' \
+		-o match:'ip link set dev vf5b9c9a2-0a-6 up' \
 		-o match:'ip link add link eth0 name vf5b9c9a2-14-4 type macvlan mode bridge' \
 		-o match:'ip link set dev vf5b9c9a2-14-4 address 00:00:5e:00:01:14' \
 		-o match:'ip link set dev vf5b9c9a2-14-4 protodown on' \
+		-o match:'ip link set dev vf5b9c9a2-14-4 up' \
 		-o match:'ip link add link eth0 name vf5b9c9a2-14-6 type macvlan mode bridge' \
+		-o match:'ip link set dev vf5b9c9a2-14-6 addrgenmode random' \
 		-o match:'ip link set dev vf5b9c9a2-14-6 address 00:00:5e:00:02:14' \
 		-o match:'ip link set dev vf5b9c9a2-14-6 protodown on' \
 		${EXECUTOR}
