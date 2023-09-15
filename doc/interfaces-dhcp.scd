@@ -1,4 +1,4 @@
-interfaces-wireguard(5)
+interfaces-dhcp(5)
 
 # NAME
 
@@ -6,10 +6,11 @@ interfaces-wireguard(5)
 
 # DESCRIPTION
 
-DHCP configure is provided by one of the following clients, in order 
-of preference: dhcpcd, dhclient, and udhcpc
+DHCP configuration is provided by one of the following clients, in
+this order of preference: dhcpcd, dhclient, and udhcpc
 
-No explict module configuration is required, but several options are available:
+No explict module configuration is required, but several options are
+available:
 
 # DHCP-RELATED OPTIONS
 
@@ -43,7 +44,7 @@ No explict module configuration is required, but several options are available:
 	Additional arugments passed unmodified to the DHCP client.
 	Use this to pass additional options otherwise not supported
 	by this executor. For compatibility udhcpc also accepts this
-	options when named: udhcpc_opts
+	option when named: udhcpc-opts
 
 # EXAMPLES
 
@@ -55,7 +56,7 @@ iface foo
 	use dhcp
 ```
 
-All avialable options for a host using dhcpcd
+All available options for a host using dhcpcd
 
 ```
 auto foo
