@@ -1,0 +1,62 @@
+#!/bin/sh
+[ -n "$VERBOSE" ] && set -x
+
+yesno() {
+	case "$1" in
+		y*|t*|1*) echo 1 ;;
+		*)        echo 0 ;;
+	esac
+}
+
+case "$PHASE" in
+up)
+	[ -n "$IF_CAKE_BANDWIDTH" ] && optargs="$optargs bandwidth $IF_CAKE_BANDWIDTH"
+	if [ -n "$IF_CAKE_RTT" ]; then
+		# Times require a prefix, other keywords do not
+		if echo "$IF_CAKE_RTT" | grep -q '^[0-9]'; then
+			optargs="$optargs rtt $IF_CAKE_RTT"
+		else
+			optargs="$optargs $IF_CAKE_RTT"
+		fi
+	fi
+	[ -n "$IF_CAKE_TINS" ]      && optargs="$optargs $IF_CAKE_TINS"
+	[ -n "$IF_CAKE_ISOLATION" ] && optargs="$optargs $IF_CAKE_ISOLATION"
+	if [ -n "$IF_CAKE_NAT" -a $(yesno "$IF_CAKE_NAT") ]; then
+		optargs="$optargs nat"
+	fi
+	if [ -n "$IF_CAKE_WASH" -a $(yesno "$IF_CAKE_WASH") ]; then
+		optargs="$optargs wash"
+	fi
+	if [ -n "$IF_CAKE_SPLIT_GSO" -a $(yesno "$IF_CAKE_SPLIT_GSO") -ne 1 ]; then
+		optargs="$optargs no-split-gso"
+	fi
+	[ -n "$IF_CAKE_ACK" ]      && optargs="$optargs $IF_CAKE_ACK"
+	[ -n "$IF_CAKE_MEMLIMIT" ] && optargs="$optargs memlimit $IF_CAKE_MEMLIMIT"
+	[ -n "$IF_CAKE_FWMARK" ]   && optargs="$optargs fwmark $IF_CAKE_FWMARK"
+	[ -n "$IF_CAKE_ATM" ]      && optargs="$optargs $IF_CAKE_ATM"
+	if [ -n "$IF_CAKE_OVERHEAD" ]; then
+		# Digits require a prefix, other keywords do not
+		if [ "$IF_CAKE_OVERHEAD" -eq "$IF_CAKE_OVERHEAD" 2> /dev/null ]; then
+			optargs="$optargs overhead $IF_CAKE_OVERHEAD"
+		else
+			optargs="$optargs $IF_CAKE_OVERHEAD"
+		fi
+	fi
+	[ -n "$IF_CAKE_MPU" ] && optargs="$optargs mpu $IF_CAKE_MPU"
+	if [ -n "$IF_CAKE_INGRESS" -a $(yesno "$IF_CAKE_INGRESS") ]; then
+		optargs="$optargs ingress"
+	fi
+
+	# Prefer the args parameter, if provided
+	[ -n "$IF_CAKE_ARGS" ] && optargs="$IF_CAKE_ARGS"
+
+	eval ${MOCK} tc qdisc replace root dev "$IFACE" cake ${optargs}
+	;;
+
+down)
+	if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
+		exit 0
+	fi
+	${MOCK} tc qdisc del root dev "$IFACE"
+	;;
+esac
