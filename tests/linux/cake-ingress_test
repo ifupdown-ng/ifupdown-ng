@@ -1,0 +1,54 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/cake-ingress"
+
+tests_init \
+	depend \
+	create \
+	up \
+	down \
+	destroy
+
+depend_body() {
+	export IFACE=foo PHASE=depend MOCK=echo
+	export IF_CAKE_INGRESS_DEV=bar
+	atf_check -s exit:0 \
+		-o match:'bar' \
+		${EXECUTOR}
+}
+
+create_body() {
+	export IFACE=foo PHASE=create MOCK=echo
+	export IF_CAKE_INGRESS_DEV=bar
+	atf_check -s exit:0 \
+		-o match:'ip link add name foo type ifb' \
+		${EXECUTOR}
+}
+
+up_body() {
+	export IFACE=foo PHASE=up MOCK=echo
+	export IF_CAKE_INGRESS_DEV=bar
+	atf_check -s exit:0 \
+		-o match:'ip link set foo up' \
+		-o match:'tc qdisc replace dev bar handle ffff: ingress' \
+		-o match:'tc filter add dev bar parent ffff: matchall action mirred egress redirect dev foo' \
+		${EXECUTOR}
+}
+
+down_body() {
+	export IFACE=foo PHASE=down MOCK=echo
+	export IF_CAKE_INGRESS_DEV=bar
+	atf_check -s exit:0 \
+		-o match:'tc qdisc del dev bar handle ffff: ingress' \
+		-o match:'ip link set down dev foo' \
+		${EXECUTOR}
+}
+
+destroy_body() {
+	export IFACE=foo PHASE=destroy MOCK=echo
+	export IF_CAKE_INGRESS_DEV=bar
+	atf_check -s exit:0 \
+		-o match:'ip link del foo' \
+		${EXECUTOR}
+}

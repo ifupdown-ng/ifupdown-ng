@@ -1,0 +1,37 @@
+#!/bin/sh
+[ -n "$VERBOSE" ] && set -x
+
+case "$PHASE" in
+depend)
+	echo "$IF_CAKE_INGRESS_DEV"
+	;;
+
+create)
+	${MOCK} ip link add name "$IFACE" type ifb
+	;;
+
+up)
+	if [ -z "${IF_CAKE_INGRESS_DEV}" ]; then
+		echo "cake-ingress_dev is required" 1>&2
+		exit 1
+	fi
+	${MOCK} ip link set "$IFACE" up
+	${MOCK} tc qdisc replace dev "$IF_CAKE_INGRESS_DEV" handle ffff: ingress
+	${MOCK} tc filter add dev "$IF_CAKE_INGRESS_DEV" parent ffff: matchall action mirred egress redirect dev "$IFACE"
+	;;
+
+down)
+	if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
+		exit 0
+	fi
+	${MOCK} tc qdisc del dev "$IF_CAKE_INGRESS_DEV" handle ffff: ingress
+	${MOCK} ip link set down dev "$IFACE"
+	;;
+
+destroy)
+	if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
+		exit 0
+	fi
+	${MOCK} ip link del "$IFACE"
+	;;
+esac

@@ -1,0 +1,100 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/cake"
+
+tests_init \
+	min \
+	all \
+	rtt_time \
+	rtt_keyword \
+	overhead_bytes \
+	overhead_keyword \
+	nat \
+	gso \
+	args \
+	down
+
+min_body() {
+	export IFACE=foo PHASE=up MOCK=echo
+	atf_check -s exit:0 \
+		-o match:'tc qdisc replace root dev foo cake' \
+		${EXECUTOR}
+}
+
+rtt_time_body() {
+	export IFACE=foo PHASE=up MOCK=echo
+	export IF_CAKE_RTT=10ms
+	atf_check -s exit:0 \
+		-o match:'tc qdisc replace root dev foo cake rtt 10ms' \
+		${EXECUTOR}
+}
+
+rtt_keyword_body() {
+	export IFACE=foo PHASE=up MOCK=echo
+	export IF_CAKE_RTT=internet
+	atf_check -s exit:0 \
+		-o match:'tc qdisc replace root dev foo cake internet' \
+		${EXECUTOR}
+}
+
+overhead_bytes_body() {
+	export IFACE=foo PHASE=up MOCK=echo
+	export IF_CAKE_OVERHEAD=84
+	atf_check -s exit:0 \
+		-o match:'tc qdisc replace root dev foo cake overhead 84' \
+		${EXECUTOR}
+}
+
+overhead_keyword_body() {
+	export IFACE=foo PHASE=up MOCK=echo
+	export IF_CAKE_OVERHEAD=raw
+	atf_check -s exit:0 \
+		-o match:'tc qdisc replace root dev foo cake raw' \
+		${EXECUTOR}
+}
+
+nat_body() {
+	export IFACE=foo PHASE=up MOCK=echo
+	export IF_CAKE_NAT=t
+		${EXECUTOR}
+	atf_check -s exit:0 \
+		-o match:'tc qdisc replace root dev foo cake nat' \
+		${EXECUTOR}
+}
+
+gso_body() {
+	export IFACE=foo PHASE=up MOCK=echo
+	export IF_CAKE_SPLIT_GSO=f
+	atf_check -s exit:0 \
+		-o match:'tc qdisc replace root dev foo cake no-split-gso' \
+		${EXECUTOR}
+}
+
+all_body() {
+	export IFACE=foo PHASE=up MOCK=echo
+	export IF_CAKE_BANDWIDTH=1Gbit IF_CAKE_RTT=internet IF_CAKE_TINS=diffserv3
+	export IF_CAKE_ISOLATION=triple-isolate IF_CAKE_NAT=false IF_CAKE_WASH=false
+	export IF_CAKE_SPLIT_GSO=true IF_CAKE_ACK=no-ack-filter IF_CAKE_MEMLIMIT=20000K
+	export IF_CAKE_FWMARK=0x10 IF_CAKE_ATM=noatm IF_CAKE_OVERHEAD=raw IF_CAKE_MPU=24
+	export IF_CAKE_INGRESS=true
+	atf_check -s exit:0 \
+		-o match:'tc qdisc replace root dev foo cake bandwidth 1Gbit internet diffserv3 triple-isolate nat wash no-ack-filter memlimit 20000K fwmark 0x10 noatm raw mpu 24 ingress' \
+		${EXECUTOR}
+}
+
+args_body() {
+	export IFACE=foo PHASE=up MOCK=echo
+	export IF_CAKE_ARGS="bandwidth 1Gbit"
+	export IF_CAKE_ISOLATION="ignored"
+	atf_check -s exit:0 \
+		-o match:'tc qdisc replace root dev foo cake bandwidth 1Gbit' \
+		${EXECUTOR}
+}
+
+down_body() {
+	export IFACE=foo PHASE=down MOCK=echo
+	atf_check -s exit:0 \
+		-o match:'tc qdisc del root dev foo' \
+		${EXECUTOR}
+}
