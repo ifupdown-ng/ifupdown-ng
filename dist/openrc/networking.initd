@@ -1,6 +1,6 @@
 #!/sbin/openrc-run
 
-: ${cfgfile:="/etc/network/interfaces"}
+: "${cfgfile:="/etc/network/interfaces"}"
 ifstate=/run/ifstate
 
 single_iface="${RC_SVCNAME#*.}"
@@ -19,7 +19,7 @@ depend() {
 # find interfaces we want to start
 find_ifaces() {
 	if [ -n "$single_iface" ]; then
-		echo $single_iface
+		echo "$single_iface"
 	else
 		ifquery -L -a -i "$cfgfile"
 	fi
@@ -28,21 +28,21 @@ find_ifaces() {
 # return the list of interfaces we should try stop
 find_running_ifaces() {
 	if [ -n "$single_iface" ]; then
-		echo $single_iface
+		echo "$single_iface"
 	else
 		ifquery -r -i "$cfgfile" -S "$ifstate"
 	fi
 }
 
 start() {
-	local iface= ret=1
+	iface='' ret=1
 	ebegin "Starting networking"
 	eindent
 	for iface in $(find_ifaces); do
-		local r=0
+		r=0
 		ebegin "$iface"
-		if ! ifup -i "$cfgfile" -S "$ifstate" $iface >/dev/null; then
-			ifdown -f -i "$cfgfile" -S "$ifstate" $iface >/dev/null 2>&1
+		if ! ifup -i "$cfgfile" -S "$ifstate" "$iface" > /dev/null; then
+			ifdown -f -i "$cfgfile" -S "$ifstate" "$iface" > /dev/null 2>&1
 			r=1
 		fi
 		# atleast one interface needs to be started for action
@@ -54,15 +54,15 @@ start() {
 }
 
 stop() {
-	local iface=
+	iface=''
 	# Don't stop the network at shutdown.
-	yesno ${keep_network:-YES} && yesno $RC_GOINGDOWN && return 0
+	yesno "${keep_network:-YES}" && yesno "$RC_GOINGDOWN" && return 0
 
 	ebegin "Stopping networking"
 	eindent
 	for iface in $(find_running_ifaces); do
 		ebegin "$iface"
-		ifdown -i "$cfgfile" -S "$ifstate" -f $iface >/dev/null
+		ifdown -i "$cfgfile" -S "$ifstate" -f "$iface" > /dev/null
 		eend $?
 	done
 	eoutdent
