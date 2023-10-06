@@ -3,11 +3,6 @@
 : "${cfgfile:="/etc/network/interfaces"}"
 ifstate=/run/ifstate
 
-single_iface="${RC_SVCNAME#*.}"
-if [ "$single_iface" = "$RC_SVCNAME" ]; then
-	single_iface=
-fi
-
 depend() {
 	need localmount
 	want dev-settle
@@ -22,22 +17,28 @@ depend() {
 	keyword -containers
 }
 
+# Print a single interface to configure, if available
+single_interface() {
+	# Use service name suffix as an interface name
+	interface="${RC_SVCNAME##*.}"
+	# If service name had no suffix, this will leave the interface name blank
+	interface="${interface#"$RC_SVCNAME"}"
+	# Only print interfaces that have been configured
+	if ifquery "$interface" > /dev/null 2>&1; then
+		printf '%s' "$interface"
+	else
+		return 1
+	fi
+}
+
 # find interfaces we want to start
 find_ifaces() {
-	if [ -n "$single_iface" ]; then
-		echo "$single_iface"
-	else
-		ifquery -L -a -i "$cfgfile"
-	fi
+	single_interface || ifquery -L -a -i "$cfgfile"
 }
 
 # return the list of interfaces we should try stop
 find_running_ifaces() {
-	if [ -n "$single_iface" ]; then
-		echo "$single_iface"
-	else
-		ifquery -r -i "$cfgfile" -S "$ifstate"
-	fi
+	single_interface || ifquery -r -i "$cfgfile" -S "$ifstate"
 }
 
 start() {
