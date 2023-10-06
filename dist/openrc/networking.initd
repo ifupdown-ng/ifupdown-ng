@@ -36,11 +36,6 @@ single_interface() {
 	fi
 }
 
-# return the list of interfaces we should try stop
-find_running_ifaces() {
-	single_interface || ifquery -r -i "$cfgfile" -S "$ifstate"
-}
-
 start() {
 	ebegin 'Starting networking'
 
@@ -64,15 +59,16 @@ start() {
 }
 
 stop() {
-	iface=''
+	ebegin 'Stopping networking'
 
-	ebegin "Stopping networking"
 	eindent
-	for iface in $(find_running_ifaces); do
-		ebegin "$iface"
-		ifdown -i "$cfgfile" -S "$ifstate" -f "$iface" > /dev/null
+	# Take down a single interface, or all interfaces that have been marked for automatic (de)configuration
+	for interface in $(single_interface || ifquery --auto --running); do
+		ebegin "$interface"
+		ifdown "$interface"
 		eend $?
 	done
 	eoutdent
+
 	return 0
 }
