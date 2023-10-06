@@ -1,7 +1,11 @@
 #!/sbin/openrc-run
 
+# Filepath to the interface configuration database
 : "${cfgfile:="/etc/network/interfaces"}"
-ifstate=/run/ifstate
+# Filepath to the interface state database,
+: "${ifstate:="/run/ifstate"}"
+# Whether to provide the 'shutdown' keyword to OpenRC
+: "${keep_network:="YES"}"
 
 # Alias used commands to make code bellow less repetitive
 alias ifquery='ifquery --interfaces "$cfgfile" --state-file "$ifstate"'
@@ -15,7 +19,7 @@ depend() {
 	provide net
 
 	# Skip bringing interfaces down during a shutdown
-	if yesno "${keep_network:-YES}"; then
+	if yesno "$keep_network"; then
 		keyword -shutdown
 	fi
 	# When inside a container, exclude this service from any dependencies
