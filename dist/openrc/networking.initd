@@ -1,18 +1,23 @@
 #!/sbin/openrc-run
 
+# Compatibility with previous variable names
+: "${INTERFACES:="$cfgfile"}"
+: "${IFSTATE:="$ifstate"}"
+: "${SKIP_SHUTDOWN:="$keep_network"}"
+
 # Filepath to the interface configuration database
-: "${cfgfile:="/etc/network/interfaces"}"
-: "${ifstate:="/run/ifstate"}"
+: "${INTERFACES:="/etc/network/interfaces"}"
 # Filepath to the interface state database
+: "${IFSTATE:="/run/ifstate"}"
 # Time to wait, in seconds, for executors to complete before raising an error
-: "${timeout:="300"}"
+: "${TIMEOUT:="300"}"
 # Whether to provide the 'shutdown' keyword to OpenRC
-: "${keep_network:="YES"}"
+: "${SKIP_SHUTDOWN:="YES"}"
 
 # Alias used commands to make code bellow less repetitive
-alias ifquery='ifquery --interfaces "$cfgfile" --state-file "$ifstate" --timeout "$timeout"'
-alias ifdown='ifdown --interfaces "$cfgfile" --state-file "$ifstate" --timeout "$timeout"'
-alias ifup='ifup --interfaces "$cfgfile" --state-file "$ifstate" --timeout "$timeout"'
+alias ifquery='ifquery --interfaces "$INTERFACES" --state-file "$IFSTATE" --timeout "$TIMEOUT"'
+alias ifdown='ifdown --interfaces "$INTERFACES" --state-file "$IFSTATE" --timeout "$TIMEOUT"'
+alias ifup='ifup --interfaces "$INTERFACES" --state-file "$IFSTATE" --timeout "$TIMEOUT"'
 
 depend() {
 	need localmount
@@ -21,7 +26,7 @@ depend() {
 	provide net
 
 	# Skip bringing interfaces down during a shutdown
-	if yesno "$keep_network"; then
+	if yesno "$SKIP_SHUTDOWN"; then
 		keyword -shutdown
 	fi
 	# When inside a container, exclude this service from any dependencies
