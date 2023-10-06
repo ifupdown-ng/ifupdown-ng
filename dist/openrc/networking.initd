@@ -13,7 +13,13 @@ depend() {
 	want dev-settle
 	after bootmisc hwdrivers modules
 	provide net
-	keyword -jail -prefix -vserver -docker
+
+	# Skip bringing interfaces down during a shutdown
+	if yesno "${keep_network:-YES}"; then
+		keyword -shutdown
+	fi
+	# When inside a container, exclude this service from any dependencies
+	keyword -containers
 }
 
 # find interfaces we want to start
@@ -55,8 +61,6 @@ start() {
 
 stop() {
 	iface=''
-	# Don't stop the network at shutdown.
-	yesno "${keep_network:-YES}" && yesno "$RC_GOINGDOWN" && return 0
 
 	ebegin "Stopping networking"
 	eindent
