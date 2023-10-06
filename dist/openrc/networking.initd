@@ -3,6 +3,11 @@
 : "${cfgfile:="/etc/network/interfaces"}"
 ifstate=/run/ifstate
 
+# Alias used commands to make code bellow less repetitive
+alias ifquery='ifquery --interfaces "$cfgfile" --state-file "$ifstate"'
+alias ifdown='ifdown --interfaces "$cfgfile" --state-file "$ifstate"'
+alias ifup='ifup --interfaces "$cfgfile" --state-file "$ifstate"'
+
 depend() {
 	need localmount
 	want dev-settle
@@ -31,33 +36,31 @@ single_interface() {
 	fi
 }
 
-# find interfaces we want to start
-find_ifaces() {
-	single_interface || ifquery -L -a -i "$cfgfile"
-}
-
 # return the list of interfaces we should try stop
 find_running_ifaces() {
 	single_interface || ifquery -r -i "$cfgfile" -S "$ifstate"
 }
 
 start() {
-	iface='' ret=1
-	ebegin "Starting networking"
+	ebegin 'Starting networking'
+
 	eindent
-	for iface in $(find_ifaces); do
-		r=0
-		ebegin "$iface"
-		if ! ifup -i "$cfgfile" -S "$ifstate" "$iface" > /dev/null; then
-			ifdown -f -i "$cfgfile" -S "$ifstate" "$iface" > /dev/null 2>&1
-			r=1
+	# Bring up a single interface, or all interfaces that have been marked for automatic configuration
+	for interface in $(single_interface || ifquery --auto --list); do
+		ebegin "$interface"
+		if ifup "$interface"; then
+			# Atleast one interface needs to start for success
+			success=0
+			eend 0
+		else
+			# Interface in an unknown state, force deconfiguration
+			ifdown --force "$interface" > /dev/null 2>&1
+			eend 1
 		fi
-		# atleast one interface needs to be started for action
-		# to be success
-		eend $r && ret=0
 	done
 	eoutdent
-	return $ret
+
+	return "${success:-1}"
 }
 
 stop() {
