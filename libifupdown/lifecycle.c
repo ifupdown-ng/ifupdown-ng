@@ -15,6 +15,7 @@
  */
 
 #include <ctype.h>
+#include <paths.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -162,6 +163,12 @@ build_environment(char **envp[], const struct lif_execute_opts *opts, const stru
 {
 	if (lifname == NULL)
 		lifname = iface->ifname;
+
+	/* Use sane defaults for PATH */
+	if (geteuid() == 0)
+		lif_environment_push(envp, "PATH", _PATH_STDPATH);
+	else
+		lif_environment_push(envp, "PATH", _PATH_DEFPATH);
 
 	lif_environment_push(envp, "IFACE", lifname);
 	lif_environment_push(envp, "PHASE", phase);
