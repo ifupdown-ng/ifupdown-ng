@@ -79,6 +79,12 @@ IFPARSE_SRC = cmd/ifparse.c
 MULTICALL_${CONFIG_IFPARSE}_OBJ += ${IFPARSE_SRC:.c=.o}
 CMDS_${CONFIG_IFPARSE} += ifparse
 
+# enable VRRP CRC32 builtin tool (+31 KB). This is stripped version of cksum from coreutils
+CONFIG_CRC32 ?= Y
+CRC32_SRC = cmd/crc32.c cmd/cksum.c cmd/crctab.c
+MULTICALL_${CONFIG_CRC32}_OBJ += ${CRC32_SRC:.c=.o}
+CMDS_${CONFIG_CRC32} += ifcrc32sum
+
 # enable YAML support (+2 KB)
 CONFIG_YAML ?= Y
 YAML_SRC = \
@@ -109,6 +115,7 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	mpls \
 	tunnel \
 	vrf \
+	vrrp \
 	vxlan \
 	wifi \
 	wireguard \
@@ -173,6 +180,7 @@ MANPAGES_5 = \
 	doc/interfaces-ppp.5 \
 	doc/interfaces-tunnel.5 \
 	doc/interfaces-vrf.5 \
+	doc/interfaces-vrrp.5 \
 	doc/interfaces-vxlan.5 \
 	doc/interfaces-wifi.5 \
 	doc/interfaces-wireguard.5 \
@@ -186,7 +194,8 @@ MANPAGES_8 = \
 	doc/ifup.8 \
 	doc/ifdown.8 \
 	doc/ifctrstat.8 \
-	doc/ifparse.8
+	doc/ifparse.8 \
+	doc/ifcrc32sum.8
 
 MANPAGES = ${MANPAGES_5} ${MANPAGES_7} ${MANPAGES_8}
 

@@ -1,0 +1,358 @@
+#!/bin/sh
+# This executor is responsible for setting up the Virtual Router Redundancy Protocol (VRRP) overlay interfaces.
+#
+# Copyright (C) 2022 EasyNetDev <devel@easynet.dev>
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# This software is provided 'as is' and without any warranty, express or
+# implied. In no event shall the authors be liable for any damages arising
+# from the use of this software.
+#
+# Sun, 21 Apr 2023 10:36:31 +0300
+#  -- EasyNetDev <devel@easynet.dev>
+#
+# Move the crc32sum tool to internal applet of ifupdown-ng and change the VRRP 
+# executor to use the new applet instead external crc32sum tool.
+# The new applet is called ifcrc32sum.
+#
+# Sun, 03 Jan 2024 19:00:26 +0300
+#  -- EasyNetDev <devel@easynet.dev>
+#
+# This executor will do the configuration for MACVLAN virtual interfaces.
+#
+# Each MACVLAN interface must be controlled by a VRRP daemon, like FRRouting.
+#
+# Options needed for VRRP executro to be able to create the MACVLAN interface are:
+#
+# IFACE                Main interface name
+# IF_VRRP_ID           VRID list to create the interfaces only
+# IF_VRRP_ADDRESS      IP list to create the interfaces and add IPs (Optional)
+#
+# Interface naming would be in format vXXXXXXXX-YY-V
+# Where
+#  ->  XXXXXXXX is CRC32 value calculated for main interface name
+#  ->  YY	is HEX value of the VRRP ID
+#  ->  V	is IP version 4 or 6
+#
+# This keeps the a fix VRRP interface name length to 14 characters (maximum are 15 characters in Linux)
+# and the part vXXXXXXXX-YY is the same for both IP protocols.
+# Also it keeps the same names after reboots if the main interface name is not changed or the CRC32 tool is not changed.
+#
+# This script is written in shell and is not using any Bash built-in functions.
+#
+
+[ -n "$VERBOSE" ] && set -x
+
+# Global variables for CRC32 tool
+crc32_cmd=""
+crc32_tool=""
+
+################################################################################
+#                        VRRP CRC32 tool functions                             #
+################################################################################
+
+# In case the crc32_tool is in auto, search for ifcrc32sum then for cksum
+find_crc32_tools_in_auto() {
+    # In test mode, we need to MOCK aka echo output.
+    if [ -n "${MOCK}" -a -z ${crc32_cmd} ]; then
+	crc32_tool="MOCK"
+	return
+    fi
+    # Search for ifcrc32sum
+    crc32_cmd=$(command -v ifcrc32sum)
+    if [ -n "${crc32_cmd}" ]; then
+	crc32_tool="ifcrc32sum"
+	return
+    fi
+    # Search for cksum
+    crc32_cmd=$(command -v cksum)
+    if [ -n "${crc32_cmd}" ]; then
+	crc32_tool="cksum"
+	return
+    fi
+    # If none of them are found, print an error message
+    if [ -z "${crc32_cmd}" ]; then
+	echo "Couldn't find crc32sum or cksum tools! Please build ifupdown-ng with ifcrc32sum support or install coreutils package for cksum!"
+	exit 0
+    fi
+}
+
+# Compute CRC32 value using the selected CRC32 tool
+compute_crc32_hex() {
+    case "$crc32_tool" in
+	ifcrc32sum)
+	    # ifcrc32sum has an option -x to directly outputs CRC32 value in hex.
+	    $crc32_tool -x "$1"
+	    ;;
+	cksum)
+	    # cksum has 2 fields: CRC32 value and total length of the string. We need to take first value and convert to hex.
+	    printf "%08x" $(echo -n "$1" | ${crc32_cmd} | cut -f1 -d" ")
+	    ;;
+	MOCK)
+	    # This is CRC32 hex value calculated for "eth0" string. Both ifcrc32sum and cksum are giving the same value.
+	    # Be careful when you use cksum that you need to use echo -n "eth0" | cksum to get this.
+	    echo "43bfa0f3"
+	    ;;
+	*)
+	    echo "Invalid CRC32 tool: $crc32_tool! Only allowed tools are ifcrc32sum or cksum!"
+	    exit 0
+	    ;;
+    esac
+}
+
+################################################################################
+#                        VRRP management functions                             #
+################################################################################
+# Check address family protocol: IPv4, IPv6, or invalid
+addr_family() {
+	if [ "$1" != "${1#*[0-9].[0-9]}" ]; then
+		echo "4"
+	elif [ "$1" != "${1#*:[0-9a-fA-F]}" ]; then
+		echo "6"
+	else
+		echo "0"
+	fi
+}
+
+# Verify the VRRP ID if has correct values: between 1 and 255
+is_vrid() {
+	if [ -z "$(echo $1 | sed 's/\([0-9]\{1,3\}\)\(.*\)/\2/g')" ]; then
+		if [ $1 -gt 0 -a $1 -le 255 ]; then
+		    return 0
+		else
+		    return 1
+		fi
+	else
+		# Could be IPv4 or IPv6 address
+		return 2
+	fi
+}
+
+# Compute the MAC address the VRRP interface
+get_vrrp_mac() {
+	VRRP_MAC_6="00:00:5e:00:02:"$(printf "%02x\n" $1)
+	VRRP_MAC_4="00:00:5e:00:01:"$(printf "%02x\n" $1)
+}
+
+
+vrrp_gen_name() {
+	# Get main interface CRC32 to generate a fix name for VRRP interface using main interface name + VRRP ID
+	IFACE_CRC32=$(compute_crc32_hex ${IFACE})
+
+	VRRP_ID_HEX=$(printf "%02x" $VRRP_ID)
+
+	IFACE_VRRP_4="v${IFACE_CRC32}-${VRRP_ID_HEX}-4"
+	IFACE_VRRP_6="v${IFACE_CRC32}-${VRRP_ID_HEX}-6"
+}
+
+init_vrrp() {
+	find_crc32_tools_in_auto
+
+	# If we don't have vrrp-id then do nothing.
+	if [ ! "$IF_VRRP_ID" ]; then
+	    exit 0
+	fi
+}
+
+case "$PHASE" in
+depend)
+	# There is no dependency because is used directly under interface.
+	exit 0
+	;;
+create)
+	init_vrrp
+	# ${MOCK} variable is used by test tools to printout the setup. We need to skip some tests if ${MOCK} is used.
+	# Check if main interface vrrp-raw-device exists in system. If not then skip.
+	if [ -z "${MOCK}" -a ! -d /sys/class/net/$IFACE ]; then
+	    echo "Main interface $IFACE doesn't exist!"
+	    exit 0
+	fi
+
+	for VRRP_ID in ${IF_VRRP_ID}; do
+
+	    if ! is_vrid $VRRP_ID; then
+		echo "VRRP ID $1 is invalid! VRRP ID must have values between 1 and 255!"
+		continue
+	    fi
+
+	    # Compute VRRP interfaces name
+	    vrrp_gen_name
+
+	    # Check if the VRRP interface itself exists. If yes then skip.
+	    if [ -z "${MOCK}" -a -d /sys/class/net/"${IFACE_VRRP_4}" ]; then
+		echo "Interface ${IFACE_VRRP_4} already exist. Please check your system."
+		continue
+	    fi
+	    if [ -z "${MOCK}" -a -d /sys/class/net/${IFACE_VRRP_6} ]; then
+		echo "Interface ${IFACE_VRRP_6} already exist. Please check your system."
+		continue
+	    fi
+
+	    VRRP_MAC_4=""
+	    VRRP_MAC_6=""
+
+	    get_vrrp_mac $VRRP_ID
+
+	    # Get the VRF for the vrrp-raw-device. VRRP interface MUST be in the same VRF as the vrrp-raw-device is.
+	    if [ -z "${MOCK}" ]; then
+		VRRP_VRF=$(ifquery -p vrf-member ${IFACE} | head -1)
+	    fi
+
+	    # Create MACVLAN interfaces for VRRP IPv4
+	    ${MOCK} ip link add link ${IFACE} name ${IFACE_VRRP_4} type macvlan mode bridge
+	    # Take a short pause before setting the MAC address. Sometimes it is too short the time between add interface and set.
+	    sleep 0.5
+	    ${MOCK} ip link set dev ${IFACE_VRRP_4} address ${VRRP_MAC_4}
+	    # In case of boot, we must set protodown to on until FRRouting will takeover the control of the interface
+	    ${MOCK} ip link set dev ${IFACE_VRRP_4} protodown on
+	    ${MOCK} ip link set dev ${IFACE_VRRP_4} up
+	    ### Always disable IPv6 on VRRP IPv4 interface
+	    if [ -z "${MOCK}" ]; then
+		echo 1 > /proc/sys/net/ipv6/conf/${IFACE_VRRP_4}/disable_ipv6
+	    fi
+	    # Create MACVLAN interfaces for VRRP IPv6
+	    ${MOCK} ip link add link ${IFACE} name ${IFACE_VRRP_6} type macvlan mode bridge
+	    # Take a short pause before setting the MAC address. Sometimes it is too short the time between add interface and set.
+	    sleep 0.5
+	    ${MOCK} ip link set dev ${IFACE_VRRP_6} addrgenmode random
+	    ${MOCK} ip link set dev ${IFACE_VRRP_6} address ${VRRP_MAC_6}
+	    # In case of OS booting, we must set protodown to on until FRRouting will takeover the control of the interface
+	    ${MOCK} ip link set dev ${IFACE_VRRP_6} protodown on
+	    ${MOCK} ip link set dev ${IFACE_VRRP_6} up
+
+	    # In case we have VRF, add VRRP interfaces under VRF
+	    if [ -n "${VRRP_VRF}" ]; then
+		${MOCK} ip link set ${IFACE_VRRP_4} master $VRRP_VRF
+		${MOCK} ip link set ${IFACE_VRRP_6} master $VRRP_VRF
+	    fi
+	done
+
+	exit 0
+	;;
+pre-up)
+	init_vrrp
+
+	# Add VRRP Virtual IPs to VRRP interfaces
+	VRRP_ID=0
+	for VRRP_IP in ${IF_VRRP_ADDRESS}; do
+	    # The format of the VRRP_ADDRESS is <VRRP_ID> <IP/MASK> <IP/MASK> .. <VRRP_ID> <IP/MASK> ..
+	    # We check if first read in the list is the VRRP_ID
+	    if [ $(addr_family ${VRRP_IP}) -eq 0 ]; then
+		# Is not an IP address, check if is VRRP_ID
+		VRRP_ID=${VRRP_IP}
+		if ! is_vrid $VRRP_ID; then
+		    echo "Unknown IP address or VRRP ID: $VRRP_ID"
+		    VRRP_ID=0
+		    continue
+		else
+		    # Compute VRRP interface to avoid unecessary CPU processing. We need only when VRRP ID changes
+		    vrrp_gen_name
+		    # Check if the VRRP interface itself exists. If yes then skip.
+		    if [ -z "${MOCK}" -a ! -d /sys/class/net/${IFACE_VRRP_4} ]; then
+			echo "Please configure main interface ${IFACE} with VRRP ID ${VRRP_ID} before adding IP addresses to VRRP interface."
+			continue
+		    fi
+		    if [ -z "${MOCK}" -a ! -d /sys/class/net/${IFACE_VRRP_6} ]; then
+			echo "Please configure main interface ${IFACE} with VRRP ID ${VRRP_ID} before adding IP addresses to VRRP interface."
+			continue
+		    fi
+		fi
+	    else
+		# This should by an IPv4 or IPv6 address
+		# Check if we have VRRP_ID in a previously step. Maybe somehow an invalid VRRP ID escape from checks
+		if ! is_vrid $VRRP_ID; then
+		    echo "Invalid VRRP ID: $VRRP_ID"
+		    VRRP_ID=0
+		    continue
+		fi
+
+		VRRP_IP_ADDR=${VRRP_IP%*/*}
+		VRRP_PREFIX=${VRRP_IP#*/*}
+
+		# Check if IP address has an netmask. If not, considering /24 or /64
+		if [ -z "$VRRP_PREFIX" ]; then
+		    if [ addr_family ${VRRP_IP_ADDR} -eq 6 ]; then
+			VRRP_NETMASK=64
+		    else
+			VRRP_NETMASK=24
+		    fi
+		fi
+
+		# Check if NETMASK if is a valid one: IPv4 between 1 to 32 and IPv6 1 to 128.
+		if [ $(addr_family ${VRRP_IP_ADDR}) -eq 6 ]; then
+		    if [ ${VRRP_PREFIX} -lt 1 -o ${VRRP_PREFIX} -gt 128 ]; then
+			echo "Invalid IPv6 prefix ($VRRP_PREFIX). Valid prefixes are between 1 and 128."
+			continue
+		    else
+			# Add IP address to the VRRP interface.
+			${MOCK} ip -6 address add ${VRRP_IP_ADDR}/${VRRP_PREFIX} dev ${IFACE_VRRP_6}
+		    fi
+		else
+		    if [ ${VRRP_PREFIX} -lt 1 -o ${VRRP_PREFIX} -gt 32 ]; then
+			echo "Invalid IPv4 prefix ($VRRP_PREFIX). Valid prefixes are between 1 and 32."
+			continue
+		    else
+			# Add IP address to the VRRP interface.
+			${MOCK} ip address add ${VRRP_IP_ADDR}/${VRRP_PREFIX} dev ${IFACE_VRRP_4}
+		    fi
+		fi
+		
+		#VRRP_ID=$(echo $VRRP_IP | cut -f1 -d",")
+		#VRRP_ADDRESSES=$(echo $VRRP_IP | cut -f2- -d"," | sed "s/,/ /g")
+
+		#VRRP_ID_HEX=$(printf "%02x" $VRRP_ID)
+		#IFACE_VRRP="v${IFACE_CRC32}-${VRRP_ID_HEX}-"
+
+		#for VRRP_ADDR in ${VRRP_ADDRESSES}; do
+		#    if [ "${VRRP_ADDR##*/*}" ] ;then
+		#	if [ addr_family $VRRP_ADDR -eq 6 ]; then
+		#	    VRRP_MASK=64
+		#	else
+		#	    VRRP_MASK=24
+		#	fi
+		#    fi
+		#done
+	    fi
+	done
+	;;
+
+post-up)
+	;;
+pre-down)
+	init_vrrp
+
+	IFACE_CRC32=$(compute_crc32_hex ${IFACE})
+
+	if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}/" ]; then
+	    exit 0
+	fi
+	if [ -z "${MOCK}" ]; then
+	    VRRP_IFACES=`find /sys/class/net/${IFACE}/ -name "upper_v${IFACE_CRC32}-*" -printf "%f\n" | sed "s/upper_//g"`
+	else
+	    # Let's generate list of the interfaces for MOCK. In test mode, these interfaces doesn't exist in system.
+	    VRRP_IFACES=""
+	    for VRRP_ID in ${IF_VRRP_ID}; do
+		if ! is_vrid $VRRP_ID; then
+		    continue
+		fi
+	    # Compute VRRP interfaces name
+	    vrrp_gen_name
+	    VRRP_IFACES="$VRRP_IFACES "${IFACE_VRRP_4}" "${IFACE_VRRP_6}
+	    done
+	fi
+
+	# VRRP interfaces should be destroied in post-down, becase if you have a bond, bridge or teaming interfaces, these are destroied in "destroy" stage.
+	for VRRP_IFACE in ${VRRP_IFACES}; do
+	    if [ -z "${MOCK}" -a -d "/sys/class/net/${VRRP_IFACE}" ] || [ -n ${MOCK} ]; then
+		${MOCK} ip link del ${VRRP_IFACE} type macvlan
+	    fi
+	done
+	;;
+destroy)
+	;;
+esac
+
+exit 0
