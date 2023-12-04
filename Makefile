@@ -8,6 +8,7 @@ PACKAGE_VERSION := 0.12.1
 PACKAGE_BUGREPORT := https://github.com/ifupdown-ng/ifupdown-ng/issues/new
 
 SBINDIR := /sbin
+BINDIR := /bin
 
 INTERFACES_FILE := /etc/network/interfaces
 STATE_FILE := /run/ifstate
@@ -87,6 +88,12 @@ YAML_SRC = \
 LIBIFUPDOWN_${CONFIG_YAML}_OBJ += ${YAML_SRC:.c=.o}
 CPPFLAGS_${CONFIG_YAML} += -DCONFIG_YAML
 
+# enable VRRP crc32 builtin tool (+31 KB). This is stripped version of cksum from coreutils
+CONFIG_CRC32 ?= Y
+CRC32_SRC = tools/crc32.c tools/cksum.c tools/crctab.c
+CRC32_${CONFIG_CRC32}_OBJ += ${CRC32_SRC:.c=.o}
+CRC32_${CONFIG_CRC32} += crc32sum
+
 LIBIFUPDOWN_OBJ += ${LIBIFUPDOWN_Y_OBJ}
 MULTICALL_OBJ += ${MULTICALL_Y_OBJ}
 CMDS += ${CMDS_Y}
@@ -109,6 +116,7 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	mpls \
 	tunnel \
 	vrf \
+	vrrp \
 	vxlan \
 	wifi \
 	wireguard \
@@ -123,13 +131,16 @@ EXECUTOR_SCRIPTS_NATIVE ?=
 TARGET_LIBS = ${LIBIFUPDOWN_LIB}
 LIBS += ${TARGET_LIBS} ${LIBBSD_LIBS}
 
-all: ${MULTICALL} ${CMDS}
+all: ${MULTICALL} ${CMDS} ${CRC32_Y}
 
 ${CMDS}: ${MULTICALL}
 	ln -sf ifupdown $@
 
 ${MULTICALL}: ${TARGET_LIBS} ${MULTICALL_OBJ}
 	${CC} ${LDFLAGS} -o $@ ${MULTICALL_OBJ} ${LIBS}
+
+${CRC32_Y}: ${CRC32_Y_OBJ}
+	${CC} ${LDFLAGS} -o $@ ${CRC32_Y_OBJ}
 
 ${LIBIFUPDOWN_LIB}: ${LIBIFUPDOWN_OBJ}
 	${AR} -rcs $@ ${LIBIFUPDOWN_OBJ}
@@ -138,6 +149,7 @@ clean:
 	rm -f ${LIBIFUPDOWN_OBJ} ${MULTICALL_OBJ}
 	rm -f ${LIBIFUPDOWN_LIB}
 	rm -f ${CMDS} ${MULTICALL}
+	rm -f ${CRC32_Y} ${CRC32_Y_OBJ}
 	rm -f ${MANPAGES}
 
 check: ${LIBIFUPDOWN_LIB} ${CMDS}
@@ -158,6 +170,9 @@ install: all
 		install -D -m755 executor-scripts/${LAYOUT}-native/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
 	done
 	install -D -m644 dist/ifupdown-ng.conf.example ${DESTDIR}${CONFIG_FILE}.example
+	if [ -n "${CRC32_Y}" ]; then \
+		install -D -m755 ${CRC32_Y} ${DESTDIR}${BINDIR}/${CRC32_Y}; \
+	fi
 
 .scd.1 .scd.2 .scd.3 .scd.4 .scd.5 .scd.6 .scd.7 .scd.8:
 	${SCDOC} < $< > $@
@@ -173,6 +188,7 @@ MANPAGES_5 = \
 	doc/interfaces-ppp.5 \
 	doc/interfaces-tunnel.5 \
 	doc/interfaces-vrf.5 \
+	doc/interfaces-vrrp.5 \
 	doc/interfaces-vxlan.5 \
 	doc/interfaces-wifi.5 \
 	doc/interfaces-wireguard.5 \
