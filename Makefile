@@ -104,6 +104,8 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	batman \
 	bond \
 	bridge \
+	cake \
+	cake-ingress \
 	ethtool \
 	gre \
 	mpls \
@@ -171,6 +173,8 @@ MANPAGES_5 = \
 	doc/interfaces-bridge.5 \
 	doc/interfaces-forward.5 \
 	doc/interfaces-dhcp.5 \
+	doc/interfaces-cake.5 \
+	doc/interfaces-cake-ingress.5 \
 	doc/interfaces-ppp.5 \
 	doc/interfaces-tunnel.5 \
 	doc/interfaces-vrf.5 \
