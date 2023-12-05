@@ -13,6 +13,7 @@ atf_test_program{name='link_test'}
 atf_test_program{name='mpls_test'}
 atf_test_program{name='ppp_test'}
 atf_test_program{name='static_test'}
+atf_test_program{name='team_test'}
 atf_test_program{name='tunnel_test'}
 atf_test_program{name='vrf_test'}
 atf_test_program{name='vxlan_test'}

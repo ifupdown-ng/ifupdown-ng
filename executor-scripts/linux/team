@@ -1,0 +1,200 @@
+#!/bin/sh
+# This executor is responsible for setting up the Teaming LAG interfaces and start teamd daemon.
+#
+# What this executor does:
+#  * creates the teaming virtual interface.
+#  * gets the dependency interfaces.
+#  * starts teamd daemon teamd@.service.
+#
+# What this executor doesn't:
+#  * Doesn't add team members under master. Daemon teamd is responsable for this.
+#  * Build configuration file for teamd via systemd. teamd@.service is resposable to build the config via ExecStartPre.
+#  * In case you don't have systemd, this script will execute /usr/sbin/teaming-build-config which is the exact script
+#  from systemd ExecStartPre.
+#
+# Copyright (C) 2022 EasyNetDev <devel@easynet.dev>
+#
+# Fri, Dec 1 2023 01:25:20 +0200
+#  -- EasyNetDev <devel@easynet.dev>
+#
+#
+
+[ -n "$VERBOSE" ] && set -x
+
+################################################################################
+#                     TEAMING management functions                             #
+################################################################################
+
+BUILD_CONFIG_SCRIPT="/usr/sbin/teaming-build-config"
+CONFIG_DIR="/run/teamd"
+CONFIG_FILE="${CONFIG_DIR}/ifteaming"
+
+truefalse() {
+	case "$1" in
+	true|yes|1)  echo true ;;
+	*)      echo false ;;
+	esac
+}
+
+get_depend_list() {
+    local MEMBERS_LIST
+    while [ $1 ]; do
+	### Allow in dependency only active interfaces in system to avoid ifup not finding the interface.
+	if [ -d /sys/class/net/$1 ]; then
+	    MEMBERS_LIST="${MEMBERS_LIST# } $1"
+	fi
+	shift
+    done
+    echo $MEMBERS_LIST
+}
+
+get_option_value() {
+    echo "${1##*=}"
+}
+
+# Backwards compatibility with non-systemd OS
+start_daemon_via_sysvinit() {
+	$BUILD_CONFIG_SCRIPT -r /run/teamd $IFACE
+	# Check if we have the config file for our interface
+	if [ -f "${CONFIG_FILE}.${IFACE}" ]; then
+		teamd --team-dev ${IFACE} -f ${CONFIG_FILE}.${IFACE} --take-over --no-quit-destroy --dbus-enable --usock-enable --log-output stdout --daemonize --pid-file=/run/teamd.${IFACE}.pid
+	fi
+}
+
+stop_daemon_via_sysvinit() {
+	if teamd --team-dev ${IFACE} --check; then
+		teamd --team-dev ${IFACE} --kill
+	fi
+}
+
+start_daemon_via_systemd() {
+
+	# A normal bootup service will have an [Install] section to be able start at boot.
+	# The service teamd@.serivce doesn't have such section, because is conditioned by 
+	# the config file which is created by this executor.
+	# After executor is building the config file we have to start the service teamd@.service.
+	# But this start is done also by the executor.
+	#
+	# Note: because networking.service has Type=oneshot, any direct launch of a daemon under
+	# the executor it will be killed when networking.service ends its execution.
+	# That's why we need a special service for teamd that is started from systemd itself after
+	# this script created the config file.
+	# 
+
+	service_status=$(systemctl is-enabled teamd@${IFACE}.service 2>/dev/null)
+
+	case "$service_status" in
+		static)
+			# This is the normal behavior for this service, because it must be started from this script and not at boot time.
+			if ! systemctl start teamd@${IFACE}.service; then
+			    echo "Service teamd@${IFACE}.service failed to launch. Please check the logs."
+			    exit 1
+			fi
+		;;
+		*)
+		;;
+	esac
+}
+
+stop_daemon_via_systemd() {
+	service_status=$(systemctl is-enabled teamd@${IFACE}.service 2>/dev/null)
+	case "$service_status" in
+		static)
+			# This is the normal behavior for this service, because it must be started from this script and not at boot time.
+			if ! systemctl stop teamd@${IFACE}.service; then
+			    #echo "Service teamd@${IFACE}.service failed to stop. Please check the logs."
+			    exit 1
+			fi
+		;;
+		*)
+		;;
+	esac
+}
+
+is_systemd() {
+	systemd_status=$(systemctl is-system-running)
+	# In case we have systemd, we must have these outputs:
+	# initializing, starting, running, degraded, maintenance, stopping, offline or unknown
+	# All statuses except offile and unknown are valid for a running systemd system.
+	case "$systemd_status" in
+	    initializing|starting|running|degraded|maintenance|stopping)
+		return 0
+	    ;;
+	    *)
+		# This could be an indication that systemd is not running or is using other type of system manager, like sysvinit
+		return 1
+	esac
+
+}
+
+start_teamd_service() {
+	# Check if we are running systemd or sysvinit
+	# In case of systemd we need to start teamd@${IFACE}.service
+	# In case of non-systemd we have to start the daemon manually
+	if is_systemd; then
+	    start_daemon_via_systemd
+	else
+	    start_daemon_via_sysvinit
+	fi
+}
+
+stop_teamd_service() {
+	# Check if we are running systemd or sysvinit
+	# In case of systemd we need to start teamd@${IFACE}.service
+	# In case of non-systemd we have to start the daemon manually
+	if is_systemd; then
+	    stop_daemon_via_systemd
+	else
+	    stop_daemon_via_sysvinit
+	fi
+}
+
+## Always we should have at least "team-runner" option.
+## Otherwise the configuration of this interface should be ignored
+
+if [ -z "$IF_TEAM_RUNNER" ]; then
+    exit 0
+fi
+
+CONFIG_FILE=${CONFIG_FILE}.${IFACE}
+
+case "$PHASE" in
+depend)
+        # Needs our ports to be pre-configured
+	if [ -n "$IF_TEAM_MEMBERS" ]; then
+		get_depend_list $IF_TEAM_MEMBERS
+	fi
+        ;;
+create)
+        # Create teaming device
+	if [ -z "${MOCK}" -a -d "/sys/class/net/${IFACE}" ]; then
+		exit 0
+	fi
+	
+	${MOCK} ip link add "${IFACE}" type team
+	
+	if [ -z "${MOCK}" ]; then
+	    start_teamd_service
+	fi
+
+	exit 0
+        ;;
+pre-up)
+        # Check if $IFACE exists. If not, try skip.
+	exit
+	;;
+post-down)
+	exit
+	;;
+destroy)
+	if [ -z "${MOCK}" ]; then
+	    stop_teamd_service
+	fi
+
+	if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
+		exit 0
+	fi
+
+	${MOCK} ip link delete "${IFACE}" type team
+	;;
+esac

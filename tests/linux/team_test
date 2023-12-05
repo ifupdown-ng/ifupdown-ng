@@ -1,0 +1,22 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/team"
+
+tests_init \
+	leader_bringup \
+	leader_teardown
+
+leader_bringup_body() {
+	export MOCK=echo IFACE=team0 PHASE=create IF_TEAM_RUNNER=lacp
+	atf_check -s exit:0 \
+		-o match:'ip link add team0 type team' \
+		${EXECUTOR}
+}
+
+leader_teardown_body() {
+	export MOCK=echo IFACE=team0 PHASE=destroy IF_TEAM_RUNNER=lacp
+	atf_check -s exit:0 \
+		-o match:'ip link delete team0 type team' \
+		${EXECUTOR}
+}

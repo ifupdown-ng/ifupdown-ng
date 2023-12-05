@@ -1,0 +1,836 @@
+#!/bin/sh
+
+#   This script is a helper for teamd@.service to build the teaming configuration
+# each time the service is restarted.
+#   ifupdown-ng teaming executor is resposable only to create virtual interface and
+# then to start team@.service.
+#   Each time the configuration in ifupdown-ng is changed and the service is restarted
+# the configuration will be rewrite with the new settings and it will not delete
+# the main virtual interface from system, which can cause deletetion of all subinterfaces
+# of this virtual interfaces.
+#   Just systemctl restart teamd@.service is enough after the configuration was changed
+# in /etc/networking/, no ifdown/ifup is necessary anymore.
+#
+# Copyright (C) 2022 EasyNetDev <devel@easynet.dev>
+#
+# Wed, 11 Oct 2023 12:26:20 +0300
+#  -- EasyNetDev <devel@easynet.dev>
+#
+#
+
+[ -n "$VERBOSE" ] && set -x
+
+print_help() {
+    echo "Usage: $0 [options] <TEAMING INTERFACE>"
+    echo "Options:"
+    echo "\t-d|--debug\t\tShow debug info to stdout."
+    echo "\t-dd..-dddd\t\tIncrease debug info to stdout."
+    echo "\t-r|--run-time <DIR>\tRuntime directory. This script is executed from"
+    echo "\t\t\t\tsystemd as teamd@.service and RUNTIME_DIRECTORY is automatticaly"
+    echo "\t\t\t\tset by the service, normally in /run/teamd."
+    echo "\t\t\t\tBut if you need to run independently from systemd, you can use"
+    echo "\t\t\t\tthis option or add  enviroment variable."
+    echo "\t\t\t\tAlso this directory MUST exist before starting this script."
+    echo "\t\t\t\tThis option is overwriting RUNTIME_DIRECTORY enviroment variable!"
+    echo
+    echo "Enviroment variables:"
+    echo "\tRUNTIME_DIRECTORY\tRuntime directory. Usually is set by teamd@.service to /run/teamd"
+    echo "\t\t\t\tby RuntimeDirectory directive."
+    echo
+}
+
+dbgout() {
+    if [ "$DEBUG" -ge $1 ]; then
+	shift
+	echo $@
+    fi
+}
+
+DEBUG=0
+
+if [ "$#" -lt 1 ]; then
+    print_help
+    exit 1
+fi
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+	-h|--help)
+	    print_help
+	;;
+	-r|--run-time)
+	    shift
+	    RUNTIME_DIRECTORY=$1
+	;;
+	-d|--debug)
+	    DEBUG=1
+	;;
+	-dd)
+	    DEBUG=2
+	;;
+	-ddd)
+	    DEBUG=3
+	;;
+	*)
+	    IFACE=$1
+	;;
+    esac
+    shift
+done
+
+
+if [ -z "$RUNTIME_DIRECTORY" ]; then
+    echo "ERROR: RUNTIME_DIRECTORY enviroment variable or -r|--runtime option is not set."
+    echo
+    print_help
+    exit 1
+fi
+
+if [ ! -d $RUNTIME_DIRECTORY ]; then
+    echo "ERROR: $RUNTIME_DIRECTORY doesn't exist! Is there RuntimeDirectory and RuntimeDirectoryPersistent configured in service?"
+    echo
+    exit 1
+fi
+
+if [ ! -w $RUNTIME_DIRECTORY ]; then
+    echo "ERROR: User $USER doesn't have access to write to $CONFIG_FILE!"
+    echo
+    exit 1
+fi
+
+CONFIG_FILE="$RUNTIME_DIRECTORY/ifteaming."${IFACE}
+
+truefalse() {
+	case "$1" in
+	true|yes|1)	echo true ;;
+	*)	echo false ;;
+	esac
+}
+
+get_depend_list() {
+    local MEMBERS_LIST
+    while [ $1 ]; do
+	#if [ ! -d /sys/class/net/$1 ]; then
+	#    shift
+	#    continue
+	#fi
+	MEMBERS_LIST="${MEMBERS_LIST# } $1"
+	shift
+    done
+    echo $MEMBERS_LIST
+}
+
+get_option_value() {
+    echo "${1##*=}"
+}
+
+get_iface_config() {
+    ifquery -p $1 $2 2>/dev/null | tr "[:upper:]" "[:lower:]"
+}
+
+get_team_config() {
+    get_iface_config $1 $IFACE
+}
+
+
+# We have this kind of runners: broadcast, roundrobin, random, activebackup, loadbalance, lacp
+# For each type of runner we should have some options.
+# broadcast, roundrobin and random doesn't have any kind of options.
+
+# Check tx_hash for loadbalance and lacp
+build_tx_hash() {
+	local tx_hash
+	local list_hashes
+	local list_hashes_json=""
+
+	tx_hash="\"tx_hash\": ["
+
+	#echo "tx_hash=$1"
+
+	hashes_list=$(echo $1 | tr "+" "\n")
+	for i in $hashes_list; do
+		case "$i" in
+			eth|vlan|ipv4|ipv6|ip|l3|tcp|udp|sctp|l4)
+				list_hashes_json="$list_hashes_json, \"$i\""
+			;;
+			*)
+			    #Invalid hash, ignore it
+			;;
+		esac
+	done
+
+	tx_hash="${tx_hash}${list_hashes_json#, }]"
+	echo "$tx_hash"
+}
+
+atoi(){
+	printf "%d\n" "$1" 2>/dev/null
+}
+
+get_options() {
+
+	# This function is checking what option must contain the runner
+	# and is correcting the errors by adding the default value
+	# then is returns a JSON output of that option.
+
+	# The function gets 2 options:
+	# 1. runner option that must be verified
+	# 2. list of the values that must be verified
+
+	local srch_opt=$1
+	local cval=$2
+
+	# This variable is used for the cases of multiple selection sharing the same code.
+	sub_opt=${srch_opt#*.}
+
+	case "$srch_opt" in
+	# ACTIVE-BACKUP runner options
+		runner.hwaddr_policy)
+		    # Validate only the correct values for options and return the json for this option
+			case "$cval" in
+			    same_all|by_active|only_active)
+				echo "\"hwaddr_policy\" : \"$cval\""
+			    ;;
+			    *)
+				echo "\"hwaddr_policy\" : \"same_all\""
+			    ;;
+			esac
+		;;
+		ports.prio)
+		    # Special keyword for ports.PORTIFNAME.prio
+			if [ -z "$cval" ]; then
+				cval=1
+			else
+				cval=$(atoi "$cval")
+			fi
+			if [ "$cval" -lt 0 ]; then
+				echo "\"prio\": 0"
+			else
+				echo "\"prio\": $cval"
+			fi
+		    ;;
+		ports.sticky)
+		    # Special keyword for ports.PORTIFNAME.sticky
+			echo "\"sticky\": "$(truefalse $cval)
+		    ;;
+	# LOAD BALANCE & LACP runner options
+		runner.tx_hash)
+			# Default value is already set is lacp runner check.
+			build_tx_hash "$cval"
+		;;
+		runner.tx_balancer.name)
+			# Validate only the correct values for options and return the json for this option
+			case "$cval" in
+			    basic)
+				echo "\"name\": \"$cval\""
+			    ;;
+			    *)
+			    ;;
+			esac
+		;;
+		runner.tx_balancer.balancing_interval)
+			if [ -z "$IF_TEAM_RUNNER_TX_BALANCER" ]; then
+			    return
+			fi
+			if [ -z "$cval" ]; then
+				cval=50
+			else
+				cval=$(atoi "$cval")
+			fi
+			if [ "$cval" -ge 0 ]; then
+			    echo "\"balancing_interval\": $cval"
+			fi
+		;;
+	# LACP runner options
+		runner.active)
+			if [ -z "$cval" ]; then
+			    cval="true"
+			fi
+			echo "\"${sub_opt}\": "$(truefalse $cval)
+		;;
+		runner.fast_rate)
+			if [ -z "$cval" ]; then
+			    cval="false"
+			fi
+			echo "\"${sub_opt}\": "$(truefalse $cval)
+		;;
+		runner.sys_prio)
+			if [ -z "$cval" ]; then
+				cval=65535
+			else
+				cval=$(atoi "$cval")
+			fi
+			if [ "$cval" -lt 0 -a "$cval" -gt 65535 ]; then
+				echo "\"sys_prio\": 65535"
+			else
+				echo "\"sys_prio\": $cval"
+			fi
+		;;
+		runner.min_ports)
+			if [ -z "$cval" ]; then
+				cval=1
+			else
+				cval=$(atoi "$cval")
+			fi
+			if [ "$cval" -lt 1 -a "$cval" -gt 255 ]; then
+			    echo "\"min_ports\": 1"
+			else
+				echo "\"min_ports\": $cval"
+			fi
+		;;
+		runner.agg_select_policy)
+			case "$cval" in
+			    lacp_prio|lacp_prio_stable|bandwidth|count|port_options)
+				echo "\"agg_select_policy\": \"$cval\""
+			    ;;
+			    *)
+				echo "\"agg_select_policy\": \"lacp_prio\""
+			    ;;
+			esac
+		;;
+		ports.lacp_prio|ports.lacp_key)
+			if [ -z "$cval" ]; then
+				cval=0
+			else
+				cval=$(atoi "$cval")
+			fi
+			if [ "$cval" -lt 0 ]; then
+				cval=0
+			fi
+			echo "\"$sub_opt\": $cval"
+		;;
+	# LINK WATCH options
+		link_watch.name)
+			case "$cval" in
+			    ethtool|arp_ping|nsna_ping)
+				echo "\"$sub_opt\": $cval"
+			    ;;
+			esac
+		;;
+	# ETHTOOL LINK WATCH options
+		link_watch.delay_up|link_watch.delay_down)
+			if [ -z "$cval" ]; then
+				cval=0
+			else
+				cval=$(atoi "$cval")
+			fi
+			if [ "$cval" -lt 0 ]; then
+				echo "\"$sub_opt\": 0"
+			else
+				echo "\"$sub_opt\": $cval"
+			fi
+		;;
+	# ARP PING & NS/NA PING LINK WATCH options
+		link_watch.interval|link_watch.init_wait|link_watch.missed_max)
+			if [ -z "$cval" ]; then
+				cval=0
+			else
+				cval=$(atoi "$cval")
+			fi
+			case "$srch_opt" in
+			    link_watch.interval)
+				if [ $cval -lt 0 ]; then
+				    echo "\"$sub_opt\": 1000"
+				else
+				    echo "\"$sub_opt\": $cval"
+				fi
+				;;
+			    link_watch.missed_max)
+				if [ $cval -lt 3 ]; then
+				    echo "\"$sub_opt\": 3"
+				else
+				    echo "\"$sub_opt\": $cval"
+				fi
+				;;
+			    *)
+				echo "\"$sub_opt\": 0"
+				;;
+			esac
+		;;
+		link_watch.source_host|link_watch.target_host)
+			if [ -n "$cval" ]; then
+				echo "\"$sub_opt\": \"$cval\""
+			fi
+		;;
+		link_watch.validate_active|link_watch.validate_inactive|link_watch.send_always)
+			echo "\"$sub_opt\": "$(truefalse $cval)
+		;;
+	# NOTIFY PEERS & MCAST REJOIN
+		notify_peers.count|mcast_rejoin.count)
+			if [ -z "$cval" ]; then
+				return
+			else
+				cval=$(atoi "$cval")
+			fi
+			case "$IF_TEAM_RUNNER" in
+			    activebackup)
+				if [ "$cval" -lt 1 ]; then
+				    echo "\"$sub_opt\": 1"
+				else
+				    echo "\"$sub_opt\": $cval"
+				fi
+				;;
+			    *)
+				if [ "$cval" -lt 0 ]; then
+				    echo "\"$sub_opt\": 0"
+				else
+				    echo "\"$sub_opt\": $cval"
+				fi
+			    ;;
+			esac
+		;;
+		notify_peers.interval|mcast_rejoin.interval)
+		    if [ -z "$cval" ]; then
+			    return
+		    else
+			    cval=$(atoi "$cval")
+		    fi
+		    if [ "$cval" -lt 0 ]; then
+			echo "\"$sub_opt\": 0"
+		    else
+			echo "\"$sub_opt\": $cval"
+		    fi
+		;;
+		*)
+	# Unknown key return null string
+		;;
+	esac
+}
+
+build_tx_balancer() {
+	local tx_balancer_name=$1
+	local tx_balancer_int=$2
+
+	if [ -z "$IF_TEAM_RUNNER_TX_BALANCER" ]; then
+		return
+	fi
+
+	local tx_balancer_json="\"tx_balancer\": {\n"
+	local tx_balancer_opt_json=""
+
+	if [ -n "${tx_balancer_name}" ]; then
+		tx_balancer_opt_json="$tx_balancer_name"
+	fi
+	if [ -n "${tx_balancer_int}" ]; then
+		tx_balancer_opt_json="        $tx_balancer_opt_json,\n        $tx_balancer_int"
+	fi
+
+	tx_balancer_json="${tx_balancer_json}${tx_balancer_opt_json#, }\n    }"
+	echo "$tx_balancer_json"
+}
+
+# Build json config for runner
+build_runner() {
+	# Generate json config for activebackup_runner
+	local tx_balancer=$1
+	local tx_hash=$2
+	shift; shift
+
+	local runner_json=""
+
+	runner_json="\"runner\": {"
+	runner_json="${runner_json}\n    \"name\": \"$IF_TEAM_RUNNER\""
+
+	while [ -n "$1" ]; do
+	    if [ -n "$1" ]; then
+		runner_json="${runner_json},\n    $1"
+	    fi
+	    shift
+	done
+
+	if [ -n "$tx_balancer" ]; then
+		runner_json="${runner_json},\n    $tx_balancer"
+	fi
+	if [ -n "$tx_hash" ]; then
+		runner_json="${runner_json},\n    $tx_hash"
+	fi
+	runner_json="${runner_json}\n  }"
+
+	echo "$runner_json"
+}
+
+build_linkwatch() {
+	# Generate json config for ETHTOOL LINK WATCH
+	local linkwatch_json=""
+	local linkwatch_options=""
+
+
+	linkwatch_json="\"link_watch\": {\n    \"name\": \"$IF_TEAM_LINK_WATCH\""
+	linkwatch_options=""
+
+	while [ -n "$1" ]; do
+	    linkwatch_options="$linkwatch_options,\n    $1"
+	    shift
+	done
+	linkwatch_json="${linkwatch_json}${linkwatch_options}\n  }"
+	echo "$linkwatch_json"
+}
+
+build_notifypeers_mcastrejoin() {
+	# Generate json config for ETHTOOL LINK WATCH
+	local data_name=$1
+	shift
+	local data_json=""
+	local data_options=""
+
+	if [ -z "$1" ]; then
+	    return
+	fi
+
+	data_json="\"$data_name\": {"
+	data_options=""
+
+	while [ -n "$1" ]; do
+	    data_options="$data_options, $1"
+	    shift
+	done
+	data_json="${data_json}${data_options#, }}"
+	echo "$data_json"
+
+}
+
+write_config_file_top() {
+	dbgout 3 "Write top config for ${IFACE} into ${CONFIG_FILE}"
+	echo "{" > ${CONFIG_FILE}
+	echo -n "  \"device\": \"$IFACE\"" >> ${CONFIG_FILE}
+}
+
+write_config_file_bottom() {
+	dbgout 3 "Write bottom config for ${IFACE} into ${CONFIG_FILE}"
+	echo >> ${CONFIG_FILE}
+	echo "}" >> ${CONFIG_FILE}
+}
+
+write_config_runner() {
+	dbgout 3 "Write runner config for ${IFACE} into ${CONFIG_FILE}"
+	local link_watch=$1
+	local mcast_rejoin=$2
+	local notify_peers=$3
+	local runner=$4
+
+	if [ -n "$link_watch" ]; then
+	    echo "," >> ${CONFIG_FILE}
+	    echo -n "  $link_watch" >> ${CONFIG_FILE}
+	fi
+	if [ -n "$mcast_rejoin" ]; then
+	    echo "," >> ${CONFIG_FILE}
+	    echo -n "  $mcast_rejoin" >> ${CONFIG_FILE}
+	fi
+	if [ -n "$runner" ]; then
+	    echo "," >> ${CONFIG_FILE}
+	    echo -n "  $runner" >> ${CONFIG_FILE}
+	fi
+	if [ -n "$notify_peers" ]; then
+	    echo "," >> ${CONFIG_FILE}
+	    echo -n "  $notify_peers" >> ${CONFIG_FILE}
+	fi
+}
+
+write_config_port_start() {
+	dbgout 3 "Write port config for ${IFACE} into ${CONFIG_FILE}"
+	echo "," >> ${CONFIG_FILE}
+	echo -n "  \"ports\": {" >> ${CONFIG_FILE}
+}
+
+write_config_port() {
+	local is_first_port=$1
+
+	if [ -n "$2" ]; then
+	    if [ "$is_first_port" -eq 1 ]; then
+		echo >> ${CONFIG_FILE}
+	    else
+		echo "," >> ${CONFIG_FILE}
+	    fi
+	    echo -n "    $2" >> ${CONFIG_FILE}
+	fi
+}
+
+write_config_port_end() {
+	echo >> ${CONFIG_FILE}
+	echo -n "  }" >> ${CONFIG_FILE}
+}
+
+prepare_runner_config() {
+
+	local runner
+	local notify_peers
+	local mcast_rejoin
+	local link_watch
+	local tx_balancer
+	local tx_hash
+	local json_OPT_1
+	local json_OPT_2
+	local json_OPT_3
+	local json_OPT_4
+	local json_OPT_5
+	local json_OPT_6
+	local json_OPT_7
+	local json_OPT_8
+
+	dbgout 3 "Prepare runner config for ${IFACE}"
+	# Set default TX hash in case is not set in config
+	case "$IF_TEAM_RUNNER" in
+		load-balance|loadbalance|lacp)
+		    if [ -z "$IF_TEAM_RUNNER_TX_HASH" ]]; then
+			    IF_TEAM_RUNNER_TX_HASH="eth ipv4 ipv6"
+		    fi
+		;;
+	esac
+
+	dbgout 3 "Check runner type for ${IFACE}"
+	case "$IF_TEAM_RUNNER" in
+		broadcast|random)
+		    dbgout 3 "Teaming runner for ${IFACE} is $IF_TEAM_RUNNER"
+		    runner=$(build_runner "" "" "")
+		;;
+		active-backup|activebackup)
+		    IF_TEAM_RUNNER="activebackup"
+		    dbgout 3 "Teaming runner for ${IFACE} is $IF_TEAM_RUNNER"
+
+		    if [ -z "$IF_TEAM_RUNNER_HWADDR_POLICY" ]]; then
+			    IF_TEAM_RUNNER_HWADDR_POLICY="same_all"
+		    fi
+		    # Build runner config
+		    json_OPT_1=$(get_options "runner.hwaddr_policy" "$IF_TEAM_RUNNER_HWADDR_POLICY")
+		    runner=$(build_runner "" "" "$json_OPT_1")
+		;;
+		load-balance|loadbalance)
+		    IF_TEAM_RUNNER="loadbalance"
+		    dbgout 3 "Teaming runner for ${IFACE} is $IF_TEAM_RUNNER"
+
+		    if [ -z "$IF_TEAM_RUNNER_TX_BALANCER" ]]; then
+			    IF_TEAM_RUNNER_TX_BALANCER="basic"
+		    fi
+		    if [ -z "$IF_TEAM_RUNNER_TX_BALANCER_INTERVAL" ]]; then
+			    IF_TEAM_RUNNER_TX_BALANCER_INTERVAL=50
+		    fi
+
+		    # Build runner config
+		    tx_hash=$(get_options "runner.tx_hash" "$IF_TEAM_RUNNER_TX_HASH")
+		    json_OPT_1=$(get_options "runner.tx_balancer.name" "$IF_TEAM_RUNNER_TX_BALANCER")
+		    json_OPT_2=$(get_options "runner.tx_balancer.balancing_interval" "$IF_TEAM_RUNNER_TX_BALANCER_INTERVAL")
+		    # Build TX balancer json
+		    tx_balancer=$(build_tx_balancer "$json_OPT_1" "$json_OPT_2")
+		    runner=$(build_runner "$tx_balancer" "$tx_hash" "")
+		;;
+		lacp)
+		    dbgout 3 "Teaming runner for ${IFACE} is $IF_TEAM_RUNNER"
+		    tx_hash=$(get_options "runner.tx_hash" "$IF_TEAM_RUNNER_TX_HASH")
+		    json_OPT_1=$(get_options "runner.tx_balancer.name" "$IF_TEAM_RUNNER_TX_BALANCER")
+		    json_OPT_2=$(get_options "runner.tx_balancer.balancing_interval" "$IF_TEAM_RUNNER_TX_BALANCER_INTERVAL")
+		    json_OPT_3=$(get_options "runner.active" "$IF_TEAM_LACP_ACTIVE")
+		    json_OPT_4=$(get_options "runner.fast_rate" "$IF_TEAM_LACP_FAST_RATE")
+		    json_OPT_5=$(get_options "runner.sys_prio" "$IF_TEAM_LACP_SYS_PRIO")
+		    json_OPT_6=$(get_options "runner.min_ports" "$IF_TEAM_LACP_MIN_PORTS")
+		    json_OPT_7=$(get_options "runner.agg_select_policy" "$IF_TEAM_LACP_AGG_SELECT_POLICY")
+		    # Build TX balancer json
+		    tx_balancer=$(build_tx_balancer "$json_OPT_1" "$json_OPT_2")
+		    runner=$(build_runner "$tx_balancer" "$tx_hash" "$json_OPT_3" "$json_OPT_4" "$json_OPT_5" "$json_OPT_6" "$json_OPT_7")
+		;;
+		round-robin|roundrobin|*)
+		    # Default is round-robin
+		    # There are no options for round-robin
+		    IF_TEAM_RUNNER="roundrobin"
+		    dbgout 3 "Teaming runner for ${IFACE} is $IF_TEAM_RUNNER"
+		    runner=$(build_runner "" "" "")
+		;;
+	esac
+
+	case "$IF_TEAM_LINK_WATCH" in
+		arp_ping|arpping|arp-ping|arping)
+		    IF_TEAM_LINK_WATCH="arp_ping"
+
+		    json_OPT_1=$(get_options "link_watch.interval" "$IF_TEAM_LINK_WATCH_INTERVAL")
+		    json_OPT_2=$(get_options "link_watch.init_wait" "$IF_TEAM_LINK_WATCH_INIT_WAIT")
+		    json_OPT_3=$(get_options "link_watch.missed_max" "$IF_TEAM_LINK_WATCH_MISSED_MAX")
+		    json_OPT_4=$(get_options "link_watch.source_host" "$IF_TEAM_LINK_WATCH_SOURCE_HOST")
+		    json_OPT_5=$(get_options "link_watch.target_host" "$IF_TEAM_LINK_WATCH_TARGET_HOST")
+		    json_OPT_6=$(get_options "link_watch.validate_active" "$IF_TEAM_LINK_WATCH_VALIDATE_ACTIVE")
+		    json_OPT_7=$(get_options "link_watch.validate_inactive" "$IF_TEAM_LINK_WATCH_VALIDATE_INACIVE")
+		    json_OPT_8=$(get_options "link_watch.send_always" "$IF_TEAM_LINK_WATCH_SEND_ALWAYS")
+		    link_watch=$(build_linkwatch "$json_OPT_1" "$json_OPT_2" "$json_OPT_3" "$json_OPT_4" "$json_OPT_5" "$json_OPT_6" "$json_OPT_7" "$json_OPT_8")
+		;;
+		nsna_ping|nsna-ping)
+		    IF_TEAM_LINK_WATCH="nsna_ping"
+
+		    json_OPT_1=$(get_options "link_watch.interval" "$IF_TEAM_LINK_WATCH_INTERVAL")
+		    json_OPT_2=$(get_options "link_watch.init_wait" "$IF_TEAM_LINK_WATCH_INIT_WAIT")
+		    json_OPT_3=$(get_options "link_watch.missed_max" "$IF_TEAM_LINK_WATCH_MISSED_MAX")
+		    json_OPT_5=$(get_options "link_watch.target_host" "$IF_TEAM_LINK_WATCH_TARGET_HOST")
+		    link_watch=$(build_linkwatch "$json_OPT_1" "$json_OPT_2" "$json_OPT_3" "$json_OPT_5")
+		;;
+		ethtool|*)
+		    IF_TEAM_LINK_WATCH="ethtool"
+
+		    json_OPT_1=$(get_options "link_watch.delay_up" "$IF_TEAM_LINK_WATCH_DELAY_UP")
+		    json_OPT_2=$(get_options "link_watch.delay_down" "$IF_TEAM_LINK_WATCH_DELAY_DOWN")
+		    link_watch=$(build_linkwatch "$json_OPT_1" "$json_OPT_2")
+		;;
+	esac
+
+	json_OPT_1=$(get_options "notify_peers.count" "$IF_TEAM_NOTIFY_PEERS_COUNT")
+	json_OPT_2=$(get_options "notify_peers.interval" "$IF_TEAM_NOTIFY_PEERS_INTERVAL")
+	notify_peers=$(build_notifypeers_mcastrejoin "notify_peers" "$json_OPT_1" "$json_OPT_2")
+
+	json_OPT_1=$(get_options "mcast_rejoin.count" "$IF_TEAM_MCAST_REJOIN_COUNT")
+	json_OPT_2=$(get_options "mcast_rejoin.interval" "$IF_TEAM_MCAST_REJOIN_INTERVAL")
+	mcast_rejoin=$(build_notifypeers_mcastrejoin "mcast_rejoin" "$json_OPT_1" "$json_OPT_2")
+
+	write_config_runner "$link_watch" "$mcast_rejoin" "$notify_peers" "$runner"
+
+}
+
+build_port_options_json(){
+
+	local json_port_opts=""
+
+	while [ -n "$1" ]; do
+	    if [ -n "$1" ]; then
+		json_port_opts="$json_port_opts, $1"
+	    fi
+	    shift
+	done
+
+	echo "${json_port_opts#, }"
+}
+
+get_port_options_json(){
+
+	local PORT="$1"
+	local PORT_OPT_VAL=""
+	local json_OPT_1=""
+	local json_OPT_2=""
+	local json_OPT_3=""
+	local json_OPT_4=""
+	local json_OPT_5=""
+	local json_OPT_6=""
+	local json_OPT_7=""
+	local json_OPT_8=""
+	local json_OPT_9=""
+	local json_OPT_10=""
+	local json_OPT_11=""
+	local json_port_opts=""
+
+	# ACTIVE-BACKUP and LACP runners have some special options per port
+	case "$IF_TEAM_RUNNER" in
+		activebackup)
+		    PORT_OPT_VAL=$(get_iface_config team-port-prio ${PORT})
+		    json_OPT_1=$(get_options "ports.prio" "$PORT_OPT")
+		    PORT_OPT_VAL=$(get_iface_config team-port-sticky ${PORT})
+		    json_OPT_2=$(get_options "ports.sticky" "$PORT_OPT")
+		;;
+		lacp)
+		    PORT_OPT_VAL=$(get_iface_config team-port-lacp-prio ${PORT})
+		    json_OPT_1=$(get_options "ports.lacp_prio" "$PORT_OPT_VAL")
+		    PORT_OPT_VAL=$(get_iface_config team-port-lacp-key ${PORT})
+		    json_OPT_2=$(get_options "ports.lacp_key" "$PORT_OPT_VAL")
+		;;
+	esac
+
+	PORT_OPT_VAL=$(get_iface_config team-link-watch ${PORT})
+	json_OPT_3=$(get_options "link_watch.name" "$port_opts")
+
+	case "$IF_TEAM_LINK_WATCH" in
+		ethtool)
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-delay-up ${PORT})
+		    json_OPT_4=$(get_options "link_watch.delay_up" "$PORT_OPT_VAL")
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-delay-down ${PORT})
+		    json_OPT_5=$(get_options "link_watch.delay_down" "$PORT_OPT_VAL")
+		;;
+		arp_ping)
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-interval ${PORT})
+		    json_OPT_4=$(get_options "link_watch.interval" "$PORT_OPT_VAL")
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-init-wait ${PORT})
+		    json_OPT_5=$(get_options "link_watch.init_wait" "$PORT_OPT_VAL")
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-missed-max ${PORT})
+		    json_OPT_6=$(get_options "link_watch.missed_max" "$PORT_OPT_VAL")
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-source-host ${PORT})
+		    json_OPT_7=$(get_options "link_watch.source_host" "$PORT_OPT_VAL")
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-target-host ${PORT})
+		    json_OPT_8=$(get_options "link_watch.target_host" "$PORT_OPT_VAL")
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-validate-active ${PORT})
+		    json_OPT_9=$(get_options "link_watch.validate_active" "$PORT_OPT_VAL")
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-validate-inactive ${PORT})
+		    json_OPT_10=$(get_options "link_watch.validate_inactive" "$PORT_OPT_VAL")
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-send-always ${PORT})
+		    json_OPT_11=$(get_options "link_watch.send_always" "$PORT_OPT_VAL")
+		;;
+		nsna_ping)
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-interval ${PORT})
+		    json_OPT_4=$(get_options "link_watch.interval" "$PORT_OPT_VAL")
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-init-wait ${PORT})
+		    json_OPT_5=$(get_options "link_watch.init_wait" "$PORT_OPT_VAL")
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-missed-max ${PORT})
+		    json_OPT_6=$(get_options "link_watch.missed_max" "$PORT_OPT_VAL")
+		    PORT_OPT_VAL=$(get_iface_config team-link-watch-source-host ${PORT})
+		    json_OPT_7=$(get_options "link_watch.target_host" "$PORT_OPT_VAL")
+		;;
+	esac
+
+	build_port_options_json "$json_OPT_1" "$json_OPT_2" "$json_OPT_3" "$json_OPT_4" "$json_OPT_5" "$json_OPT_6" "$json_OPT_7" "$json_OPT_8" "$json_OPT_9" "$json_OPT_10" "$json_OPT_11"
+}
+
+prepare_ports_member_config(){
+
+	local PORT
+	local json_port_opts=""
+	local json_port=""
+	local is_first_port=1
+
+	local port_member
+	local port_member_conf
+	local port_member_opts
+
+	write_config_port_start
+	for PORT in ${IF_TEAM_MEMBERS}; do
+	    json_port_opts=$(get_port_options_json $PORT)
+	    json_port="\"$PORT\": {${json_port_opts}}"
+	    write_config_port "$is_first_port" "$json_port"
+	    if [ "$is_first_port" = "1" ]; then
+		is_first_port=0
+	    fi
+	done
+	write_config_port_end
+}
+
+load_variables() {
+
+    ## Load all avaiable TEAMING parameters in one shot without querying each parameter
+
+    OLD_IFS=$IFS
+    IFS='
+'
+
+    for LINE in `ifparse $IFACE 2>/dev/null`
+    do
+	LINE=${LINE#  }
+	opt=${LINE%% *}
+	params=${LINE#* }
+	if [ "${opt%%-*}" = "team" ]; then
+	    opt_ex=$(echo "IF_$opt" | tr "-" "_" | tr "[:lower:]" "[:upper:]" )
+	    eval 'export $opt_ex="$params"'
+	fi
+    done
+    IFS=$OLD_IFS
+    unset OLD_IFS
+}
+
+load_variables
+
+if [ -z "$IF_TEAM_RUNNER" ]; then
+    # This is not a teaming interface configuration
+    dbgout 1 "$IFACE is not a teaming interface. Couldn't find any teaming configuration."
+    exit 0
+fi
+
+dbgout 2 "Start building configuration for teaming interface $IFACE"
+dbgout 3 "Runtime directory is \"$RUNTIME_DIRECTORY\""
+
+write_config_file_top
+prepare_runner_config
+prepare_ports_member_config
+write_config_file_bottom
+
+dbgout 2 "Finished building configuration for teaming interface $IFACE"
+
+exit 0

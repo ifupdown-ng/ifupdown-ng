@@ -1,0 +1,63 @@
+#!/bin/sh
+
+#  This script is a helper for teamd@.service to starts the daemon with correct 
+# setup for interfaces. All interface members MUST be in shutdown before the daemon starts.
+#  ifupdown-ng teaming executor is resposable to create virtual interface and
+# to start team@.service.
+#  Each time the configuration in ifupdown-ng is changed and the service is restarted
+# the configuration will be rewrite with the new settings and it will not delete
+# the main virtual interface from system.
+#  Just systemctl restart teamd@po1.service is enough after the configuration was changed
+# in /etc/networking/, no ifdown po1 and ifup po1 is necessary.
+#
+# Copyright (C) 2022 EasyNetDev <devel@easynet.dev>
+#
+# Wed, 11 Oct 2023 12:26:20 +0300
+#  -- EasyNetDev <devel@easynet.dev>
+#
+#
+
+[ -n "$VERBOSE" ] && set -x
+
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 <TEAMING INTERFACE>"
+    exit 1
+fi
+
+IFACE=$1
+CONFIG_FILE="$RUNTIME_DIRECTORY/ifteaming."${IFACE}
+
+if [ ! -d $RUNTIME_DIRECTORY ]; then
+    echo "$RUNTIME_DIRECTORY doesn't exist! There is RuntimeDirectory and RuntimeDirectoryPersistent configured in service?"
+    exit 1
+fi
+
+if [ ! -r ${CONFIG_FILE} ]; then
+    echo "User $USER doesn't have access to read file $CONFIG_FILE!"
+    exit 1
+fi
+
+get_iface_config() {
+    ifquery -p $1 $2 2>/dev/null | tr "[:upper:]" "[:lower:]"
+}
+
+get_team_config() {
+    get_iface_config $1 $IFACE
+}
+
+# TEAM MEMBERS
+IF_TEAM_MEMBERS=$(get_team_config team-members)
+
+# Let's shutdown all interface members before starting teaming. Is mandatory for teaming to have members in shutdown.
+for PORT in ${IF_TEAM_MEMBERS}; do
+    if [ ! -d /sys/class/net/$PORT ]; then
+	# Skip unavailable interfaces in system
+	continue
+    fi
+    /sbin/ip link set $PORT down
+    /sbin/ip addr flush $PORT
+done
+
+echo "%TEAMING-IF_START: Starting port-channel $IFACE"
+/usr/bin/teamd --team-dev $IFACE -f $CONFIG_FILE --take-over --no-quit-destroy --dbus-enable --usock-enable --log-output stdout
+echo "%TEAMING-IF_STOP: Stopping port-channel $IFACE"
