@@ -14,6 +14,13 @@
 # Sun, 21 Apr 2023 10:36:31 +0300
 #  -- EasyNetDev <devel@easynet.dev>
 #
+# Move the crc32sum tool to internal applet of ifupdown-ng and change the VRRP 
+# executor to use the new applet instead external crc32sum tool.
+# The new applet is called ifcrc32sum.
+#
+# Sun, 03 Jan 2024 19:00:26 +0300
+#  -- EasyNetDev <devel@easynet.dev>
+#
 # This executor will do the configuration for MACVLAN virtual interfaces.
 #
 # Each MACVLAN interface must be controlled by a VRRP daemon, like FRRouting.
@@ -47,28 +54,28 @@ crc32_tool=""
 #                        VRRP CRC32 tool functions                             #
 ################################################################################
 
-# In case the crc32_tool is in auto, search for crc32b then for cksum
+# In case the crc32_tool is in auto, search for ifcrc32sum then for cksum
 find_crc32_tools_in_auto() {
-    # Search for crc32b
-    # In case we are in test mode, check for current build directory for crc32b
+    # In test mode, we need to MOCK aka echo output.
     if [ -n "${MOCK}" -a -z ${crc32_cmd} ]; then
 	crc32_tool="MOCK"
 	return
     fi
-    crc32_cmd=$(which crc32sum)
+    # Search for ifcrc32sum
+    crc32_cmd=$(command -v ifcrc32sum)
     if [ -n "${crc32_cmd}" ]; then
-	crc32_tool="crc32sum"
+	crc32_tool="ifcrc32sum"
 	return
     fi
     # Search for cksum
-    crc32_cmd=$(which cksum)
+    crc32_cmd=$(command -v cksum)
     if [ -n "${crc32_cmd}" ]; then
 	crc32_tool="cksum"
 	return
     fi
     # If none of them are found, print an error message
     if [ -z "${crc32_cmd}" ]; then
-	echo "Couldn't find crc32sum or cksum tools! Please build ifupdown-ng with crc32sum support or install coreutils package!"
+	echo "Couldn't find crc32sum or cksum tools! Please build ifupdown-ng with ifcrc32sum support or install coreutils package for cksum!"
 	exit 0
     fi
 }
@@ -76,21 +83,21 @@ find_crc32_tools_in_auto() {
 # Compute CRC32 value using the selected CRC32 tool
 compute_crc32_hex() {
     case "$crc32_tool" in
-	crc32sum|cksum)
+	ifcrc32sum)
+	    # ifcrc32sum has an option -x to directly outputs CRC32 value in hex.
+	    $crc32_tool -x "$1"
+	    ;;
+	cksum)
+	    # cksum has 2 fields: CRC32 value and total length of the string. We need to take first value and convert to hex.
 	    printf "%08x" $(echo -n "$1" | ${crc32_cmd} | cut -f1 -d" ")
 	    ;;
 	MOCK)
-	    # In test mode, check if we have crc32sum compiled, cksum installed or just return CRC32 for "eth0"
-	    if [ -x "./crc32sum" ]; then
-		printf "%08x" $(echo -n "$1" | .//crc32sum | cut -f1 -d" ")
-	    elif [ -x $(which cksum) ]; then
-		printf "%08x" $(echo -n "$1" | $(which cksum) | cut -f1 -d" ")
-	    else
-		echo "43bfa0f3"
-	    fi
+	    # This is CRC32 hex value calculated for "eth0" string. Both ifcrc32sum and cksum are giving the same value.
+	    # Be careful when you use cksum that you need to use echo -n "eth0" | cksum to get this.
+	    echo "43bfa0f3"
 	    ;;
 	*)
-	    echo "Invalid CRC32 tool: $crc32_tool! Please use crc32sum or cksum!"
+	    echo "Invalid CRC32 tool: $crc32_tool! Only allowed tools are ifcrc32sum or cksum!"
 	    exit 0
 	    ;;
     esac

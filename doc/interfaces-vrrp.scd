@@ -62,7 +62,8 @@ But because each main interface can have multiple VRRPs, we need to specify
 *Mandatory*: _no_++
 *Default*: _none_
 
-# EXAMPLES using crc32sum tool and FRRouting to configure the IP interfaces
+# EXAMPLES
+Using crc32sum builtin applet tool and FRRouting to configure the IP interfaces
 
 Configure VRRP interfaces:
 
@@ -77,57 +78,57 @@ Then you have the FRRouting config:
 *R01*
 ```
 interface eth0
-    ip address 192.168.10.2/24
-    ip address 192.168.11.2/24
-    ipv6 address fc00::192:168:10:2/64
-    ipv6 address fc00::192:168:11:2/64
-    vrrp 10
-    vrrp 10 ip 192.168.10.1
-    vrrp 10 ipv6 fc00::192:168:10:1
-    vrrp 20
-    vrrp 20 ip 192.168.11.1
-    vrrp 20 ipv6 fc00::192:168:11:1
+ ip address 192.168.10.2/24
+ ip address 192.168.11.2/24
+ ipv6 address fc00::192:168:10:2/64
+ ipv6 address fc00::192:168:11:2/64
+ vrrp 10
+ vrrp 10 ip 192.168.10.1
+ vrrp 10 ipv6 fc00::192:168:10:1
+ vrrp 20
+ vrrp 20 ip 192.168.11.1
+ vrrp 20 ipv6 fc00::192:168:11:1
 !
 interface v43bfa0f3-0a-4
-    ip address 192.168.10.1/24
+ ip address 192.168.10.1/24
 !
 interface v43bfa0f3-14-4
-    ip address 192.168.11.1/24
+ ip address 192.168.11.1/24
 !
 interface v43bfa0f3-0a-6
-    ipv6 address fc00::192:168:10:1/64
+ ipv6 address fc00::192:168:10:1/64
 !
 interface v43bfa0f3-14-6
-    ipv6 address fc00::192:168:11:1/64
+ ipv6 address fc00::192:168:11:1/64
 ```
 
 *R02*
 ```
 interface eth0
-    ip address 192.168.10.3/24
-    ip address 192.168.11.3/24
-    ipv6 address fc00::192:168:10:3/64
-    ipv6 address fc00::192:168:11:3/64
-    vrrp 10
-    vrrp 10 priority 90
-    vrrp 10 ip 192.168.10.1
-    vrrp 10 ipv6 fc00::192:168:10:1
-    vrrp 20
-    vrrp 20 priority 90
-    vrrp 20 ip 192.168.11.1
-    vrrp 20 ipv6 fc00::192:168:11:1
+ ip address 192.168.10.3/24
+ ip address 192.168.11.3/24
+ ipv6 address fc00::192:168:10:3/64
+ ipv6 address fc00::192:168:11:3/64
+ vrrp 10
+ vrrp 10 priority 90
+ vrrp 10 ip 192.168.10.1
+ vrrp 10 ipv6 fc00::192:168:10:1
+ vrrp 20
+ vrrp 20 priority 90
+ vrrp 20 ip 192.168.11.1
+ vrrp 20 ipv6 fc00::192:168:11:1
 !
 interface v43bfa0f3-0a-4
-    ip address 192.168.10.1/24
+ ip address 192.168.10.1/24
 !
 interface v43bfa0f3-14-4
-    ip address 192.168.11.1/24
+ ip address 192.168.11.1/24
 !
 interface v43bfa0f3-0a-6
-    ipv6 address fc00::192:168:10:1/64
+ ipv6 address fc00::192:168:10:1/64
 !
 interface v43bfa0f3-14-6
-    ipv6 address fc00::192:168:11:1/64
+ ipv6 address fc00::192:168:11:1/64
 ```
 
 The compute CRC32 of *eth0* with crc32sum or cksum is 0x43bfa0f3, "0a" means 10 (0x0a) in hex and "14" is 20 (0x14) in hex.
