@@ -21,6 +21,10 @@
 #include <dirent.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <wordexp.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "libifupdown/libifupdown.h"
 
 /* internally rewrite problematic ifupdown2 tokens to ifupdown-ng equivalents */
@@ -381,7 +385,27 @@ handle_source(struct lif_interface_file_parse_state *state, char *token, char *b
 		return true;
 	}
 
-	return lif_interface_file_parse(state, source_filename);
+	bool ok = true;
+	wordexp_t p;
+	if (wordexp(source_filename, &p, WRDE_NOCMD)) {
+		report_error(state, "matching pattern failed");
+		ok = false;
+		goto out;
+	}
+
+	for (size_t i = 0; i < p.we_wordc; i++) {
+		char *m = p.we_wordv[i];
+		struct stat sb;
+		int rv = stat(m, &sb);
+		if (i == 0 && rv == -1)
+			goto out; // no matches
+		ok &= lif_interface_file_parse(state, m);
+	}
+
+out:
+	wordfree(&p);
+
+	return ok;
 }
 
 static bool
