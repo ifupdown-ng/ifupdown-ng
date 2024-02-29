@@ -71,6 +71,15 @@ other options are optional.
 	Specifies the UDP destination port of the remote VXLAN tunnel endpoint.
 	The default is 4789.
 
+*vxlan-evpn* _bool_
+	Instruct bridge to set specific EVPN VXLAN parameters for this interface.
+	This is esencial essential for FRRouting to be able to manage the BGP EVPN.
+	_bool_ can be given as _yes_/_no_ or _0_/_1_. Default is _no_.
+	When this parameter is _yes_, bridge will automatically set these parameters to VXLAN
+	interface: addrgenmode none of interface, neigh_suppress on learning off on VXLAN
+	interface as type bridge_slave.
+	More about EVPN VXLAN here: https://docs.frrouting.org/en/latest/evpn.html
+
 # EXAMPLES
 
 A VTEP with multiple peers addressed via a multicast group:
