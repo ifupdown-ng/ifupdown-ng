@@ -1,0 +1,41 @@
+#!/bin/sh
+[ -n "$VERBOSE" ] && set -x
+
+yesno() {
+	case "$1" in
+	yes|YES|true|TRUE|1)
+		echo 1
+		;;
+	*)
+		echo 0
+		;;
+	esac
+}
+
+is_int() {
+	if [ -n "$1" ] && [ "$1" -eq "$1" ] 2>/dev/null; then
+		echo 1
+	else
+		echo 0
+	fi
+}
+
+case "$PHASE" in
+up)
+    if [ -n "$IF_IPV6_AUTOCONF" -a -e "/proc/sys/net/ipv6/conf/${IFACE}/autoconf" ]; then
+	${MOCK} /bin/sh -c "echo $(yesno ${IF_IPV6_AUTOCONF}) > /proc/sys/net/ipv6/conf/${IFACE}/autoconf"
+    fi
+    if [ "$(is_int $IF_IPV6_ACCEPT_RA)" = 1 -a -e "/proc/sys/net/ipv6/conf/${IFACE}/accept_ra" ]; then
+	if [ "$IF_IPV6_ACCEPT_RA" -ge 0 -a "$IF_IPV6_ACCEPT_RA" -le 2 ]; then
+		${MOCK} /bin/sh -c "echo ${IF_IPV6_ACCEPT_RA} > /proc/sys/net/ipv6/conf/${IFACE}/accept_ra"
+	fi
+    fi
+    if [ "$(is_int $IF_IPV6_DAD_TRANSMITS)" = 1 -a -e "/proc/sys/net/ipv6/conf/${IFACE}/dad_transmits" ]; then
+	if [ "$IF_IPV6_DAD_TRANSMITS" -gt 0 ]; then
+		${MOCK} /bin/sh -c "echo ${IF_IPV6_DAD_TRANSMITS} > /proc/sys/net/ipv6/conf/${IFACE}/dad_transmits"
+	fi
+    fi
+    ;;
+esac
+
+exit 0
