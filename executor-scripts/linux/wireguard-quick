@@ -3,6 +3,7 @@
 
 case "$PHASE" in
 create)
+	${MOCK} export WG_ENDPOINT_RESOLUTION_RETRIES="${IF_WG_ENDPOINT_RESOLUTION_RETRIES:-15}"
 	${MOCK} wg-quick up $IFACE
 	;;
 destroy)

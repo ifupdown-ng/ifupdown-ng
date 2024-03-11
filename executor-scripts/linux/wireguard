@@ -7,6 +7,8 @@ create)
 	;;
 pre-up)
 	: "${IF_WIREGUARD_CONFIG_PATH:=/etc/wireguard/"$IFACE".conf}"
+
+	${MOCK} export WG_ENDPOINT_RESOLUTION_RETRIES="${IF_WG_ENDPOINT_RESOLUTION_RETRIES:-15}"
 	${MOCK} wg setconf "$IFACE" "$IF_WIREGUARD_CONFIG_PATH"
 	;;
 destroy)
