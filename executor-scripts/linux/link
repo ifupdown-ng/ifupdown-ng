@@ -85,15 +85,9 @@ create)
 	fi
 	;;
 up)
-	[ -n "$IF_MTU" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS mtu $IF_MTU"
-	[ -n "$IF_HWADDRESS" ] && IF_LINK_OPTIONS="$IF_LINK_OPTIONS address $IF_HWADDRESS"
-
-	${MOCK} ip link set up dev "${IFACE}" ${IF_LINK_OPTIONS}
-
-	# Set alias is configured
-	if [ "${IF_ALIAS}" ]; then
-		${MOCK} ip link set alias "${IF_ALIAS}" dev "${IFACE}"
-	fi
+	# TODO: ? Move this into a function and use `set -- "$@" ...` to manage optional parameters
+	# Configure mtu, hardware address and alias if defined
+	${MOCK} ip link set up dev "$IFACE" ${IF_MTU:+mtu "$IF_MTU"} ${IF_HWADDRESS:+address "$IF_HWADDRESS"} ${IF_ALIAS:+alias "$IF_ALIAS"}
 	;;
 down)
 	# Don't complain about a vanished interface when downing it
