@@ -2,26 +2,24 @@
 [ -n "$VERBOSE" ] && set -x
 
 is_vlan() {
-	case "$IFACE" in
-		*#*) return 1 ;;
-		*:*) return 1 ;;
-		vlan*.*) return 1 ;;
-		vlan*)
-			IF_VLAN_ID="${IFACE#vlan}"
-			[ -n "${IF_VLAN_RAW_DEVICE:-}" ] && return 0
-			return 1
-			;;
-		*.*)
-			IF_VLAN_RAW_DEVICE="${IFACE%.*}"
-			IF_VLAN_ID="${IFACE##*.}"
-			return 0
-			;;
-		*)
-			[ -z "${IF_VLAN_ID:-}" ] && return 1
-			[ -z "${IF_VLAN_RAW_DEVICE:-}" ] && return 1
-			return 0
-			;;
-	esac
+        case "$IFACE" in
+        *#*) return 1 ;;
+        *:*) return 1 ;;
+        vlan*.*) return 1 ;;
+        vlan*)
+                [ -z "$IF_VLAN_RAW_DEVICE" ] && return 1
+                IF_VLAN_ID="${IFACE#vlan}"
+                ;;
+        *.*)
+                IF_VLAN_RAW_DEVICE="${IFACE%.*}"
+                IF_VLAN_ID="${IFACE##*.}"
+                ;;
+        *)
+                [ -z "$IF_VLAN_RAW_DEVICE" ] && return 1
+                [ -z "$IF_VLAN_ID" ] && return 1
+                ;;
+        esac
+        return 0
 }
 
 case "$PHASE" in
