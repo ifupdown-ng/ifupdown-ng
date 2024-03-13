@@ -42,7 +42,7 @@ create)
 	fi
 
 	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
-		if [ ! -d /sys/module/dummy ]; then
+		if ${MOCK} [ ! -d /sys/module/dummy ]; then
 			printf 'Loading dummy network interface kernel module\n'
 			${MOCK} modprobe dummy
 		fi
@@ -54,17 +54,15 @@ create)
 		${MOCK} ip link add "$IFACE" type veth ${IF_VETH_PEER_NAME:+peer "$IF_VETH_PEER_NAME"}
 
 	elif is_vlan; then
+		# NOTE: Early negation is important so this condition is ignored during tests
+		if ! ${MOCK} [ -d /sys/class/net/"$IF_VLAN_RAW_DEVICE" ]; then
+			printf 'Interface %s is missing VLAN raw device %s\n' "$IFACE" "$IF_VLAN_RAW_DEVICE"
+			exit 1
+		fi
 
-		if [ -z "${MOCK}" ]; then
-			if [ ! -d "/sys/class/net/${IF_VLAN_RAW_DEVICE}" ]; then
-				printf 'Interface %s is missing VLAN raw device %s\n' "$IFACE" "$IF_VLAN_RAW_DEVICE"
-				exit 1
-			fi
-
-			if ! [ -d /proc/net/vlan ]; then
-				printf 'Loading 8021q kernel module for VLAN support\n'
-				${MOCK} modprobe 8021q
-			fi
+		if ${MOCK} [ ! -d /proc/net/vlan ]; then
+			printf 'Loading 8021q kernel module for VLAN support\n'
+			${MOCK} modprobe 8021q
 		fi
 
 		${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" type vlan id "${IF_VLAN_ID}"
