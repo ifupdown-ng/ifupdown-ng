@@ -35,41 +35,31 @@ depend)
 	;;
 
 create)
+	# Don't complain about an existing interface when creating it
+	# NOTE: Double negation is important so this condition is ignored during tests
+	if ! ${MOCK} [ ! -d /sys/class/net/"$IFACE" ]; then
+		exit 0
+	fi
+
 	if [ "${IF_LINK_TYPE}" = "dummy" ]; then
 		if [ ! -d /sys/module/dummy ]; then
 			printf 'Loading dummy network interface kernel module\n'
 			${MOCK} modprobe dummy
 		fi
 
-		if [ -z "${MOCK}" ]; then
-			if [ -d "/sys/class/net/${IFACE}" ]; then
-				if [ ! -d "/sys/devices/virtual/net/${IFACE}" ]; then
-					printf 'Interface %s exists but is not a virtual interface\n' "$IFACE"
-					exit 1
-				fi
-
-				exit 0
-			fi
-		fi
-
 		${MOCK} ip link add "${IFACE}" type dummy
 
 	elif [ "${IF_LINK_TYPE}" = "veth" ]; then
-		if [ ! -d "/sys/class/net/${IFACE}" ]; then
-			ARGS=""
-			if [ "${IF_VETH_PEER_NAME}" ]; then
-				ARGS="peer ${IF_VETH_PEER_NAME}"
-			fi
-
-			${MOCK} ip link add "${IFACE}" type veth ${ARGS}
+		ARGS=""
+		if [ "${IF_VETH_PEER_NAME}" ]; then
+			ARGS="peer ${IF_VETH_PEER_NAME}"
 		fi
+
+		${MOCK} ip link add "${IFACE}" type veth ${ARGS}
 
 	elif is_vlan; then
 
 		if [ -z "${MOCK}" ]; then
-			if [ -d "/sys/class/net/${IFACE}" ]; then
-				exit 0
-			fi
 			if [ ! -d "/sys/class/net/${IF_VLAN_RAW_DEVICE}" ]; then
 				printf 'Interface %s is missing VLAN raw device %s\n' "$IFACE" "$IF_VLAN_RAW_DEVICE"
 				exit 1
@@ -90,19 +80,22 @@ up)
 	${MOCK} ip link set up dev "$IFACE" ${IF_MTU:+mtu "$IF_MTU"} ${IF_HWADDRESS:+address "$IF_HWADDRESS"} ${IF_ALIAS:+alias "$IF_ALIAS"}
 	;;
 down)
-	# Don't complain about a vanished interface when downing it
-	if [ -z "${MOCK}" ] && [ ! -d "/sys/class/net/${IFACE}" ]; then
+	# Don't complain about a nonexistent interface when downing it
+	# NOTE: Early negation is important so this condition is ignored during tests
+	if ! ${MOCK} [ -d /sys/class/net/"$IFACE" ]; then
 		exit 0
 	fi
 
 	${MOCK} ip link set down dev "${IFACE}"
 	;;
 destroy)
-	if [ "${IF_LINK_TYPE}" = "dummy" ] || [ "${IF_LINK_TYPE}" = "veth" ] || is_vlan; then
-		if [ -z "${MOCK}" ] && [ ! -d "/sys/class/net/${IFACE}" ]; then
-			exit 0
-		fi
+	# Don't complain about a nonexistent interface when destroying it
+	# NOTE: Early negation is important so this condition is ignored during tests
+	if ! ${MOCK} [ -d /sys/class/net/"$IFACE" ]; then
+		exit 0
+	fi
 
+	if [ "${IF_LINK_TYPE}" = "dummy" ] || [ "${IF_LINK_TYPE}" = "veth" ] || is_vlan; then
 		${MOCK} ip link del "${IFACE}"
 	fi
 	;;
