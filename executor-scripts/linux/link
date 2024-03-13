@@ -50,12 +50,8 @@ create)
 		${MOCK} ip link add "${IFACE}" type dummy
 
 	elif [ "${IF_LINK_TYPE}" = "veth" ]; then
-		ARGS=""
-		if [ "${IF_VETH_PEER_NAME}" ]; then
-			ARGS="peer ${IF_VETH_PEER_NAME}"
-		fi
-
-		${MOCK} ip link add "${IFACE}" type veth ${ARGS}
+		# Configure peer name if defined
+		${MOCK} ip link add "$IFACE" type veth ${IF_VETH_PEER_NAME:+peer "$IF_VETH_PEER_NAME"}
 
 	elif is_vlan; then
 
