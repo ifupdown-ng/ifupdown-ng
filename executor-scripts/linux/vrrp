@@ -344,7 +344,7 @@ pre-down)
 	    done
 	fi
 
-	# VRRP interfaces should be destroied in post-down, becase if you have a bond, bridge or teaming interfaces, these are destroied in "destroy" stage.
+	# VRRP interfaces should be destroyed in post-down, because if you have a bond, bridge or teaming interfaces, these are destroyed in "destroy" stage.
 	for VRRP_IFACE in ${VRRP_IFACES}; do
 	    if [ -z "${MOCK}" -a -d "/sys/class/net/${VRRP_IFACE}" ] || [ -n ${MOCK} ]; then
 		${MOCK} ip link del ${VRRP_IFACE} type macvlan
