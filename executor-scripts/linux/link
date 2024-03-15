@@ -66,6 +66,16 @@ create)
 		fi
 
 		${MOCK} ip link add link "$IF_VLAN_RAW_DEVICE" name "$IFACE" type vlan id "$IF_VLAN_ID"
+
+	# Only fetch physical devices from the configured network namespace
+	elif [ -n "$IF_NETNS" ] && ${MOCK} ip netns exec "$IF_NETNS" [ -d /sys/class/net/"$IFACE"/device ]; then
+		# NOTE: Negate test to treat wired interfaces as the default case during tests
+		if ! phy=$(${MOCK} ip netns exec "$IF_NETNS" cat /sys/class/net/"$IFACE"/phy80211/name 2> /dev/null); then
+			${MOCK} ip -n "$IF_NETNS" link set "$IFACE" netns $$
+		else
+			${MOCK} ip netns exec "$IF_NETNS" "$(command -v iw)" phy "$phy" set netns $$
+		fi
+
 	fi
 	;;
 up)
@@ -91,6 +101,15 @@ destroy)
 
 	if [ "$IF_LINK_TYPE" = 'dummy' ] || [ "$IF_LINK_TYPE" = 'veth' ] || is_vlan; then
 		${MOCK} ip link del "$IFACE"
+
+	# Only send physical devices to the configured network namespace
+	elif [ -n "$IF_NETNS" ] && [ -d /sys/class/net/"$IFACE"/device ]; then
+		# NOTE: Negate test to treat wired interfaces as the default case during tests
+		if ! phy=$(${MOCK} cat /sys/class/net/"$IFACE"/phy80211/name 2> /dev/null); then
+			${MOCK} ip link set "$IFACE" netns "$IF_NETNS"
+		else
+			${MOCK} iw phy "$phy" set netns name "$IF_NETNS"
+		fi
 	fi
 	;;
 esac
