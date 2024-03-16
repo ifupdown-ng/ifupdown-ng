@@ -3,7 +3,13 @@
 
 case "$PHASE" in
 create)
-	${MOCK} ip link add "$IFACE" type wireguard
+	if [ -n "$IF_NETNS" ]; then
+		# Create interface in the configured network namespace
+		${MOCK} ip -n "$IF_NETNS" link add "$IFACE" type wireguard
+		${MOCK} ip -n "$IF_NETNS" link set "$IFACE" netns $$
+	else
+		${MOCK} ip link add "$IFACE" type wireguard
+	fi
 	;;
 pre-up)
 	: "${IF_WIREGUARD_CONFIG_PATH:=/etc/wireguard/"$IFACE".conf}"
