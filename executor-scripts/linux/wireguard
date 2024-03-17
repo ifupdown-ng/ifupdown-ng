@@ -3,10 +3,10 @@
 
 case "$PHASE" in
 create)
-	if [ -n "$IF_NETNS" ]; then
+	if [ -n "$IF_WIREGUARD_HOME_NETNS" ]; then
 		# Create interface in the configured network namespace
-		${MOCK} ip -n "$IF_NETNS" link add "$IFACE" type wireguard
-		${MOCK} ip -n "$IF_NETNS" link set "$IFACE" netns $$
+		${MOCK} ip -n "$IF_WIREGUARD_HOME_NETNS" link add "$IFACE" type wireguard
+		${MOCK} ip -n "$IF_WIREGUARD_HOME_NETNS" link set "$IFACE" netns $$
 	else
 		${MOCK} ip link add "$IFACE" type wireguard
 	fi
