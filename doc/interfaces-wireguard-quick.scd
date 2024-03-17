@@ -12,6 +12,14 @@ allows to set up Wireguard VPN tunnels using wg-quick.
 
 The configuration file used by wg-quick will be named `/etc/wireguard/_interface_.conf`.
 
+# WIREGUARD-RELATED OPTIONS
+
+*wg-endpoint-resolution-retries* _integer_
+	Denotes the number of times DNS resolution for each peer's
+	endpoint will be retried for, with an increasing delay.
+	Can be set to _infinity_. If unset, the default is _15_.
+
+
 # EXAMPLES
 
 A Wireguard VPN tunnel configured with wg-quick:
