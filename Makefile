@@ -119,6 +119,7 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	cake-ingress \
 	ethtool \
 	gre \
+	ipv6 \
 	mpls \
 	tunnel \
 	vrf \

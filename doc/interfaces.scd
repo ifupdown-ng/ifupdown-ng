@@ -140,6 +140,28 @@ the system will only respond to certain keywords by default:
 Additional packages such as *bonding*, *bridge*, *tunnel*, *vrf* and
 *vxlan* add additional keywords to this vocabulary.
 
+# IPV6 SPECIFIC KEYWORDS
+
+Any keyword may be used inside an interface declaration block, but
+the system will only respond to certain keywords by default:
+
+*ipv6-autoconf* _bool_
+	Autoconfigure addresses using Prefix Information in Router Advertisements.
+	_bool_ can be given as _yes_/_no_ or _0_/_1_.  The defaul is _yes_.
+
+*ipv6-accept-ra* _number_
+	Accept Router Advertisements; autoconfigure using them.
+	It also determines whether or not to transmit Router Solicitations. 
+	If and only if the functional setting is to accept Router Advertisements, 
+	Router Solicitations will be transmitted.
+	Possible values are: 0 - Do not accept Router Advertisements,
+	1 - Accept Router Advertisements if forwarding is disabled,
+	2 - Overrule forwarding behaviour. Accept Router Advertisements even if forwarding is enabled.
+
+*ipv6-dad-transmits* _number_
+	The amount of Duplicate Address Detection probes to send.
+	Default: _1_
+
 # EXECUTORS
 
 The *use* keyword designates that an _executor_ should be used.
@@ -167,6 +189,9 @@ most common executors are:
 
 *forward*
 	Configures forwarding settings on the interface.
+
+*ipv6*
+	Configures IPv6 parameters.
 
 *loopback*
 	Designates the interface as a loopback device.
