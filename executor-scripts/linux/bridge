@@ -91,7 +91,7 @@ set_bridge_opts_brctl() {
 
 yesno() {
 	case "$1" in
-	yes|YES|true|TRUE|1)
+	on|ON|yes|YES|true|TRUE|1)
 		echo 1
 		;;
 	*)
