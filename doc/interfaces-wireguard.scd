@@ -6,7 +6,7 @@ interfaces-wireguard(5)
 
 # DESCRIPTION
 
-Wireguard is a comtemporary in-Kernel layer 3 VPN protocol implementation
+Wireguard is a contemporary in-Kernel layer 3 VPN protocol implementation
 which aims to provide fast and secure tunnels. The following options
 allow to set up Wireguard VPN tunnels.
 
@@ -25,6 +25,11 @@ allow to set up Wireguard VPN tunnels.
 	a configuration file for *wg-quick* you can set up the tunnel
 	manually once and then dump the configuration using *wg showconf*
 	and save this to _path_.
+
+*wg-endpoint-resolution-retries* _integer_
+	Denotes the number of times DNS resolution for each peer's
+	endpoint will be retried for, with an increasing delay.
+	Can be set to _infinity_. If unset, the default is _15_.
 
 
 # EXAMPLES

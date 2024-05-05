@@ -1,15 +1,23 @@
 #!/bin/sh
 [ -n "$VERBOSE" ] && set -x
-[ -z "$IF_WIREGUARD_CONFIG_PATH" ] && IF_WIREGUARD_CONFIG_PATH="/etc/wireguard/$IFACE.conf"
 
 case "$PHASE" in
 create)
-	${MOCK} ip link add $IFACE type wireguard
+	if [ -n "$IF_WIREGUARD_HOME_NETNS" ]; then
+		# Create interface in the configured network namespace
+		${MOCK} ip -n "$IF_WIREGUARD_HOME_NETNS" link add "$IFACE" type wireguard
+		${MOCK} ip -n "$IF_WIREGUARD_HOME_NETNS" link set "$IFACE" netns $$
+	else
+		${MOCK} ip link add "$IFACE" type wireguard
+	fi
 	;;
 pre-up)
-	${MOCK} wg setconf $IFACE $IF_WIREGUARD_CONFIG_PATH
+	: "${IF_WIREGUARD_CONFIG_PATH:=/etc/wireguard/"$IFACE".conf}"
+
+	${MOCK} export WG_ENDPOINT_RESOLUTION_RETRIES="${IF_WG_ENDPOINT_RESOLUTION_RETRIES:-15}"
+	${MOCK} wg setconf "$IFACE" "$IF_WIREGUARD_CONFIG_PATH"
 	;;
 destroy)
-	${MOCK} ip link delete dev $IFACE
+	${MOCK} ip link delete dev "$IFACE"
 	;;
 esac
