@@ -24,6 +24,10 @@ if [ "$#" -lt 1 ]; then
     exit 1
 fi
 
+if [ -z "$RUNTIME_DIRECTORY" ]; then
+    RUNTIME_DIRECTORY="/var/run/teamd/"
+fi
+
 IFACE=$1
 CONFIG_FILE="$RUNTIME_DIRECTORY/ifteaming."${IFACE}
 
@@ -52,9 +56,12 @@ IF_TEAM_MEMBERS=$(get_team_config team-members)
 for PORT in ${IF_TEAM_MEMBERS}; do
     if [ ! -d /sys/class/net/$PORT ]; then
 	# Skip unavailable interfaces in system
+	echo "%TEAMING-IF_PRECONFIG: ${IFACE}: iface $PORT not present in system"
 	continue
     fi
+    echo "%TEAMING-IF_PRECONFIG: ${IFACE}: set port $PORT: down,nomaster"
     /sbin/ip link set $PORT down
+    /sbin/ip link set $PORT nomaster
     /sbin/ip addr flush $PORT
 done
 

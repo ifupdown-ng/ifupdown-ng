@@ -53,6 +53,14 @@ if [ "$#" -lt 1 ]; then
     exit 1
 fi
 
+if [ -z "$RUNTIME_DIRECTORY" ]; then
+    RUNTIME_DIRECTORY="/var/run/teamd/"
+fi
+
+if [ ! -d "$RUNTIME_DIRECTORY" ]; then
+    mkdir -p $RUNTIME_DIRECTORY
+fi
+
 while [ "$#" -gt 0 ]; do
     case "$1" in
 	-h|--help)
