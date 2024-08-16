@@ -134,13 +134,13 @@ set_bridge_opts_iproute2() {
 }
 
 set_bridge_opts() {
-	[ -x /sbin/bridge ] && set_bridge_opts_iproute2 && return 0
-	[ -x /sbin/brctl ] && set_bridge_opts_brctl && return 0
+	[ -x "$(which bridge)" ] && set_bridge_opts_iproute2 && return 0
+	[ -x "$(which brctl)" ] && set_bridge_opts_brctl && return 0
 }
 
 set_pathcost() {
-	[ -x /sbin/bridge ] && set_pathcost_iproute2 && return 0
-	[ -x /sbin/brctl ] && set_pathcost_brctl && return 0
+	[ -x "$(which bridge)" ] && set_pathcost_iproute2 && return 0
+	[ -x "$(which brctl)" ] && set_pathcost_brctl && return 0
 }
 
 all_ports_ready() {
