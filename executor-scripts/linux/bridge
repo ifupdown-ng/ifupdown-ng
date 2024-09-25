@@ -55,9 +55,6 @@ all_ports() {
 add_ports() {
 	local port=
 	for port in $PORTS; do
-		if [ -n "$IF_BRIDGE_HW" ]; then
-			ip link set dev $port addr $IF_BRIDGE_HW
-		fi
 		ip link set dev $port master $IFACE && ip link set dev $port up
 	done
 }
@@ -68,6 +65,12 @@ del_ports() {
 		ip link set dev $port down
 		ip link set dev $port nomaster
 	done
+}
+
+set_bridge_hw() {
+	if [ -n "$IF_BRIDGE_HW" ]; then
+		ip link set dev $IFACE addr $IF_BRIDGE_HW
+	fi
 }
 
 set_bridge_opts_brctl() {
@@ -272,6 +275,7 @@ pre-up)
 		set_bridge_opts
 		set_bridge_vlans
 		add_ports
+		set_bridge_hw
 		set_bridge_port_vlans
 		wait_bridge
 
