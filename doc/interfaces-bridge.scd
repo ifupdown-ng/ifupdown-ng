@@ -17,7 +17,8 @@ See *ip-link*(8) for more details about the options listed below.
 *bridge-ports* _list of interfaces_
 	A space separated list of interfaces which should be configured
 	as member interfaces of this bridge. This option must be set
-	for the bridge to be configured.
+	for the bridge to be configured. Set it to _none_ to create a
+	bridge with no ports.
 
 *bridge-hw* _MAC address_
 	Denotes the _MAC address_ the bridge should use.
