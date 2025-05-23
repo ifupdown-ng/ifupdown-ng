@@ -50,7 +50,8 @@ with an address of *203.0.113.2* and gateway of *203.0.113.1*.
 	_object_.
 
 *source* _filename_
-	Includes the file _filename_ as configuration data.
+	Includes the file _filename_ as configuration data. Shell
+	wildcards can be used. See wordexp(3).
 
 *source-directory* _directory_
 	Includes the files in _directory_ as configuration data.
