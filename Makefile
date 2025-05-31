@@ -165,7 +165,7 @@ check: ${LIBIFUPDOWN_LIB_PREFIXED} ${CMDS_PREFIXED}
 install: all
 	install -D -m755 ${MULTICALL_PREFIXED} ${DESTDIR}${SBINDIR}/${MULTICALL}
 	for i in ${CMDS}; do \
-		ln -s ${SBINDIR}/${MULTICALL} ${DESTDIR}${SBINDIR}/$$i; \
+		ln -s ${MULTICALL} ${DESTDIR}${SBINDIR}/$$i; \
 	done
 	for i in ${EXECUTOR_SCRIPTS}; do \
 		install -D -m755 executor-scripts/${LAYOUT}/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
