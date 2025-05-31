@@ -282,7 +282,7 @@ depend)
 create)
 	# Called for the bridge interface
 	if [ "${IF_BRIDGE_PORTS}" -a ! -d "/sys/class/net/${IFACE}" ]; then
-		ip link add "${IFACE}" type bridge
+		ip link add name "${IFACE}" type bridge
 	fi
 	;;
 
@@ -319,7 +319,7 @@ post-down)
 destroy)
 	# Called for the bridge interface
 	if [ "${IF_BRIDGE_PORTS}" -a -d "/sys/class/net/${IFACE}" ]; then
-		ip link del "${IFACE}"
+		ip link del dev "${IFACE}"
 	fi
 	;;
 esac
