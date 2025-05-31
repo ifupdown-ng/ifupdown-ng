@@ -134,6 +134,8 @@ set_bridge_opts_iproute2() {
 		&& ip link set dev $IFACE type bridge stp $(yesno $IF_BRIDGE_STP)
 	[ -n "$IF_BRIDGE_VLAN_AWARE" ] \
 		&& ip link set dev $IFACE type bridge vlan_filtering $(yesno $IF_BRIDGE_VLAN_AWARE)
+	[ -n "$IF_BRIDGE_DEFAULT_PVID" ] \
+		&& ip link set dev $IFACE type bridge vlan_default_pvid $(yesno $IF_BRIDGE_DEFAULT_PVID)
 }
 
 set_bridge_opts() {
