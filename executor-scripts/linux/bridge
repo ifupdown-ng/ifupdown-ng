@@ -84,12 +84,26 @@ set_bridge_opts_brctl() {
 		&& brctl sethello $IFACE $IF_BRIDGE_HELLO
 	[ -n "$IF_BRIDGE_MAXAGE" ] \
 		&& brctl setmaxage $IFACE $IF_BRIDGE_MAXAGE
-	[ -n "$IF_BRIDGE_PATHCOST" ] \
-		&& brctl setpathcost $IFACE $IF_BRIDGE_PATHCOST
 	[ -n "$IF_BRIDGE_PORTPRIO" ] \
 		&& brctl setportprio $IFACE $IF_BRIDGE_PORTPRIO
 	[ -n "$IF_BRIDGE_STP" ] \
 		&& brctl stp $IFACE $IF_BRIDGE_STP
+}
+
+set_pathcost_brctl() {
+	if [ -n "$IF_BRIDGE_PATHCOST" ]; then
+		for port in ${PORTS}; do
+			brctl setpathcost $IFACE ${port} $IF_BRIDGE_PATHCOST
+		done
+	fi
+}
+
+set_pathcost_iproute2() {
+	if [ -n "$IF_BRIDGE_PATHCOST" ]; then
+		for port in ${PORTS}; do
+			bridge link set dev $port cost $IF_BRIDGE_PATHCOST
+		done
+	fi
 }
 
 yesno() {
@@ -114,8 +128,6 @@ set_bridge_opts_iproute2() {
 		&& ip link set dev $IFACE type bridge hello_time $IF_BRIDGE_HELLO
 	[ -n "$IF_BRIDGE_MAXAGE" ] \
 		&& ip link set dev $IFACE type bridge max_age $IF_BRIDGE_MAXAGE
-	[ -n "$IF_BRIDGE_PATHCOST" ] \
-		&& bridge link set dev $IFACE cost $IF_BRIDGE_PATHCOST
 	[ -n "$IF_BRIDGE_PORTPRIO" ] \
 		&& bridge link set dev $IFACE priority $IF_BRIDGE_PORTPRIO
 	[ -n "$IF_BRIDGE_STP" ] \
@@ -125,10 +137,14 @@ set_bridge_opts_iproute2() {
 }
 
 set_bridge_opts() {
-	[ -x /sbin/bridge ] && set_bridge_opts_iproute2 && return 0
-	[ -x /sbin/brctl ] && set_bridge_opts_brctl && return 0
+	[ -x "$(which bridge)" ] && set_bridge_opts_iproute2 && return 0
+	[ -x "$(which brctl)" ] && set_bridge_opts_brctl && return 0
 }
 
+set_pathcost() {
+	[ -x "$(which bridge)" ] && set_pathcost_iproute2 && return 0
+	[ -x "$(which brctl)" ] && set_pathcost_brctl && return 0
+}
 
 all_ports_ready() {
 	local port=
@@ -278,6 +294,7 @@ pre-up)
 		set_bridge_hw
 		set_bridge_port_vlans
 		wait_bridge
+		set_pathcost
 
 	# Called for a bridge member port
 	elif [ "${IF_BRIDGE_VIDS}" -o "${IF_BRIDGE_PVID}" -o "${IF_BRIDGE_ACCESS}" -o "${IF_BRIDGE_ALLOW_UNTAGGED}" ]; then
