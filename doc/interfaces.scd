@@ -105,6 +105,11 @@ the system will only respond to certain keywords by default:
 *alias* _alias_
 	Sets the given alias on the interface.
 
+*netns* _netns_
+	Denotes the name or PID of a network namespace from which a
+	physical interface can be moved from to the current namespace.
+	The interface will also be returned when it is taken down.
+
 *requires* _interfaces_...
 	Designates one or more required interfaces that must be
 	brought up before configuration of the parent interface.
