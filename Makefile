@@ -96,6 +96,8 @@ YAML_SRC = \
 LIBIFUPDOWN_${CONFIG_YAML}_OBJ += ${YAML_SRC:.c=.o}
 CPPFLAGS_${CONFIG_YAML} += -DCONFIG_YAML
 
+TEAMING_TOOLS = teaming-build-config  teaming-service
+
 LIBIFUPDOWN_OBJ += ${LIBIFUPDOWN_Y_OBJ}
 MULTICALL_OBJ += ${MULTICALL_Y_OBJ}
 MULTICALL_OBJ_PREFIXED = $(addprefix ${BUILDDIR_},${MULTICALL_OBJ})
@@ -120,6 +122,7 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	ethtool \
 	gre \
 	mpls \
+	team \
 	tunnel \
 	vrf \
 	vxlan \
@@ -177,6 +180,9 @@ install: all
 		install -D -m755 executor-scripts/${LAYOUT}-native/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
 	done
 	install -D -m644 dist/ifupdown-ng.conf.example ${DESTDIR}${CONFIG_FILE}.example
+	for i in ${TEAMING_TOOLS}; do \
+		install -D -m755 tools/$$i ${DESTDIR}${SBINDIR}/$$i; \
+	done
 
 ${BUILDDIR_}%.5: %.scd
 	mkdir -p ${BUILDDIR_}doc
@@ -202,6 +208,7 @@ MANPAGES_5 = \
 	doc/interfaces-cake.5 \
 	doc/interfaces-cake-ingress.5 \
 	doc/interfaces-ppp.5 \
+	doc/interfaces-teaming.5 \
 	doc/interfaces-tunnel.5 \
 	doc/interfaces-vrf.5 \
 	doc/interfaces-vxlan.5 \
