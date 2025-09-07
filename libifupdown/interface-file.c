@@ -320,8 +320,23 @@ handle_iface(struct lif_interface_file_parse_state *state, char *token, char *bu
 			if (!handle_inherit(state, token, bufp))
 				return false;
 		}
+		else if (!strcmp(token, "no-defaults"))
+			state->cur_iface->no_defaults = true;
 
 		token = lif_next_token(&bufp);
+	}
+
+	if (!state->cur_iface->is_template && !state->cur_iface->no_defaults)
+	{
+		struct lif_interface *parent = lif_interface_collection_find(state->collection, "defaults");
+
+		if (!lif_interface_collection_inherit(state->cur_iface, parent))
+		{
+			report_error(state, "iface %s: could not inherit defaults", state->cur_iface->ifname);
+			/* Mark this interface as errornous but carry on */
+			state->cur_iface->has_config_error = true;
+			return true;
+		}
 	}
 
 	return true;
