@@ -56,6 +56,12 @@ add_ports() {
 	local port=
 	for port in $PORTS; do
 		ip link set dev $port master $IFACE && ip link set dev $port up
+		## Specific VXLAN under the bridge. More about this here: https://docs.frrouting.org/en/latest/evpn.html
+		if [ "$(port_is_vxlan_evpn ${port})" = 1 ]; then
+			# Disable IPv6 autoconfiguration. We are a port under a bridge.
+			ip link set dev $port addrgenmode none
+			ip link set dev $port type bridge_slave neigh_suppress on learning off
+		fi
 	done
 }
 
@@ -141,6 +147,10 @@ set_bridge_opts_iproute2() {
 set_bridge_opts() {
 	[ -x "$(which bridge)" ] && set_bridge_opts_iproute2 && return 0
 	[ -x "$(which brctl)" ] && set_bridge_opts_brctl && return 0
+}
+
+port_is_vxlan_evpn() {
+	yesno "$(ifquery -p vxlan-evpn "${1}" 2>/dev/null || true)"
 }
 
 set_pathcost() {
