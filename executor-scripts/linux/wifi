@@ -14,7 +14,7 @@
 # Vocabulary:
 #   wifi-ssid - The SSID name to connect to.
 #   wifi-psk - The pre-shared key to use.
-#   wifi-config - A path to a wpa_supplicant config file, for special configs.
+#   wifi-config-path - A path to a wpa_supplicant config file, for special configs.
 #
 # If wifi-config is not set, wifi-ssid and wifi-psk are required, and a config
 # will be generated as /run/wpa_supplicant.$IFACE.conf.
@@ -46,8 +46,7 @@ generate_config() {
 	[ -z "$IF_WIFI_SSID" ] && die "wifi-ssid not set"
 	[ -z "$IF_WIFI_PSK" ] && die "wifi-psk not set"
 
-	# We use a pipeline here to avoid leaking PSK into the process name.
-	(echo "$IF_WIFI_PSK" | /sbin/wpa_passphrase "$IF_WIFI_SSID") >$WIFI_CONFIG_PATH
+	/sbin/wpa_passphrase "$IF_WIFI_SSID" "$IF_WIFI_PSK" >$WIFI_CONFIG_PATH
 
 	[ ! -e "$WIFI_CONFIG_PATH" ] && die "failed to write temporary config: $WIFI_CONFIG_PATH"
 }

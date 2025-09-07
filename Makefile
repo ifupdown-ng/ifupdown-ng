@@ -9,6 +9,12 @@ PACKAGE_BUGREPORT := https://github.com/ifupdown-ng/ifupdown-ng/issues/new
 
 SBINDIR := /sbin
 
+ifdef BUILDDIR
+	BUILDDIR_ := $(patsubst %/,%,${BUILDDIR})/
+else
+	BUILDDIR_ :=
+endif
+
 INTERFACES_FILE := /etc/network/interfaces
 STATE_FILE := /run/ifstate
 CONFIG_FILE := /etc/network/ifupdown-ng.conf
@@ -43,7 +49,9 @@ LIBIFUPDOWN_SRC = \
 	libifupdown/config-file.c \
 	libifupdown/compat.c
 LIBIFUPDOWN_OBJ = ${LIBIFUPDOWN_SRC:.c=.o}
+LIBIFUPDOWN_OBJ_PREFIXED = $(addprefix ${BUILDDIR_},${LIBIFUPDOWN_OBJ})
 LIBIFUPDOWN_LIB = libifupdown.a
+LIBIFUPDOWN_LIB_PREFIXED = ${BUILDDIR_}${LIBIFUPDOWN_LIB}
 
 MULTICALL_SRC = \
 	cmd/multicall.c \
@@ -53,6 +61,7 @@ MULTICALL_SRC = \
 	cmd/pretty-print-iface.c
 MULTICALL_OBJ = ${MULTICALL_SRC:.c=.o}
 MULTICALL = ifupdown
+MULTICALL_PREFIXED = ${BUILDDIR_}${MULTICALL}
 
 # enable ifup/ifdown applets (+16 KB)
 CONFIG_IFUPDOWN ?= Y
@@ -89,7 +98,9 @@ CPPFLAGS_${CONFIG_YAML} += -DCONFIG_YAML
 
 LIBIFUPDOWN_OBJ += ${LIBIFUPDOWN_Y_OBJ}
 MULTICALL_OBJ += ${MULTICALL_Y_OBJ}
+MULTICALL_OBJ_PREFIXED = $(addprefix ${BUILDDIR_},${MULTICALL_OBJ})
 CMDS += ${CMDS_Y}
+CMDS_PREFIXED = $(addprefix ${BUILDDIR_},${CMDS})
 CPPFLAGS += ${CPPFLAGS_Y}
 
 EXECUTOR_SCRIPTS_CORE ?= \
@@ -123,32 +134,38 @@ EXECUTOR_SCRIPTS_STUB ?=
 EXECUTOR_SCRIPTS_NATIVE ?=
 
 TARGET_LIBS = ${LIBIFUPDOWN_LIB}
-LIBS += ${TARGET_LIBS} ${LIBBSD_LIBS}
+TARGET_LIBS_PREFIXED = $(addprefix ${BUILDDIR_},${TARGET_LIBS})
+LIBS += ${TARGET_LIBS_PREFIXED} ${LIBBSD_LIBS}
 
-all: ${MULTICALL} ${CMDS}
+all: ${MULTICALL_PREFIXED} ${CMDS_PREFIXED}
 
-${CMDS}: ${MULTICALL}
+${CMDS_PREFIXED}: ${MULTICALL_PREFIXED}
 	ln -sf ifupdown $@
 
-${MULTICALL}: ${TARGET_LIBS} ${MULTICALL_OBJ}
-	${CC} ${LDFLAGS} -o $@ ${MULTICALL_OBJ} ${LIBS}
+${MULTICALL_PREFIXED}: ${TARGET_LIBS_PREFIXED} ${MULTICALL_OBJ_PREFIXED}
+	${CC} ${LDFLAGS} -o $@ \
+		${MULTICALL_OBJ_PREFIXED} ${LIBS}
 
-${LIBIFUPDOWN_LIB}: ${LIBIFUPDOWN_OBJ}
-	${AR} -rcs $@ ${LIBIFUPDOWN_OBJ}
+${LIBIFUPDOWN_LIB_PREFIXED}: ${LIBIFUPDOWN_OBJ_PREFIXED}
+	${AR} -rcs $@ ${LIBIFUPDOWN_OBJ_PREFIXED}
+
+${BUILDDIR_}%.o: %.c
+	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ -c $<
 
 clean:
-	rm -f ${LIBIFUPDOWN_OBJ} ${MULTICALL_OBJ}
-	rm -f ${LIBIFUPDOWN_LIB}
-	rm -f ${CMDS} ${MULTICALL}
-	rm -f ${MANPAGES}
+	rm -f ${LIBIFUPDOWN_OBJ_PREFIXED} \
+		${MULTICALL_OBJ_PREFIXED}
+	rm -f ${LIBIFUPDOWN_LIB_PREFIXED}
+	rm -f ${CMDS_PREFIXED} ${MULTICALL_PREFIXED}
+	rm -f ${MANPAGES_PREFIXED}
 
-check: ${LIBIFUPDOWN_LIB} ${CMDS}
-	kyua test || (kyua report --verbose && exit 1)
+check: ${LIBIFUPDOWN_LIB_PREFIXED} ${CMDS_PREFIXED}
+	PATH=${BUILDDIR_}:$$PATH kyua test || (kyua report --verbose && exit 1)
 
 install: all
-	install -D -m755 ${MULTICALL} ${DESTDIR}${SBINDIR}/${MULTICALL}
+	install -D -m755 ${MULTICALL_PREFIXED} ${DESTDIR}${SBINDIR}/${MULTICALL}
 	for i in ${CMDS}; do \
-		ln -s ${SBINDIR}/${MULTICALL} ${DESTDIR}${SBINDIR}/$$i; \
+		ln -s ${MULTICALL} ${DESTDIR}${SBINDIR}/$$i; \
 	done
 	for i in ${EXECUTOR_SCRIPTS}; do \
 		install -D -m755 executor-scripts/${LAYOUT}/$$i ${DESTDIR}${EXECUTOR_PATH}/$$i; \
@@ -161,7 +178,16 @@ install: all
 	done
 	install -D -m644 dist/ifupdown-ng.conf.example ${DESTDIR}${CONFIG_FILE}.example
 
-.scd.1 .scd.2 .scd.3 .scd.4 .scd.5 .scd.6 .scd.7 .scd.8:
+${BUILDDIR_}%.5: %.scd
+	mkdir -p ${BUILDDIR_}doc
+	${SCDOC} < $< > $@
+
+${BUILDDIR_}%.7: %.scd
+	mkdir -p ${BUILDDIR_}doc
+	${SCDOC} < $< > $@
+
+${BUILDDIR_}%.8: %.scd
+	mkdir -p ${BUILDDIR_}doc
 	${SCDOC} < $< > $@
 
 MANPAGES_5 = \
@@ -172,11 +198,13 @@ MANPAGES_5 = \
 	doc/interfaces-batman.5 \
 	doc/interfaces-bridge.5 \
 	doc/interfaces-forward.5 \
+	doc/interfaces-dhcp.5 \
 	doc/interfaces-cake.5 \
 	doc/interfaces-cake-ingress.5 \
 	doc/interfaces-ppp.5 \
 	doc/interfaces-tunnel.5 \
 	doc/interfaces-vrf.5 \
+	doc/interfaces-vlan.5 \
 	doc/interfaces-vxlan.5 \
 	doc/interfaces-wifi.5 \
 	doc/interfaces-wireguard.5 \
@@ -192,25 +220,28 @@ MANPAGES_8 = \
 	doc/ifctrstat.8 \
 	doc/ifparse.8
 
-MANPAGES = ${MANPAGES_5} ${MANPAGES_7} ${MANPAGES_8}
+MANPAGES_5_PREFIXED = $(addprefix ${BUILDDIR_},${MANPAGES_5})
+MANPAGES_7_PREFIXED = $(addprefix ${BUILDDIR_},${MANPAGES_7})
+MANPAGES_8_PREFIXED = $(addprefix ${BUILDDIR_},${MANPAGES_8})
 
-docs: ${MANPAGES}
+MANPAGES = ${MANPAGES_5} ${MANPAGES_7} ${MANPAGES_8}
+MANPAGES_PREFIXED = $(addprefix ${BUILDDIR_},${MANPAGES})
+
+docs: ${MANPAGES_PREFIXED}
 
 install_docs: docs
-	for i in ${MANPAGES_5}; do \
+	for i in ${MANPAGES_5_PREFIXED}; do \
 		target=$$(basename $$i); \
 		install -D -m644 $$i ${DESTDIR}/usr/share/man/man5/$$target; \
 	done
-	for i in ${MANPAGES_7}; do \
+	for i in ${MANPAGES_7_PREFIXED}; do \
 		target=$$(basename $$i); \
 		install -D -m644 $$i ${DESTDIR}/usr/share/man/man7/$$target; \
 	done
-	for i in ${MANPAGES_8}; do \
+	for i in ${MANPAGES_8_PREFIXED}; do \
 		target=$$(basename $$i); \
 		install -D -m644 $$i ${DESTDIR}/usr/share/man/man8/$$target; \
 	done
-
-.SUFFIXES: .scd .1 .2 .3 .4 .5 .6 .7 .8
 
 DIST_NAME = ${PACKAGE_NAME}-${PACKAGE_VERSION}
 DIST_TARBALL = ${DIST_NAME}.tar.xz

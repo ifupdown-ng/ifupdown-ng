@@ -21,6 +21,10 @@ FAMILY="-4"
 KW="type"
 is_busybox && KW="mode"
 
+# We want to use iproute2 keywords unconditionally as the testsuite
+# should assume the iproute2 use-case.
+[ -n "$MOCK" ] && KW="type"
+
 PARAMS="$KW $IF_GRE_MODE local '$IF_GRE_LOCAL'"
 [ -n "$IF_GRE_REMOTE" ] && PARAMS="$PARAMS remote '$IF_GRE_REMOTE'"
 [ -n "$IF_GRE_TTL" ] && PARAMS="$PARAMS ttl '$IF_GRE_TTL'"

@@ -14,24 +14,27 @@ determine_implementation() {
 start() {
 	case "$1" in
 	dhcpcd)
+		optargs=$(eval echo $IF_DHCP_OPTS)
 		[ -n "$IF_DHCP_HOSTNAME" ] && optargs="$optargs -h $IF_DHCP_HOSTNAME"
 		[ -n "$IF_DHCP_VENDOR" ] && optargs="$optargs -i $IF_DHCP_VENDOR"
-		[ -n "$IF_DHCP_CLIENT_ID" ] && optargs="$optargs -i $IF_DHCP_CLIENT_ID"
+		[ -n "$IF_DHCP_CLIENT_ID" ] && optargs="$optargs -I $IF_DHCP_CLIENT_ID"
 		[ -n "$IF_DHCP_LEASETIME" ] && optargs="$optargs -l $IF_DHCP_LEASETIME"
+		[ -n "$IF_DHCP_CONFIG" ] && optargs="$optargs -f $IF_DHCP_CONFIG"
+		[ -n "$IF_DHCP_SCRIPT" ] && optargs="$optargs -c $IF_DHCP_SCRIPT"
 		${MOCK} /sbin/dhcpcd $optargs $IFACE
 		;;
 	dhclient)
-		# Specific config file given?
-		if [ -n "$IF_DHCP_CONFIG" ]; then
-			optargs="$optargs -cf $IF_DHCP_CONFIG"
-		fi
-
+		optargs=$(eval echo $IF_DHCP_OPTS)
+		[ -n "$IF_DHCP_CONFIG" ] && optargs="$optargs -cf $IF_DHCP_CONFIG"
+		[ -n "$IF_DHCP_SCRIPT" ] && optargs="$optargs -sf $IF_DHCP_SCRIPT"
 		${MOCK} /usr/sbin/dhclient -pf /var/run/dhclient.$IFACE.pid $optargs $IFACE
 		;;
 	udhcpc)
-		optargs=$(eval echo $IF_UDHCPC_OPTS)
-		[ -n "$IF_DHCP_HOSTNAME" ] && optargs="$optargs -x hostname:$IF_DHCP_HOSTNAME"
-		[ -n "$IF_DHCP_CLIENT_ID" ] && optargs="$optargs -c $IF_DHCP_CLIENT_ID"
+		optargs=$(eval echo $IF_UDHCPC_OPTS $IF_DHCP_OPTS)
+		[ -n "$IF_DHCP_HOSTNAME" ] && optargs="$optargs -x hostname:${IF_DHCP_HOSTNAME}"
+		[ -n "$IF_DHCP_VENDOR" ] && optargs="$optargs -V $IF_DHCP_VENDOR"
+		[ -n "$IF_DHCP_CLIENT_ID" ] && optargs="$optargs -x 0x3d:${IF_DHCP_CLIENT_ID}"
+		[ -n "$IF_DHCP_LEASETIME" ] && optargs="$optargs -x lease:${IF_DHCP_LEASETIME}"
 		[ -n "$IF_DHCP_SCRIPT" ] && optargs="$optargs -s $IF_DHCP_SCRIPT"
 		${MOCK} /sbin/udhcpc -b -R -p /var/run/udhcpc.$IFACE.pid -i $IFACE $optargs
 		;;

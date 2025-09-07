@@ -44,20 +44,34 @@ with an address of *203.0.113.2* and gateway of *203.0.113.1*.
 	Designates that _object_ should be automatically configured
 	by the system when appropriate.
 
-*iface* _object_
+*defaults*
+	Designates default configuration settings that should be
+	added to interface and template objects when instantiated.
+
+*iface* _object_ _options_...
 	Begins a new declaration for _object_.  Any child keyword
 	associated with the declaration will be stored inside
 	_object_.
 
 *source* _filename_
-	Includes the file _filename_ as configuration data.
+	Includes the file _filename_ as configuration data. Shell
+	wildcards can be used. See wordexp(3).
 
 *source-directory* _directory_
 	Includes the files in _directory_ as configuration data.
 
-*template* _object_
+*template* _object_ _options_...
 	Begins a new declaration for _object_, like *iface*, except
 	that _object_ is defined as a *template*.
+
+# SUPPORTED OPTIONS FOR INTERFACES AND TEMPLATES
+
+Interface and template objects may take optional arguments which
+modify how they are instantiated:
+
+*no-defaults*
+	Disables processing of default settings when instantiating
+	the object.
 
 # SUPPORTED KEYWORDS FOR OBJECT TRIPLES
 
