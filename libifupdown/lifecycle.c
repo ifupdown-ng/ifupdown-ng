@@ -15,6 +15,7 @@
  */
 
 #include <ctype.h>
+#include <paths.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -72,15 +73,19 @@ handle_executors_for_phase(const struct lif_execute_opts *opts, char *const envp
 	if (up)
 	{
 		LIF_DICT_FOREACH(iter, &iface->vars) {
-			if (!handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname))
+			if (!handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname)) {
 				ret = false;
+				break;
+			}
 		}
 	}
 	else
 	{
 		LIF_DICT_FOREACH_REVERSE(iter, &iface->vars) {
-			if (!handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname))
+			if (!handle_single_executor_for_phase(iter->data, opts, envp, phase, iface->ifname)) {
 				ret = false;
+				break;
+			}
 		}
 	}
 
@@ -158,6 +163,12 @@ build_environment(char **envp[], const struct lif_execute_opts *opts, const stru
 {
 	if (lifname == NULL)
 		lifname = iface->ifname;
+
+	/* Use sane defaults for PATH */
+	if (geteuid() == 0)
+		lif_environment_push(envp, "PATH", _PATH_STDPATH);
+	else
+		lif_environment_push(envp, "PATH", _PATH_DEFPATH);
 
 	lif_environment_push(envp, "IFACE", lifname);
 	lif_environment_push(envp, "PHASE", phase);

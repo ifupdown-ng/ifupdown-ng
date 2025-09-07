@@ -33,7 +33,7 @@ configure_addresses() {
 configure_gateways() {
 	for gw in ${IF_GATEWAYS}; do
 		addrfam=$(addr_family ${gw})
-		${MOCK} ip "${addrfam}" route add default via "${gw}" ${VRF_TABLE} ${METRIC} dev "${IFACE}"
+		${MOCK} ip "${addrfam}" route add default via "${gw}" ${VRF_TABLE} ${METRIC} dev "${IFACE}" onlink
 	done
 }
 

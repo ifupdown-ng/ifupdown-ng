@@ -1,70 +1,85 @@
 #!/sbin/openrc-run
 
-: ${cfgfile:="/etc/network/interfaces"}
-ifstate=/run/ifstate
+# Compatibility with previous variable names
+: "${INTERFACES:="$cfgfile"}"
+: "${IFSTATE:="$ifstate"}"
+: "${SKIP_SHUTDOWN:="$keep_network"}"
 
-single_iface="${RC_SVCNAME#*.}"
-if [ "$single_iface" = "$RC_SVCNAME" ]; then
-	single_iface=
-fi
+# Filepath to the interface configuration database
+: "${INTERFACES:="/etc/network/interfaces"}"
+# Filepath to the interface state database
+: "${IFSTATE:="/run/ifstate"}"
+# Time to wait, in seconds, for executors to complete before raising an error
+: "${TIMEOUT:="300"}"
+# Whether to provide the 'shutdown' keyword to OpenRC
+: "${SKIP_SHUTDOWN:="YES"}"
+
+# Alias used commands to make code bellow less repetitive
+alias ifquery='ifquery --interfaces "$INTERFACES" --state-file "$IFSTATE" --timeout "$TIMEOUT"'
+alias ifdown='ifdown --interfaces "$INTERFACES" --state-file "$IFSTATE" --timeout "$TIMEOUT"'
+alias ifup='ifup --interfaces "$INTERFACES" --state-file "$IFSTATE" --timeout "$TIMEOUT"'
 
 depend() {
 	need localmount
 	want dev-settle
 	after bootmisc hwdrivers modules
 	provide net
-	keyword -jail -prefix -vserver -docker
-}
 
-# find interfaces we want to start
-find_ifaces() {
-	if [ -n "$single_iface" ]; then
-		echo $single_iface
-	else
-		ifquery -L -a -i "$cfgfile"
+	# Skip bringing interfaces down during a shutdown
+	if yesno "$SKIP_SHUTDOWN"; then
+		keyword -shutdown
 	fi
+	# When inside a container, exclude this service from any dependencies
+	keyword -containers
 }
 
-# return the list of interfaces we should try stop
-find_running_ifaces() {
-	if [ -n "$single_iface" ]; then
-		echo $single_iface
+# Print a single interface to configure, if available
+single_interface() {
+	# Use service name suffix as an interface name
+	interface="${RC_SVCNAME##*.}"
+	# If service name had no suffix, this will leave the interface name blank
+	interface="${interface#"$RC_SVCNAME"}"
+	# Only print interfaces that have been configured
+	if ifquery "$interface" > /dev/null 2>&1; then
+		printf '%s' "$interface"
 	else
-		ifquery -r -i "$cfgfile" -S "$ifstate"
+		return 1
 	fi
 }
 
 start() {
-	local iface= ret=1
-	ebegin "Starting networking"
+	ebegin 'Starting networking'
+
 	eindent
-	for iface in $(find_ifaces); do
-		local r=0
-		ebegin "$iface"
-		if ! ifup -i "$cfgfile" -S "$ifstate" $iface >/dev/null; then
-			ifdown -f -i "$cfgfile" -S "$ifstate" $iface >/dev/null 2>&1
-			r=1
+	# Bring up a single interface, or all interfaces that have been marked for automatic configuration
+	for interface in $(single_interface || ifquery --auto --list); do
+		ebegin "$interface"
+		if ifup "$interface"; then
+			# Atleast one interface needs to start for success
+			success=0
+			eend 0
+		else
+			# Interface in an unknown state, force deconfiguration
+			ifdown --force "$interface" > /dev/null 2>&1
+			eend 1
 		fi
-		# atleast one interface needs to be started for action
-		# to be success
-		eend $r && ret=0
 	done
 	eoutdent
-	return $ret
+
+	return "${success:-1}"
 }
 
 stop() {
-	local iface=
-	# Don't stop the network at shutdown.
-	yesno ${keep_network:-YES} && yesno $RC_GOINGDOWN && return 0
+	ebegin 'Stopping networking'
 
-	ebegin "Stopping networking"
 	eindent
-	for iface in $(find_running_ifaces); do
-		ebegin "$iface"
-		ifdown -i "$cfgfile" -S "$ifstate" -f $iface >/dev/null
+	# Take down a single interface, or all interfaces that have been marked for automatic (de)configuration
+	for interface in $(single_interface || ifquery --auto --running); do
+		ebegin "$interface"
+		ifdown "$interface"
 		eend $?
 	done
 	eoutdent
+
 	return 0
 }

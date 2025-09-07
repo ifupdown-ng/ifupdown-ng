@@ -9,7 +9,14 @@ tests_init udhcpc_up \
 	dhclient_up \
 	udhcpc_opts_up \
 	udhcpc_opts_up_subshell \
-	hostname_subshell
+	hostname_subshell \
+	dhcp_opts \
+	dhcp_opts_subshell \
+	vendor \
+	clientid \
+	config \
+	script \
+	leasetime
 
 udhcpc_up_body() {
 	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=udhcpc
@@ -50,5 +57,89 @@ udhcpc_opts_up_subshell_body() {
 hostname_subshell_body() {
 	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=udhcpc IF_DHCP_HOSTNAME="\$(echo test)"
 	atf_check -s exit:0 -o match:'/sbin/udhcpc -b -R -p /var/run/udhcpc.eth0.pid -i eth0 -x hostname:test' \
+		${EXECUTOR}
+}
+
+dhcp_opts_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=dhcpcd IF_DHCP_OPTS="--no-gateway"
+	atf_check -s exit:0 -o match:'/sbin/dhcpcd --no-gateway eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=dhclient IF_DHCP_OPTS="-s 255.255.255.255"
+	atf_check -s exit:0 -o match:'/usr/sbin/dhclient -pf /var/run/dhclient.eth0.pid -s 255.255.255.255 eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=udhcpc IF_DHCP_OPTS="-O search"
+	atf_check -s exit:0 -o match:'/sbin/udhcpc -b -R -p /var/run/udhcpc.eth0.pid -i eth0 -O search' \
+		${EXECUTOR}
+}
+
+dhcp_opts_subshell_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=dhcpcd IF_DHCP_OPTS="--no-\$(echo gateway)"
+	atf_check -s exit:0 -o match:'/sbin/dhcpcd --no-gateway eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=dhclient IF_DHCP_OPTS="-s \$(echo 255.255.255.255)"
+	atf_check -s exit:0 -o match:'/usr/sbin/dhclient -pf /var/run/dhclient.eth0.pid -s 255.255.255.255 eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=udhcpc IF_DHCP_OPTS="-O \$(echo search)"
+	atf_check -s exit:0 -o match:'/sbin/udhcpc -b -R -p /var/run/udhcpc.eth0.pid -i eth0 -O search' \
+		${EXECUTOR}
+}
+
+vendor_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=dhcpcd IF_DHCP_VENDOR=VendorFoo
+	atf_check -s exit:0 -o match:'/sbin/dhcpcd -i VendorFoo eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=dhclient # Not supported
+	atf_check -s exit:0 -o match:'/usr/sbin/dhclient -pf /var/run/dhclient.eth0.pid eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=udhcpc
+	atf_check -s exit:0 -o match:'/sbin/udhcpc -b -R -p /var/run/udhcpc.eth0.pid -i eth0 -V VendorFoo' \
+		${EXECUTOR}
+}
+
+clientid_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=dhcpcd IF_DHCP_CLIENT_ID=0100BEEFC0FFEE
+	atf_check -s exit:0 -o match:'/sbin/dhcpcd -I 0100BEEFC0FFEE eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=dhclient # Not supported
+	atf_check -s exit:0 -o match:'/usr/sbin/dhclient -pf /var/run/dhclient.eth0.pid eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=udhcpc
+	atf_check -s exit:0 -o match:'/sbin/udhcpc -b -R -p /var/run/udhcpc.eth0.pid -i eth0 -x 0x3d:0100BEEFC0FFEE' \
+		${EXECUTOR}
+}
+
+config_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=dhcpcd IF_DHCP_CONFIG=/etc/conf
+	atf_check -s exit:0 -o match:'/sbin/dhcpcd -f /etc/conf eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=dhclient
+	atf_check -s exit:0 -o match:'/usr/sbin/dhclient -pf /var/run/dhclient.eth0.pid -cf /etc/conf eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=udhcpc # Not supported
+	atf_check -s exit:0 -o match:'/sbin/udhcpc -b -R -p /var/run/udhcpc.eth0.pid -i eth0' \
+		${EXECUTOR}
+}
+
+script_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=dhcpcd IF_DHCP_SCRIPT=/usr/libexec/dhcp
+	atf_check -s exit:0 -o match:'/sbin/dhcpcd -c /usr/libexec/dhcp eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=dhclient
+	atf_check -s exit:0 -o match:'/usr/sbin/dhclient -pf /var/run/dhclient.eth0.pid -sf /usr/libexec/dhcp eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=udhcpc
+	atf_check -s exit:0 -o match:'/sbin/udhcpc -b -R -p /var/run/udhcpc.eth0.pid -i eth0 -s /usr/libexec/dhcp' \
+		${EXECUTOR}
+}
+
+leasetime_body() {
+	export IFACE=eth0 PHASE=up MOCK=echo IF_DHCP_PROGRAM=dhcpcd IF_DHCP_LEASETIME=12345
+	atf_check -s exit:0 -o match:'/sbin/dhcpcd -l 12345 eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=dhclient # Not supported
+	atf_check -s exit:0 -o match:'/usr/sbin/dhclient -pf /var/run/dhclient.eth0.pid eth0' \
+		${EXECUTOR}
+	export IF_DHCP_PROGRAM=udhcpc
+	atf_check -s exit:0 -o match:'/sbin/udhcpc -b -R -p /var/run/udhcpc.eth0.pid -i eth0 -x lease:12345' \
 		${EXECUTOR}
 }

@@ -1,6 +1,15 @@
 #!/bin/sh
 # Executor for advanced GRE tunnel management.
 
+is_busybox() {
+	binary=$(basename $(readlink -f $(which ip)))
+	if [ "${binary}" = "busybox" ]; then
+		return 0
+	fi
+
+	return 1
+}
+
 [ -z "$IF_GRE_LOCAL" ] && exit 1
 [ -z "$IF_GRE_MODE" ] && IF_GRE_MODE="gre"
 
@@ -8,7 +17,15 @@ COMMAND="link"
 FAMILY="-4"
 [ "$IF_GRE_MODE" = "ip6gre" ] && FAMILY="-6"
 
-PARAMS="mode $IF_GRE_MODE local '$IF_GRE_LOCAL'"
+# For iproute2 we need the 'type' keyword, but busybox requires 'mode'
+KW="type"
+is_busybox && KW="mode"
+
+# We want to use iproute2 keywords unconditionally as the testsuite
+# should assume the iproute2 use-case.
+[ -n "$MOCK" ] && KW="type"
+
+PARAMS="$KW $IF_GRE_MODE local '$IF_GRE_LOCAL'"
 [ -n "$IF_GRE_REMOTE" ] && PARAMS="$PARAMS remote '$IF_GRE_REMOTE'"
 [ -n "$IF_GRE_TTL" ] && PARAMS="$PARAMS ttl '$IF_GRE_TTL'"
 [ -n "$IF_GRE_KEY" ] && PARAMS="$PARAMS key '$IF_GRE_KEY'"

@@ -1,5 +1,5 @@
 /*
- * libifupdown/interface-file.h
+ * libifupdown/interface-file.c
  * Purpose: /etc/network/interfaces parser
  *
  * Copyright (c) 2020 Ariadne Conill <ariadne@dereferenced.org>
@@ -20,6 +20,11 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <wordexp.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "libifupdown/libifupdown.h"
 
 /* internally rewrite problematic ifupdown2 tokens to ifupdown-ng equivalents */
@@ -263,7 +268,13 @@ static bool handle_inherit(struct lif_interface_file_parse_state *state, char *t
 static bool
 handle_iface(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
-	char *ifname = lif_next_token(&bufp);
+	char *ifname = NULL;
+
+	if (!strcmp(token, "defaults"))
+		ifname = "defaults";
+	else
+		ifname = lif_next_token(&bufp);
+
 	if (!*ifname)
 	{
 		report_error(state, "%s without any other tokens", token);
@@ -285,9 +296,9 @@ handle_iface(struct lif_interface_file_parse_state *state, char *token, char *bu
 	}
 
 	/* mark the state->cur_iface as a template iface if `template` keyword
-	 * is used.
+	 * is used, or if the `defaults` keyword is used.
 	 */
-	if (!strcmp(token, "template"))
+	if (!strcmp(token, "template") || !strcmp(token, "defaults"))
 	{
 		state->cur_iface->is_auto = false;
 		state->cur_iface->is_template = true;
@@ -309,8 +320,23 @@ handle_iface(struct lif_interface_file_parse_state *state, char *token, char *bu
 			if (!handle_inherit(state, token, bufp))
 				return false;
 		}
+		else if (!strcmp(token, "no-defaults"))
+			state->cur_iface->no_defaults = true;
 
 		token = lif_next_token(&bufp);
+	}
+
+	if (!state->cur_iface->is_template && !state->cur_iface->no_defaults)
+	{
+		struct lif_interface *parent = lif_interface_collection_find(state->collection, "defaults");
+
+		if (!lif_interface_collection_inherit(state->cur_iface, parent))
+		{
+			report_error(state, "iface %s: could not inherit defaults", state->cur_iface->ifname);
+			/* Mark this interface as errornous but carry on */
+			state->cur_iface->has_config_error = true;
+			return true;
+		}
 	}
 
 	return true;
@@ -380,7 +406,27 @@ handle_source(struct lif_interface_file_parse_state *state, char *token, char *b
 		return true;
 	}
 
-	return lif_interface_file_parse(state, source_filename);
+	bool ok = true;
+	wordexp_t p;
+	if (wordexp(source_filename, &p, WRDE_NOCMD)) {
+		report_error(state, "matching pattern failed");
+		ok = false;
+		goto out;
+	}
+
+	for (size_t i = 0; i < p.we_wordc; i++) {
+		char *m = p.we_wordv[i];
+		struct stat sb;
+		int rv = stat(m, &sb);
+		if (i == 0 && rv == -1)
+			goto out; // no matches
+		ok &= lif_interface_file_parse(state, m);
+	}
+
+out:
+	wordfree(&p);
+
+	return ok;
 }
 
 static bool
@@ -407,11 +453,12 @@ handle_source_directory(struct lif_interface_file_parse_state *state, char *toke
 	struct dirent *dirent_p;
 	for (dirent_p = readdir(source_dir); dirent_p != NULL; dirent_p = readdir(source_dir))
 	{
-		if (dirent_p->d_type != DT_REG)
-			continue;
-
 		char pathbuf[4096];
+		struct stat st;
+
 		snprintf(pathbuf, sizeof pathbuf, "%s/%s", source_directory, dirent_p->d_name);
+		if (stat(pathbuf, &st) || !S_ISREG(st.st_mode))
+			continue;
 
 		if (!lif_interface_file_parse(state, pathbuf))
 		{
@@ -449,6 +496,7 @@ struct parser_keyword {
 static const struct parser_keyword keywords[] = {
 	{"address", handle_address},
 	{"auto", handle_auto},
+	{"defaults", handle_iface},
 	{"dhcp-hostname", handle_hostname},
 	{"gateway", handle_gateway},
 	{"hostname", handle_hostname},
