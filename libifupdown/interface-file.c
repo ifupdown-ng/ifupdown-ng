@@ -35,9 +35,12 @@ struct remap_token {
 
 /* this list must be in alphabetical order for bsearch */
 static const struct remap_token tokens[] = {
+	{"accept_ra", "ipv6-accept-ra"},		/* legacy ifupdown */
+	{"autoconf", "ipv6-autoconf"},			/* legacy ifupdown */
 	{"bond-ad-sys-priority", "bond-ad-actor-sys-prio"}, /* ifupdown2 */
 	{"bond-slaves", "bond-members"},		/* legacy ifupdown, ifupdown2 */
 	{"client", "dhcp-client-id"},			/* legacy ifupdown */
+	{"dad_transmits", "ipv6-dad-transmits"},	/* legacy ifupdown */
 	{"driver-message-level", "ethtool-msglvl"},	/* Debian ethtool integration */
 	{"endpoint", "tunnel-remote"},			/* legacy ifupdown */
 	{"ethernet-autoneg", "ethtool-ethernet-autoneg"},	/* Debian ethtool integration */
