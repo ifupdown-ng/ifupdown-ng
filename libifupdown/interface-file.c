@@ -268,7 +268,13 @@ static bool handle_inherit(struct lif_interface_file_parse_state *state, char *t
 static bool
 handle_iface(struct lif_interface_file_parse_state *state, char *token, char *bufp)
 {
-	char *ifname = lif_next_token(&bufp);
+	char *ifname = NULL;
+
+	if (!strcmp(token, "defaults"))
+		ifname = "defaults";
+	else
+		ifname = lif_next_token(&bufp);
+
 	if (!*ifname)
 	{
 		report_error(state, "%s without any other tokens", token);
@@ -290,9 +296,9 @@ handle_iface(struct lif_interface_file_parse_state *state, char *token, char *bu
 	}
 
 	/* mark the state->cur_iface as a template iface if `template` keyword
-	 * is used.
+	 * is used, or if the `defaults` keyword is used.
 	 */
-	if (!strcmp(token, "template"))
+	if (!strcmp(token, "template") || !strcmp(token, "defaults"))
 	{
 		state->cur_iface->is_auto = false;
 		state->cur_iface->is_template = true;
@@ -475,6 +481,7 @@ struct parser_keyword {
 static const struct parser_keyword keywords[] = {
 	{"address", handle_address},
 	{"auto", handle_auto},
+	{"defaults", handle_iface},
 	{"dhcp-hostname", handle_hostname},
 	{"gateway", handle_gateway},
 	{"hostname", handle_hostname},
