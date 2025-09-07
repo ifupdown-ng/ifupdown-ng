@@ -182,6 +182,9 @@ most common executors are:
 *forward*
 	Configures forwarding settings on the interface.
 
+*ipv6*
+	Configures IPv6 parameters.
+
 *loopback*
 	Designates the interface as a loopback device.
 

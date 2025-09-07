@@ -105,7 +105,9 @@ CPPFLAGS += ${CPPFLAGS_Y}
 
 EXECUTOR_SCRIPTS_CORE ?= \
 	dhcp \
+	ipv6 \
 	ipv6-ra \
+	ipv6-tempaddr \
 	static \
 	link \
 	ppp \
@@ -201,6 +203,7 @@ MANPAGES_5 = \
 	doc/interfaces-dhcp.5 \
 	doc/interfaces-cake.5 \
 	doc/interfaces-cake-ingress.5 \
+	doc/interfaces-ipv6.5 \
 	doc/interfaces-ppp.5 \
 	doc/interfaces-tunnel.5 \
 	doc/interfaces-vrf.5 \
