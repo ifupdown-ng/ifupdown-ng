@@ -165,11 +165,7 @@ build_environment(char **envp[], const struct lif_execute_opts *opts, const stru
 		lifname = iface->ifname;
 
 	/* Use sane defaults for PATH */
-	if (geteuid() == 0)
-		lif_environment_push(envp, "PATH", _PATH_STDPATH);
-	else
-		lif_environment_push(envp, "PATH", _PATH_DEFPATH);
-
+	lif_environment_push(envp, "PATH", _PATH_STDPATH);
 	lif_environment_push(envp, "IFACE", lifname);
 	lif_environment_push(envp, "PHASE", phase);
 	lif_environment_push(envp, "MODE", mode);
