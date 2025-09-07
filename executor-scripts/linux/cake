@@ -57,6 +57,9 @@ down)
 	if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}" ]; then
 		exit 0
 	fi
+	if ! tc qdisc show dev "$IFACE" 2>/dev/null | grep -q cake; then
+		exit 0
+	fi
 	${MOCK} tc qdisc del root dev "$IFACE"
 	;;
 esac
