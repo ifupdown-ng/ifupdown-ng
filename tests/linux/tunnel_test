@@ -8,7 +8,10 @@ tests_init \
 	tunnel_teardown \
 	gretap_up \
 	gretap_down \
-	ip6gretap_up
+	ip6gretap_up \
+	ignore_df \
+	nopmtudisc \
+	both_ignore_df_and_nopmtudisc
 
 tunnel_bringup_body() {
 	export MOCK=echo IFACE=tun0 PHASE=create IF_TUNNEL_MODE=gre \
@@ -63,3 +66,64 @@ ip6gretap_up_body() {
 		${EXECUTOR}
 }
 
+ignore_df_body() {
+	export MOCK=echo IFACE=foo PHASE=create IF_TUNNEL_MODE=gre IF_TUNNEL_IGNORE_DF=0 \
+		IF_TUNNEL_LOCAL=2001:db8::aaaa IF_TUNNEL_REMOTE=2001:db8::eeee
+	atf_check -s exit:0 \
+		-o match:"ip -4 tunnel add foo" \
+		-o match:"noignore-df" \
+		-o match:"local '2001:db8::aaaa'" \
+		-o match:"remote '2001:db8::eeee'" \
+		${EXECUTOR}
+
+	export MOCK=echo IFACE=foo PHASE=create IF_TUNNEL_MODE=gre IF_TUNNEL_IGNORE_DF=1 \
+		IF_TUNNEL_LOCAL=2001:db8::aaaa IF_TUNNEL_REMOTE=2001:db8::eeee
+	atf_check -s exit:0 \
+		-o match:"ip -4 tunnel add foo" \
+		-o match:"ignore-df" \
+		-o match:"local '2001:db8::aaaa'" \
+		-o match:"remote '2001:db8::eeee'" \
+		${EXECUTOR}
+}
+
+nopmtudisc_body() {
+	export MOCK=echo IFACE=foo PHASE=create IF_TUNNEL_MODE=gre IF_TUNNEL_PMTUDISC=0 \
+		IF_TUNNEL_LOCAL=2001:db8::aaaa IF_TUNNEL_REMOTE=2001:db8::eeee
+	atf_check -s exit:0 \
+		-o match:"ip -4 tunnel add foo" \
+		-o match:"nopmtudisc" \
+		-o match:"local '2001:db8::aaaa'" \
+		-o match:"remote '2001:db8::eeee'" \
+		${EXECUTOR}
+
+	export MOCK=echo IFACE=foo PHASE=create IF_TUNNEL_MODE=gre IF_TUNNEL_PMTUDISC=1 \
+		IF_TUNNEL_LOCAL=2001:db8::aaaa IF_TUNNEL_REMOTE=2001:db8::eeee
+	atf_check -s exit:0 \
+		-o match:"ip -4 tunnel add foo" \
+		-o match:"pmtudisc" \
+		-o match:"local '2001:db8::aaaa'" \
+		-o match:"remote '2001:db8::eeee'" \
+		${EXECUTOR}
+}
+
+both_ignore_df_and_nopmtudisc_body() {
+	export MOCK=echo IFACE=foo PHASE=create IF_TUNNEL_MODE=gre IF_TUNNEL_IGNORE_DF=0 IF_TUNNEL_PMTUDISC=0 \
+		IF_TUNNEL_LOCAL=2001:db8::aaaa IF_TUNNEL_REMOTE=2001:db8::eeee
+	atf_check -s exit:0 \
+		-o match:"ip -4 tunnel add foo" \
+		-o match:"noignore-df" \
+		-o match:"nopmtudisc" \
+		-o match:"local '2001:db8::aaaa'" \
+		-o match:"remote '2001:db8::eeee'" \
+		${EXECUTOR}
+
+	export MOCK=echo IFACE=foo PHASE=create IF_TUNNEL_MODE=gre IF_TUNNEL_IGNORE_DF=1 IF_TUNNEL_PMTUDISC=1 \
+		IF_TUNNEL_LOCAL=2001:db8::aaaa IF_TUNNEL_REMOTE=2001:db8::eeee
+	atf_check -s exit:0 \
+		-o match:"ip -4 tunnel add foo" \
+		-o match:"ignore-df" \
+		-o match:"pmtudisc" \
+		-o match:"local '2001:db8::aaaa'" \
+		-o match:"remote '2001:db8::eeee'" \
+		${EXECUTOR}
+}
