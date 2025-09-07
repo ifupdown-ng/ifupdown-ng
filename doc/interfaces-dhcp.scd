@@ -9,7 +9,7 @@ interfaces-dhcp(5)
 DHCP configuration is provided by one of the following clients, in
 this order of preference: dhcpcd, dhclient, and udhcpc
 
-No explict module configuration is required, but several options are
+No explicit module configuration is required, but several options are
 available:
 
 # DHCP-RELATED OPTIONS
@@ -46,6 +46,10 @@ available:
 	by this executor. For compatibility udhcpc also accepts this
 	option when named: udhcpc-opts
 
+*dhcp-program* _str_
+	The name of the DHCP client program to be used, which can be
+	dhcpcd, dhclient or udhcpc.
+
 # EXAMPLES
 
 Typical (minimal) configuration
@@ -62,6 +66,7 @@ All available options for a host using dhcpcd
 auto foo
 iface foo
 	use dhcp
+	dhcp-program dhcpcd
 	dhcp-hostname bar
 	dhcp-vendor MyVendor
 	dhcp-client_id 0100BEEFC0FFEE
