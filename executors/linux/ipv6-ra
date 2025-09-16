@@ -1,0 +1,22 @@
+#!/bin/sh
+start() {
+	forwarding=$(cat "/proc/sys/net/ipv6/conf/$IFACE/forwarding")
+
+	if [[ "$forwarding" == 1 ]]; then
+		${MOCK} /bin/sh -c "echo 2 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra"
+	else
+		${MOCK} /bin/sh -c "echo 1 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra"
+	fi
+}
+
+stop() {
+	${MOCK} /bin/sh -c "echo 0 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra"
+}
+
+[ -z "$VERBOSE" ] || set -x
+
+case "$PHASE" in
+up) start $impl ;;
+down) stop $impl ;;
+*) ;;
+esac

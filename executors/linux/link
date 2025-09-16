@@ -1,0 +1,137 @@
+#!/bin/sh
+[ -n "$VERBOSE" ] && set -x
+
+is_vlan() {
+	case "$IFACE" in
+	*#*) return 1 ;;
+	*:*) return 1 ;;
+	vlan*.*) return 1 ;;
+	vlan*)
+		[ -z "$IF_VLAN_RAW_DEVICE" ] && return 1
+		IF_VLAN_ID="${IFACE#vlan}"
+		;;
+	*.*)
+		IF_VLAN_RAW_DEVICE="${IFACE%.*}"
+		IF_VLAN_ID="${IFACE##*.}"
+		;;
+	*)
+		[ -z "$IF_VLAN_RAW_DEVICE" ] && return 1
+		[ -z "$IF_VLAN_ID" ] && return 1
+		;;
+	esac
+	return 0
+}
+
+onoff() {
+	case "$1" in
+	on|1)   echo on ;;
+	*)      echo off ;;
+	esac
+}
+
+case "$PHASE" in
+depend)
+	# vlan-raw-device
+	if is_vlan; then
+		printf '%s\n' "$IF_VLAN_RAW_DEVICE"
+
+	# veth-peer-name
+	elif [ "$IF_LINK_TYPE" = 'veth' ] && [ -n "$IF_VETH_PEER_NAME" ]; then
+		printf '%s\n' "$IF_VETH_PEER_NAME"
+	fi
+	;;
+
+create)
+	# Don't complain about an existing interface when creating it
+	# NOTE: Double negation is important so this condition is ignored during tests
+	if ! ${MOCK} [ ! -d /sys/class/net/"$IFACE" ]; then
+		exit 0
+	fi
+
+	if [ "$IF_LINK_TYPE" = 'dummy' ]; then
+		if ${MOCK} [ ! -d /sys/module/dummy ]; then
+			printf 'Loading dummy network interface kernel module\n'
+			${MOCK} modprobe dummy
+		fi
+
+		${MOCK} ip link add "$IFACE" type dummy
+
+	elif [ "$IF_LINK_TYPE" = 'veth' ]; then
+		# Configure peer name if defined
+		${MOCK} ip link add "$IFACE" type veth ${IF_VETH_PEER_NAME:+peer "$IF_VETH_PEER_NAME"}
+
+	elif is_vlan; then
+		# NOTE: Early negation is important so this condition is ignored during tests
+		if ! ${MOCK} [ -d /sys/class/net/"$IF_VLAN_RAW_DEVICE" ]; then
+			printf 'Interface %s is missing VLAN raw device %s\n' "$IFACE" "$IF_VLAN_RAW_DEVICE"
+			exit 1
+		fi
+
+		if ${MOCK} [ ! -d /proc/net/vlan ]; then
+			printf 'Loading 8021q kernel module for VLAN support\n'
+			${MOCK} modprobe 8021q
+		fi
+
+		IF_VLAN_OPTIONS=""
+		if [ -n "$IF_VLAN_REORDER_HDR" ]; then
+			value=$(onoff $IF_VLAN_REORDER_HDR)
+			IF_VLAN_OPTIONS="reorder_hdr $value"
+		fi
+    
+		if [ -n "$IF_VLAN_GVRP" ]; then
+			value=$(onoff $IF_VLAN_GVRP)
+		  IF_VLAN_OPTIONS="$IF_VLAN_OPTIONS gvrp $value"
+		fi
+		
+    if [ -n "$IF_VLAN_MVRP" ]; then
+			value=$(onoff $IF_VLAN_MVRP)
+		  IF_VLAN_OPTIONS="$IF_VLAN_OPTIONS mvrp $value"
+		fi
+		
+    if [ -n "$IF_VLAN_LOOSE_BINDING" ]; then
+			value=$(onoff $IF_VLAN_LOOSE_BINDING)
+			IF_VLAN_OPTIONS="$IF_VLAN_OPTIONS loose_binding $value"
+		fi
+		
+    if [ -n "$IF_VLAN_BRIDGE_BINDING" ]; then
+			value=$(onoff $IF_VLAN_BRIDGE_BINDING)
+			IF_VLAN_OPTIONS="$IF_VLAN_OPTIONS bridge_binding $value"
+		fi
+		
+    IF_VLAN_PROTOCOL=$(echo $IF_VLAN_PROTOCOL | tr "[:upper:]" "[:lower:]")
+		case "$IF_VLAN_PROTOCOL" in
+  	  802.1ad|qinq|q-in-q)
+			  ${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" ${IF_LINK_OPTIONS} type vlan id "${IF_VLAN_ID}" protocol 802.1ad ${IF_VLAN_OPTIONS}
+			  ;;
+		  *)
+			  ${MOCK} ip link add link "${IF_VLAN_RAW_DEVICE}" name "${IFACE}" type vlan id "${IF_VLAN_ID}" protocol 802.1Q ${IF_VLAN_OPTIONS}
+			  ;;
+		esac
+	fi
+	;;
+up)
+	# TODO: ? Move this into a function and use `set -- "$@" ...` to manage optional parameters
+	# Configure mtu, hardware address and alias if defined
+	${MOCK} ip link set up dev "$IFACE" ${IF_MTU:+mtu "$IF_MTU"} ${IF_HWADDRESS:+address "$IF_HWADDRESS"} ${IF_ALIAS:+alias "$IF_ALIAS"}
+	;;
+down)
+	# Don't complain about a nonexistent interface when downing it
+	# NOTE: Early negation is important so this condition is ignored during tests
+	if ! ${MOCK} [ -d /sys/class/net/"$IFACE" ]; then
+		exit 0
+	fi
+
+	${MOCK} ip link set down dev "$IFACE"
+	;;
+destroy)
+	# Don't complain about a nonexistent interface when destroying it
+	# NOTE: Early negation is important so this condition is ignored during tests
+	if ! ${MOCK} [ -d /sys/class/net/"$IFACE" ]; then
+		exit 0
+	fi
+
+	if [ "$IF_LINK_TYPE" = 'dummy' ] || [ "$IF_LINK_TYPE" = 'veth' ] || is_vlan; then
+		${MOCK} ip link del "$IFACE"
+	fi
+	;;
+esac

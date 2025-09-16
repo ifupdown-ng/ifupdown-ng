@@ -17,7 +17,8 @@ See *ip-link*(8) for more details about the options listed below.
 *bridge-ports* _list of interfaces_
 	A space separated list of interfaces which should be configured
 	as member interfaces of this bridge. This option must be set
-	for the bridge to be configured.
+	for the bridge to be configured. Set it to _none_ to create a
+	bridge with no ports.
 
 *bridge-hw* _MAC address_
 	Denotes the _MAC address_ the bridge should use.
@@ -62,10 +63,11 @@ See *ip-link*(8) for more details about the options listed below.
 The following options only have an effect on vlan-aware bridges and
 their ports.
 
-All settings can be applied on the bridge interface itself and all member
-port iface stanzas.  If applied on the bridge interface they take effect
-for the bridge interface itself and might be inherited to _bridge-ports_
-depending on the compatibility settings configured in *ifupdown-ng.conf*(5).
+Unless otherwise noted, all settings can be applied on the bridge
+interface itself and all member port iface stanzas.  If applied on the
+bridge interface they take effect for the bridge interface itself and
+might be inherited to _bridge-ports_ depending on the compatibility
+settings configured in *ifupdown-ng.conf*(5).
 
 Configuring VLAN options on the bridge interface might be required for
 setting up a VLAN interface to one of the VLANs carried within the bridge.
@@ -101,6 +103,16 @@ mentioned below.
 	ingress as well as egress. If set to _no_ untagged frames will be
 	droppped on ingress and none will be sent. _bool_ can be given as
 	_yes_/_no_ or _0_/_1_.  The defaul is _yes_.
+
+*bridge-default-pvid* _vlan ID_
+	Denotes the _vlan ID_ that should be the default PVID for all ports
+	on this interface. This sets the _vlan_default_pvid_ option on the
+	bridge and thus also applies to ports configured outside of
+	ifupdown-ng. Set to _0_ to disable.
+
+	This option can only be used on the bridge itself, not on its ports.
+	The default is _1_.
+
 
 # EXAMPLES
 

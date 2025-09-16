@@ -22,22 +22,38 @@ handle_member() {
 	${MOCK} /sbin/ip link set $IFACE master $IF_VRF_MEMBER
 }
 
+handle_member_off() {
+	${MOCK} /sbin/ip link set $IFACE nomaster
+}
+
 [ -n "$VERBOSE" ] && set -x
 
 case "$PHASE" in
 create)
-	[ -n "$IF_VRF_TABLE" ] && handle_init "add"
+	if [ -n "$IF_VRF_TABLE" ]; then
+		handle_init "add"
+	fi
 	;;
 pre-up)
-	[ -n "$IF_VRF_MEMBER" ] && handle_member
+	if [ -n "$IF_VRF_MEMBER" ]; then
+		handle_member
+	fi
+	;;
+post-down)
+	if [ -n "$IF_VRF_MEMBER" ]; then
+		handle_member_off
+	fi
 	;;
 destroy)
-	[ -n "$IF_VRF_TABLE" ] && handle_init "del"
+	if [ -n "$IF_VRF_TABLE" ]; then
+		handle_init "del"
+	fi
 	;;
 depend)
 	echo "$IF_VRF_MEMBER"
 	;;
 *)
-	exit 0
 	;;
 esac
+
+exit 0

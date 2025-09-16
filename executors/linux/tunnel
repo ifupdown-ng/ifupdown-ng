@@ -12,8 +12,8 @@
 
 yesno() {
         case "$1" in
-        yes|1)  echo 1 ;;
-        *)      echo 0 ;;
+        yes|1)  return 0 ;;
+        *)      return 1 ;;
         esac
 }
 
@@ -81,9 +81,9 @@ fi
 MORE_PARAMS=""
 if [ "${IF_TUNNEL_IGNORE_DF}" ]; then
 	if $(yesno "${IF_TUNNEL_IGNORE_DF}"); then
-		MORE_PARAMS="ignore-df"
+		MORE_PARAMS="${MORE_PARAMS} ignore-df"
 	else
-		MORE_PARAMS="noignore-df"
+		MORE_PARAMS="${MORE_PARAMS} noignore-df"
 	fi
 
 	unset IF_TUNNEL_IGNORE_DF
@@ -91,9 +91,9 @@ fi
 
 if [ "${IF_TUNNEL_PMTUDISC}" ]; then
 	if $(yesno "${IF_TUNNEL_PMTUDISC}"); then
-		MORE_PARAMS="pmtudisc"
+		MORE_PARAMS="${MORE_PARAMS} pmtudisc"
 	else
-		MORE_PARAMS="nopmtudisc"
+		MORE_PARAMS="${MORE_PARAMS} nopmtudisc"
 	fi
 
 	unset IF_TUNNEL_PMTUDISC

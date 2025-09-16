@@ -55,10 +55,13 @@ all_ports() {
 add_ports() {
 	local port=
 	for port in $PORTS; do
-		if [ -n "$IF_BRIDGE_HW" ]; then
-			ip link set dev $port addr $IF_BRIDGE_HW
-		fi
 		ip link set dev $port master $IFACE && ip link set dev $port up
+		## Specific VXLAN under the bridge. More about this here: https://docs.frrouting.org/en/latest/evpn.html
+		if [ "$(port_is_vxlan_evpn ${port})" = 1 ]; then
+			# Disable IPv6 autoconfiguration. We are a port under a bridge.
+			ip link set dev $port addrgenmode none
+			ip link set dev $port type bridge_slave neigh_suppress on learning off
+		fi
 	done
 }
 
@@ -68,6 +71,12 @@ del_ports() {
 		ip link set dev $port down
 		ip link set dev $port nomaster
 	done
+}
+
+set_bridge_hw() {
+	if [ -n "$IF_BRIDGE_HW" ]; then
+		ip link set dev $IFACE addr $IF_BRIDGE_HW
+	fi
 }
 
 set_bridge_opts_brctl() {
@@ -81,17 +90,31 @@ set_bridge_opts_brctl() {
 		&& brctl sethello $IFACE $IF_BRIDGE_HELLO
 	[ -n "$IF_BRIDGE_MAXAGE" ] \
 		&& brctl setmaxage $IFACE $IF_BRIDGE_MAXAGE
-	[ -n "$IF_BRIDGE_PATHCOST" ] \
-		&& brctl setpathcost $IFACE $IF_BRIDGE_PATHCOST
 	[ -n "$IF_BRIDGE_PORTPRIO" ] \
 		&& brctl setportprio $IFACE $IF_BRIDGE_PORTPRIO
 	[ -n "$IF_BRIDGE_STP" ] \
 		&& brctl stp $IFACE $IF_BRIDGE_STP
 }
 
+set_pathcost_brctl() {
+	if [ -n "$IF_BRIDGE_PATHCOST" ]; then
+		for port in ${PORTS}; do
+			brctl setpathcost $IFACE ${port} $IF_BRIDGE_PATHCOST
+		done
+	fi
+}
+
+set_pathcost_iproute2() {
+	if [ -n "$IF_BRIDGE_PATHCOST" ]; then
+		for port in ${PORTS}; do
+			bridge link set dev $port cost $IF_BRIDGE_PATHCOST
+		done
+	fi
+}
+
 yesno() {
 	case "$1" in
-	yes|YES|true|TRUE|1)
+	on|ON|yes|YES|true|TRUE|1)
 		echo 1
 		;;
 	*)
@@ -111,21 +134,29 @@ set_bridge_opts_iproute2() {
 		&& ip link set dev $IFACE type bridge hello_time $IF_BRIDGE_HELLO
 	[ -n "$IF_BRIDGE_MAXAGE" ] \
 		&& ip link set dev $IFACE type bridge max_age $IF_BRIDGE_MAXAGE
-	[ -n "$IF_BRIDGE_PATHCOST" ] \
-		&& bridge link set dev $IFACE cost $IF_BRIDGE_PATHCOST
 	[ -n "$IF_BRIDGE_PORTPRIO" ] \
 		&& bridge link set dev $IFACE priority $IF_BRIDGE_PORTPRIO
 	[ -n "$IF_BRIDGE_STP" ] \
 		&& ip link set dev $IFACE type bridge stp $(yesno $IF_BRIDGE_STP)
 	[ -n "$IF_BRIDGE_VLAN_AWARE" ] \
 		&& ip link set dev $IFACE type bridge vlan_filtering $(yesno $IF_BRIDGE_VLAN_AWARE)
+	[ -n "$IF_BRIDGE_DEFAULT_PVID" ] \
+		&& ip link set dev $IFACE type bridge vlan_default_pvid $(yesno $IF_BRIDGE_DEFAULT_PVID)
 }
 
 set_bridge_opts() {
-	[ -x /sbin/bridge ] && set_bridge_opts_iproute2 && return 0
-	[ -x /sbin/brctl ] && set_bridge_opts_brctl && return 0
+	[ -x "$(which bridge)" ] && set_bridge_opts_iproute2 && return 0
+	[ -x "$(which brctl)" ] && set_bridge_opts_brctl && return 0
 }
 
+port_is_vxlan_evpn() {
+	yesno "$(ifquery -p vxlan-evpn "${1}" 2>/dev/null || true)"
+}
+
+set_pathcost() {
+	[ -x "$(which bridge)" ] && set_pathcost_iproute2 && return 0
+	[ -x "$(which brctl)" ] && set_pathcost_brctl && return 0
+}
 
 all_ports_ready() {
 	local port=
@@ -261,7 +292,7 @@ depend)
 create)
 	# Called for the bridge interface
 	if [ "${IF_BRIDGE_PORTS}" -a ! -d "/sys/class/net/${IFACE}" ]; then
-		ip link add "${IFACE}" type bridge
+		ip link add name "${IFACE}" type bridge
 	fi
 	;;
 
@@ -272,8 +303,10 @@ pre-up)
 		set_bridge_opts
 		set_bridge_vlans
 		add_ports
+		set_bridge_hw
 		set_bridge_port_vlans
 		wait_bridge
+		set_pathcost
 
 	# Called for a bridge member port
 	elif [ "${IF_BRIDGE_VIDS}" -o "${IF_BRIDGE_PVID}" -o "${IF_BRIDGE_ACCESS}" -o "${IF_BRIDGE_ALLOW_UNTAGGED}" ]; then
@@ -296,7 +329,7 @@ post-down)
 destroy)
 	# Called for the bridge interface
 	if [ "${IF_BRIDGE_PORTS}" -a -d "/sys/class/net/${IFACE}" ]; then
-		ip link del "${IFACE}"
+		ip link del dev "${IFACE}"
 	fi
 	;;
 esac

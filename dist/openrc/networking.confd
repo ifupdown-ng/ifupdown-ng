@@ -1,8 +1,11 @@
-# Sets the path used for the interface definitions.
-#cfgfile="/etc/network/interfaces"
+# Filepath to the interface configuration database
+#INTERFACES="/etc/network/interfaces"
 
-# Sets the path used for the state database.
-#ifstate="/run/ifstate"
+# Filepath to the interface state database
+#IFSTATE="/run/ifstate"
 
-# Skip taking down networking while shutting down.
-#keep_network="YES"
+# Time to wait, in seconds, for executors to complete before raising an error
+#TIMEOUT=300
+
+# Skip bringing interfaces down during a shutdown
+#SKIP_SHUTDOWN="YES"

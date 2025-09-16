@@ -3,6 +3,7 @@ syntax(2)
 test_suite('ifupdown-ng')
 
 atf_test_program{name='bond_test'}
+atf_test_program{name='cake_test'}
 atf_test_program{name='dhcp_test'}
 atf_test_program{name='ethtool_test'}
 atf_test_program{name='forward_test'}

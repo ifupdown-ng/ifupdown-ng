@@ -51,6 +51,7 @@ struct lif_interface {
 	bool is_template;
 	bool is_pending;
 	bool is_explicit;
+	bool no_defaults;
 
 	bool has_config_error;	/* error found in interface configuration */
 
