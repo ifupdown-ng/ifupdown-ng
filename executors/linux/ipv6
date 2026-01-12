@@ -21,5 +21,9 @@ up)
 	if [ -n "$IF_IPV6_DAD_TRANSMITS" -a -e "/proc/sys/net/ipv6/conf/${IFACE}/dad_transmits" ]; then
 		${MOCK} echo ${IF_IPV6_DAD_TRANSMITS} > "/proc/sys/net/ipv6/conf/${IFACE}/dad_transmits"
 	fi
+
+	if [ -n "$IF_IPV6_OPTIMISTIC_DAD" -a -e "/proc/sys/net/ipv6/conf/${IFACE}/optimistic_dad" ]; then
+		${MOCK} echo $(yesno ${IF_IPV6_OPTIMISTIC_DAD}) > "/proc/sys/net/ipv6/conf/${IFACE}/optimistic_dad"
+	fi
 	;;
 esac
