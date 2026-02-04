@@ -4,7 +4,7 @@
 # The settings specified here are the defaults of ifupdown-ng.
 
 # allow_addon_scripts:
-# Enable support for /etc/if-X.d addon scripts.  These are used for
+# Enable support for /etc/network/if-X.d addon scripts.  These are used for
 # compatibility with legacy setups, and may be disabled for performance
 # improvements in setups where only ifupdown-ng executors are used.
 # Valid values are 0 and 1, the default is 1.

@@ -12,7 +12,7 @@ configuration options.
 # GENERAL CONFIGURATION OPTIONS
 
 *allow_addon_scripts* _bool_
-	Enable support for /etc/if-X.d addon scripts.  These are used for
+	Enable support for /etc/network/if-X.d addon scripts.  These are used for
 	compatibility with legacy setups, and may be disabled for
 	performance improvements in setups where only ifupdown-ng executors
 	are used.  Valid values are _0_ and _1_, the default is _1_.
