@@ -107,6 +107,7 @@ static const struct remap_token tokens[] = {
 	{"ufo-offload", "ethtool-offload-ufo"},		/* ifupdown2 */
 	{"vendor", "dhcp-vendor"},			/* legacy ifupdown */
 	{"vrf", "vrf-member"},				/* ifupdown2 */
+	{"vrrp", "vrrp-cfg"},				/* ifupdown2 */
 	{"vxlan-local-tunnelip", "vxlan-local-ip"},	/* ifupdown2 */
 	{"vxlan-remote-group", "vxlan-peer-group"},	/* ifupdown-ng */
 	{"vxlan-remoteip", "vxlan-peer-ips"},		/* ifupdown2 */
