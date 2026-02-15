@@ -1,0 +1,321 @@
+#!/bin/sh
+# This executor is responsible for setting up the Virtual Router Redundancy Protocol (VRRP) overlay interfaces.
+#
+# Copyright (C) 2026 EasyNetDev <devel@easynet.dev>
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# This software is provided 'as is' and without any warranty, express or
+# implied. In no event shall the authors be liable for any damages arising
+# from the use of this software.
+#
+# Sun, 8 Feb 2026 21:36:25 +0300
+#  -- Adrian Ban (EasyNetDev) <devel@easynet.dev>
+#
+# This executor will do the configuration for MACVLAN virtual interfaces.
+#
+# Each MACVLAN interface must be controlled by a VRRP daemon, like FRRouting.
+#
+# Options needed for VRRP executor to be able to create the MACVLAN interface are:
+#
+# IFACE                Main interface name
+# IF_VRRP_ID           VRID list to create the interfaces only
+# IF_VRRP_ADDRESS      IP list to create the interfaces and add IPs (Optional)
+#
+# Interface naming would be in format vrrpV-XX-YY
+# Where
+#  ->  V	is IP version 4 or 6
+#  ->  XX	main interface index
+#  ->  YY	VRID
+#
+# This script is written in Dash shell and is not using any Bash built-in functions.
+#
+
+[ -n "$VERBOSE" ] && set -x
+
+################################################################################
+#                        VRRP management functions                             #
+################################################################################
+
+set_IFS_newline() {
+	IFS=$(printf '\nq')
+	IFS=${IFS%q}
+}
+
+set_IFS_default() {
+	unset IFS
+}
+
+# Check address family protocol: IPv4, IPv6, or invalid
+addr_family() {
+
+	IFS='.' read -r a b c d res <<EOF
+$1
+EOF
+
+	if [ -n "$a" ] && [ -n "$b" ] && [ -n "$c" ] && [ -n "$d" ] &&
+		[ "$a" -ge 0 ] 2>/dev/null && [ "$a" -le 255 ] 2>/dev/null &&
+		[ "$b" -ge 0 ] 2>/dev/null && [ "$b" -le 255 ] 2>/dev/null &&
+		[ "$c" -ge 0 ] 2>/dev/null && [ "$c" -le 255 ] 2>/dev/null &&
+		[ "$d" -ge 0 ] 2>/dev/null && [ "$d" -le 255 ] 2>/dev/null &&
+		[ -z "$res" ]; then
+		echo 4
+		return
+	fi
+
+	if echo "$1" | grep -q ':' >/dev/null 2>&1 &&
+		! echo "$1" | grep -q '[^0-9a-fA-F:]' >/dev/null 2>&1; then
+		echo 6
+		return
+	fi
+
+	echo 0
+
+	return
+}
+
+# Verify the VRRP ID if has correct values: between 1 and 255
+is_vrid() {
+	if [ -z "$(echo $1 | sed 's/\([0-9]\{1,3\}\)\(.*\)/\2/g')" ]; then
+		if [ $1 -gt 0 -a $1 -le 255 ]; then
+			return 0
+		else
+			return 1
+		fi
+	else
+		# Could be IPv4 or IPv6 address
+		return 2
+	fi
+}
+
+check_vrrp() {
+	# If we don't have vrrp then exit.
+	if [ -z "${IFACE}" ]; then
+		exit 0
+	fi
+
+	# If we don't have vrrp then exit.
+	if [ -z "${IF_VRRP_CFG}" ]; then
+		exit 0
+	fi
+
+	if [ -z "${MOCK}" -a ! -d /sys/class/net/${IFACE} ]; then
+		echo "Main interface $IFACE doesn't exist!"
+		exit 0
+	fi
+
+	if [ -n "${MOCK}" ]; then
+		IFINDEX=1
+	else
+		IFINDEX=$(cat /sys/class/net/${IFACE}/ifindex)
+	fi
+
+	# Work around Dash shell newline issues.
+	# Strings with multi-lines using \n are not processed correctly.
+	# This is valid for kyua tests where there is an export using multi-line string.
+	IF_VRRP_CFG=$(echo "$IF_VRRP_CFG")
+}
+
+add_vrrp_addr4() {
+	local IFACE_VRRP="$1"
+	local ADDR="$2"
+	local PREFIX="$3"
+	if [ $(addr_family "${ADDR}") -eq 4 ]; then
+		if [ "${PREFIX}" = "${ADDR}" ]; then
+			PREFIX=32
+		elif [ ${PREFIX} -lt 1 -o ${PREFIX} -gt 32 ]; then
+			PREFIX=32
+		fi
+		# Add IP address to the VRRP interface.
+		${MOCK} ip address add ${ADDR}/${PREFIX} dev ${IFACE_VRRP}
+	fi
+}
+
+add_vrrp_addr6() {
+	local IFACE_VRRP=ifupdown-ng-git/executors/linux/vrrp"$1"
+	local ADDR="$2"
+	local PREFIX="$3"
+	if [ $(addr_family "${ADDR}") -eq 6 ]; then
+		if [ "${PREFIX}" = "${ADDR}" ]; then
+			PREFIX=128
+		elif [ "${PREFIX}" -lt 1 -o "${PREFIX}" -gt 128 ]; then
+			PREFIX=128
+		fi
+		# Add IP address to the VRRP interface.
+		${MOCK} ip -6 address add ${ADDR}/${PREFIX} dev ${IFACE_VRRP}
+	fi
+}
+
+# Compute the MAC address the VRRP interface
+get_vrrp_mac() {
+	VRRP_MAC_6="00:00:5e:00:02:"$(printf "%02x\n" $1)
+	VRRP_MAC_4="00:00:5e:00:01:"$(printf "%02x\n" $1)
+}
+
+vrrp_gen_name() {
+	local VRID="$1"
+	local IFINDEX="$2"
+	# Using main interface index and VRID we will generate an interface for VRRP
+	IFACE_VRRP_4="vrrp4-${IFINDEX}-${VRID}"
+	IFACE_VRRP_6="vrrp6-${IFINDEX}-${VRID}"
+}
+
+case "$PHASE" in
+depend)
+	# There is no dependency because is used directly under interface.
+	exit 0
+	;;
+create)
+	check_vrrp
+
+	# ${MOCK} variable is used by test tools to printout the setup. We need to skip some tests if ${MOCK} is used.
+	# Check if main interface vrrp-raw-device exists in system. If not then skip.
+	if [ -z "${MOCK}" -a ! -d /sys/class/net/${IFACE} ]; then
+		echo "Main interface $IFACE doesn't exist!"
+		exit 0
+	fi
+
+	# The format of the IF_VRRP_CFG is <VRRP_ID> <IP> ..
+	# It can be multiple times for each VRID
+	# We check if first read in the list is the VRRP_ID
+	set_IFS_newline
+	for VRRP in ${IF_VRRP_CFG}; do
+		VRID=$(echo $VRRP | cut -f1 -d" ")
+
+		if ! is_vrid $VRID; then
+			echo "VRID $VRID is invalid! VRRP ID must have values between 1 and 255!"
+			continue
+		fi
+
+		# Compute VRRP interfaces name
+		vrrp_gen_name "${VRID}" "${IFINDEX}"
+
+		# Check if the VRRP interface itself exists. If yes then skip.
+		if [ -z "${MOCK}" -a -d /sys/class/net/"${IFACE_VRRP_4}" ]; then
+			echo "Interface ${IFACE_VRRP_4} already exist. Please check your system."
+			continue
+		fi
+		if [ -z "${MOCK}" -a -d /sys/class/net/"${IFACE_VRRP_6}" ]; then
+			echo "Interface ${IFACE_VRRP_6} already exist. Please check your system."
+			continue
+		fi
+
+		VRRP_MAC_4=""
+		VRRP_MAC_6=""
+
+		get_vrrp_mac $VRID
+
+		# Get the VRF for the vrrp-raw-device. VRRP interface MUST be in the same VRF as the vrrp-raw-device is.
+		if [ -z "${MOCK}" ]; then
+			VRRP_VRF=$(ifquery -p vrf-member ${IFACE} | head -1)
+		fi
+
+		# Create MACVLAN interfaces for VRRP IPv4
+		${MOCK} ip link add link ${IFACE} name ${IFACE_VRRP_4} type macvlan mode bridge
+		${MOCK} ip link set dev ${IFACE_VRRP_4} address ${VRRP_MAC_4}
+		# In case of boot, we must set protodown to on until FRRouting will takeover the control of the interface
+		${MOCK} ip link set dev ${IFACE_VRRP_4} protodown on
+		${MOCK} ip link set dev ${IFACE_VRRP_4} up
+		### Always disable IPv6 on VRRP IPv4 interface
+		if [ -z "${MOCK}" ]; then
+			echo 1 >/proc/sys/net/ipv6/conf/${IFACE_VRRP_4}/disable_ipv6
+		fi
+		# Create MACVLAN interfaces for VRRP IPv6
+		${MOCK} ip link add link ${IFACE} name ${IFACE_VRRP_6} type macvlan mode bridge
+		${MOCK} ip link set dev ${IFACE_VRRP_6} addrgenmode random
+		${MOCK} ip link set dev ${IFACE_VRRP_6} address ${VRRP_MAC_6}
+		# In case of OS booting, we must set protodown to on until FRRouting will takeover the control of the interface
+		${MOCK} ip link set dev ${IFACE_VRRP_6} protodown on
+		${MOCK} ip link set dev ${IFACE_VRRP_6} up
+
+		# In case we have VRF, add VRRP interfaces under VRF
+		if [ -n "${VRRP_VRF}" ]; then
+			${MOCK} ip link set ${IFACE_VRRP_4} master $VRRP_VRF
+			${MOCK} ip link set ${IFACE_VRRP_6} master $VRRP_VRF
+		fi
+	done
+
+	exit 0
+	;;
+pre-up)
+	check_vrrp
+
+	# Add VRRP Virtual IPs to VRRP interfaces
+	VRRP_ID=0
+
+	# The format of the IF_VRRP_CFG is <VRRP_ID> <IP> ..
+	# It will be multiple times for each VRID
+	# We check if first read in the list is the VRRP_ID
+
+	set_IFS_newline
+	for VRRP in ${IF_VRRP_CFG}; do
+
+		VRID=$(echo $VRRP | cut -f1 -d" ")
+		VRRP_IPS=$(echo $VRRP | cut -f2- -d" ")
+
+		set_IFS_default
+		for VRRP_IP in ${VRRP_IPS}; do
+			# This should by an IPv4 or IPv6 address
+			# Check if we have VRRP_ID in a previously step. Maybe somehow an invalid VRRP ID escape from checks
+			if ! is_vrid $VRID; then
+				echo "Invalid VRRP ID: $VRRP_ID"
+				VRID=0
+				continue
+			fi
+
+			if [ $(addr_family ${VRRP_IP}) -eq 0 ]; then
+				echo "IP address ${VRRP_IP} is invalid. Skip it."
+				continue
+			else
+				# Compute VRRP interfaces name
+				vrrp_gen_name "${VRID}" "${IFINDEX}"
+
+				# Get address and prefix
+				VRRP_IP_ADDR=$(echo ${VRRP_IP} | cut -f1 -d"/")
+				VRRP_PREFIX=$(echo ${VRRP_IP} | cut -f2 -d"/")
+				add_vrrp_addr4 "${IFACE_VRRP_4}" "${VRRP_IP_ADDR}" "${VRRP_PREFIX}"
+				add_vrrp_addr6 "${IFACE_VRRP_6}" "${VRRP_IP_ADDR}" "${VRRP_PREFIX}"
+			fi
+		done
+		set_IFS_newline
+	done
+	;;
+
+post-up) ;;
+pre-down)
+	check_vrrp
+
+	#IFACE_CRC32=$(compute_crc32_hex ${IFACE})
+
+	if [ -z "${MOCK}" -a ! -d "/sys/class/net/${IFACE}/" ]; then
+		exit 0
+	fi
+	if [ -z "${MOCK}" ]; then
+		VRRP_IFACES=$(find /sys/class/net/${IFACE}/ -name "upper_vrrp*" -printf "%f\n" | sed "s/upper_//g")
+	else
+		# Let's generate list of the interfaces for MOCK. In test mode, these interfaces doesn't exist in system.
+		VRRP_IFACES=""
+		for VRRP_ID in ${IF_VRRP_ID}; do
+			if ! is_vrid $VRRP_ID; then
+				continue
+			fi
+			# Compute VRRP interfaces name
+			vrrp_gen_name "${VRID}" "${IFINDEX}"
+
+			VRRP_IFACES="$VRRP_IFACES "${IFACE_VRRP_4}" "${IFACE_VRRP_6}
+		done
+	fi
+
+	# VRRP interfaces should be destroied in post-down, becase if you have a bond, bridge or teaming interfaces, these are destroied in "destroy" stage.
+	for VRRP_IFACE in ${VRRP_IFACES}; do
+		if [ -z "${MOCK}" -a -d "/sys/class/net/${VRRP_IFACE}" ] || [ -n ${MOCK} ]; then
+			${MOCK} ip link del ${VRRP_IFACE} type macvlan
+		fi
+	done
+	;;
+destroy) ;;
+esac
+
+exit 0

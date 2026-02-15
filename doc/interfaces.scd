@@ -151,7 +151,7 @@ the system will only respond to certain keywords by default:
 *post-up* _command_
 	Runs _command_ after bringing the interface up.
 
-Additional packages such as *bonding*, *bridge*, *tunnel*, *vrf* and
+Additional packages such as *bonding*, *bridge*, *tunnel*, *vrf*, *vrrp* and
 *vxlan* add additional keywords to this vocabulary.
 
 # EXECUTORS
@@ -201,6 +201,10 @@ most common executors are:
 *vrf*
 	The interface is a VRF.  Configuration of VRFs requires
 	the *vrf* package to be installed.
+
+*vrrp*
+	The interface has Virtual Router Redundancy Protocol configuration.
+	Configuration of VRRPs requires	the *vrrp* package to be installed.
 
 *vxlan*
 	The interface is a Virtual Extensible LAN (VXLAN) tunnel
@@ -269,6 +273,7 @@ iface eth0
 *interfaces-ppp*(5)
 *interfaces-tunnel*(5)
 *interfaces-vrf*(5)
+*interfaces-vrrp*(5)
 *interfaces-vxlan*(5)
 *interfaces-wifi*(5)
 *interfaces-wireguard*(5)

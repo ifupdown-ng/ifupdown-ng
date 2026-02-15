@@ -126,6 +126,7 @@ EXECUTOR_SCRIPTS_OPT ?= \
 	mpls \
 	tunnel \
 	vrf \
+	vrrp \
 	vxlan \
 	wifi \
 	wireguard \
@@ -240,6 +241,7 @@ MANPAGES_5 = \
 	doc/interfaces-ppp.5 \
 	doc/interfaces-tunnel.5 \
 	doc/interfaces-vrf.5 \
+	doc/interfaces-vrrp.5 \
 	doc/interfaces-vlan.5 \
 	doc/interfaces-vxlan.5 \
 	doc/interfaces-wifi.5 \
