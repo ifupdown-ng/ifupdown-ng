@@ -312,7 +312,7 @@ lif_lifecycle_run_phase(const struct lif_execute_opts *opts, struct lif_interfac
 	if (!handle_commands_for_phase(opts, envp, iface, phase))
 		goto handle_error;
 
-	/* if we don't need to support /etc/if-X.d we're done here */
+	/* if we don't need to support /etc/network/if-X.d we're done here */
 	if (!lif_config.allow_addon_scripts)
 		goto out_free;
 
