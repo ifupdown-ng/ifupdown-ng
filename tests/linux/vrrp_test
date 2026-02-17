@@ -1,0 +1,56 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/vrrp"
+
+tests_init \
+	leader_bringup \
+	leader_teardown \
+	address_config
+
+leader_bringup_body() {
+	export MOCK=echo IFACE=eth0 PHASE=create IF_VRRP_CFG=$(cat << EOF
+10 192.168.10.1 fc00:192:168:10::1
+20 192.168.20.1 fc00:192:168:20::1
+EOF)
+	atf_check -s exit:0 \
+		-o match:'ip link add link eth0 name vrrp4-1-10 type macvlan mode bridge' \
+		-o match:'ip link set dev vrrp4-1-10 address 00:00:5e:00:01:0a' \
+		-o match:'ip link set dev vrrp4-1-10 protodown on' \
+		-o match:'ip link set dev vrrp4-1-10 up' \
+		-o match:'ip link add link eth0 name vrrp6-1-10 type macvlan mode bridge' \
+		-o match:'ip link set dev vrrp6-1-10 addrgenmode random' \
+		-o match:'ip link set dev vrrp6-1-10 address 00:00:5e:00:02:0a' \
+		-o match:'ip link set dev vrrp6-1-10 protodown on' \
+		-o match:'ip link set dev vrrp6-1-10 up' \
+		-o match:'ip link add link eth0 name vrrp4-1-20 type macvlan mode bridge' \
+		-o match:'ip link set dev vrrp4-1-20 address 00:00:5e:00:01:14' \
+		-o match:'ip link set dev vrrp4-1-20 protodown on' \
+		-o match:'ip link set dev vrrp4-1-20 up' \
+		-o match:'ip link add link eth0 name vrrp6-1-20 type macvlan mode bridge' \
+		-o match:'ip link set dev vrrp6-1-20 addrgenmode random' \
+		-o match:'ip link set dev vrrp6-1-20 address 00:00:5e:00:02:14' \
+		-o match:'ip link set dev vrrp6-1-20 protodown on' \
+		-o match:'ip link set dev vrrp6-1-20 up' \
+		${EXECUTOR}
+}
+
+leader_teardown_body() {
+	export MOCK=echo IFACE=eth0 PHASE=pre-down IF_VRRP_CFG="10 192.168.10.1 fc00:192:168:10::1\n20 192.168.20.1 fc00:192:168:20::1"
+	atf_check -s exit:0 \
+		-o match:'ip link del vrrp4-1-10 type macvlan' \
+		-o match:'ip link del vrrp6-1-10 type macvlan' \
+		-o match:'ip link del vrrp4-1-20 type macvlan' \
+		-o match:'ip link del vrrp6-1-20 type macvlan' \
+		${EXECUTOR}
+}
+
+address_config_body() {
+	export MOCK=echo IFACE=eth0 PHASE=pre-up IF_VRRP_CFG="10 192.168.10.1 fc00:192:168:10::1\n20 192.168.20.1 fc00:192:168:20::1"
+	atf_check -s exit:0 \
+		-o match:'ip address add 192.168.10.1/24 dev vrrp4-1-10' \
+		-o match:'ip -6 address add fc00:192:168:10::1/64 dev vrrp6-1-10' \
+		-o match:'ip address add 192.168.20.1/24 dev vrrp4-1-20' \
+		-o match:'ip -6 address add fc00:192:168:20::1/64 dev vrrp6-1-20' \
+		${EXECUTOR}
+}
