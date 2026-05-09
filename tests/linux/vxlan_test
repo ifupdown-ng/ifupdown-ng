@@ -1,7 +1,7 @@
 #!/usr/bin/env atf-sh
 
 . $(atf_get_srcdir)/../test_env.sh
-EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/vxlan"
+EXECUTOR="$(atf_get_srcdir)/../../executors/linux/vxlan"
 
 tests_init \
 	create_simple \

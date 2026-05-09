@@ -1,7 +1,7 @@
 #!/usr/bin/env atf-sh
 
 . $(atf_get_srcdir)/../test_env.sh
-EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/vrrp"
+EXECUTOR="$(atf_get_srcdir)/../../executors/linux/vrrp"
 
 tests_init \
 	leader_bringup \
