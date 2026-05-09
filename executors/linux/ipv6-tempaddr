@@ -1,10 +1,12 @@
 #!/bin/sh
+: "${PROCFS_ROOT:=/proc}"
+
 start() {
-	${MOCK} /bin/sh -c "echo 2 > /proc/sys/net/ipv6/conf/$IFACE/use_tempaddr"
+	printf '%s\n' 2 > "$PROCFS_ROOT/sys/net/ipv6/conf/$IFACE/use_tempaddr"
 }
 
 stop() {
-	${MOCK} /bin/sh -c "echo 0 > /proc/sys/net/ipv6/conf/$IFACE/use_tempaddr"
+	printf '%s\n' 0 > "$PROCFS_ROOT/sys/net/ipv6/conf/$IFACE/use_tempaddr"
 }
 
 [ -z "$VERBOSE" ] || set -x
