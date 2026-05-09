@@ -134,7 +134,7 @@ add_vrrp_addr4() {
 }
 
 add_vrrp_addr6() {
-	local IFACE_VRRP=ifupdown-ng-git/executors/linux/vrrp"$1"
+	local IFACE_VRRP="$1"
 	local ADDR="$2"
 	local PREFIX="$3"
 	if [ $(addr_family "${ADDR}") -eq 6 ]; then
@@ -265,16 +265,17 @@ pre-up)
 				continue
 			fi
 
-			if [ $(addr_family ${VRRP_IP}) -eq 0 ]; then
+			# Get address and prefix
+			VRRP_IP_ADDR=$(echo ${VRRP_IP} | cut -f1 -d"/")
+			VRRP_PREFIX=$(echo ${VRRP_IP} | cut -f2 -d"/")
+
+			if [ $(addr_family ${VRRP_IP_ADDR}) -eq 0 ]; then
 				echo "IP address ${VRRP_IP} is invalid. Skip it."
 				continue
 			else
 				# Compute VRRP interfaces name
 				vrrp_gen_name "${VRID}" "${IFINDEX}"
 
-				# Get address and prefix
-				VRRP_IP_ADDR=$(echo ${VRRP_IP} | cut -f1 -d"/")
-				VRRP_PREFIX=$(echo ${VRRP_IP} | cut -f2 -d"/")
 				add_vrrp_addr4 "${IFACE_VRRP_4}" "${VRRP_IP_ADDR}" "${VRRP_PREFIX}"
 				add_vrrp_addr6 "${IFACE_VRRP_6}" "${VRRP_IP_ADDR}" "${VRRP_PREFIX}"
 			fi
@@ -297,15 +298,18 @@ pre-down)
 	else
 		# Let's generate list of the interfaces for MOCK. In test mode, these interfaces doesn't exist in system.
 		VRRP_IFACES=""
-		for VRRP_ID in ${IF_VRRP_ID}; do
+		set_IFS_newline
+		for VRRP in ${IF_VRRP_CFG}; do
+			VRRP_ID=$(echo $VRRP | cut -f1 -d" ")
 			if ! is_vrid $VRRP_ID; then
 				continue
 			fi
 			# Compute VRRP interfaces name
-			vrrp_gen_name "${VRID}" "${IFINDEX}"
+			vrrp_gen_name "${VRRP_ID}" "${IFINDEX}"
 
 			VRRP_IFACES="$VRRP_IFACES "${IFACE_VRRP_4}" "${IFACE_VRRP_6}
 		done
+		set_IFS_default
 	fi
 
 	# VRRP interfaces should be destroied in post-down, becase if you have a bond, bridge or teaming interfaces, these are destroied in "destroy" stage.
