@@ -9,10 +9,8 @@ tests_init \
 	address_config
 
 leader_bringup_body() {
-	export MOCK=echo IFACE=eth0 PHASE=create IF_VRRP_CFG=$(cat << EOF
-10 192.168.10.1 fc00:192:168:10::1
-20 192.168.20.1 fc00:192:168:20::1
-EOF)
+	export MOCK=echo IFACE=eth0 PHASE=create IF_VRRP_CFG='10 192.168.10.1/24 fc00:192:168:10::1/64
+20 192.168.20.1/24 fc00:192:168:20::1/64'
 	atf_check -s exit:0 \
 		-o match:'ip link add link eth0 name vrrp4-1-10 type macvlan mode bridge' \
 		-o match:'ip link set dev vrrp4-1-10 address 00:00:5e:00:01:0a' \
@@ -36,7 +34,8 @@ EOF)
 }
 
 leader_teardown_body() {
-	export MOCK=echo IFACE=eth0 PHASE=pre-down IF_VRRP_CFG="10 192.168.10.1 fc00:192:168:10::1\n20 192.168.20.1 fc00:192:168:20::1"
+	export MOCK=echo IFACE=eth0 PHASE=pre-down IF_VRRP_CFG='10 192.168.10.1/24 fc00:192:168:10::1/64
+20 192.168.20.1/24 fc00:192:168:20::1/64'
 	atf_check -s exit:0 \
 		-o match:'ip link del vrrp4-1-10 type macvlan' \
 		-o match:'ip link del vrrp6-1-10 type macvlan' \
@@ -46,7 +45,8 @@ leader_teardown_body() {
 }
 
 address_config_body() {
-	export MOCK=echo IFACE=eth0 PHASE=pre-up IF_VRRP_CFG="10 192.168.10.1 fc00:192:168:10::1\n20 192.168.20.1 fc00:192:168:20::1"
+	export MOCK=echo IFACE=eth0 PHASE=pre-up IF_VRRP_CFG='10 192.168.10.1/24 fc00:192:168:10::1/64
+20 192.168.20.1/24 fc00:192:168:20::1/64'
 	atf_check -s exit:0 \
 		-o match:'ip address add 192.168.10.1/24 dev vrrp4-1-10' \
 		-o match:'ip -6 address add fc00:192:168:10::1/64 dev vrrp6-1-10' \
