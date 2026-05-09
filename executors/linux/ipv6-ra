@@ -6,14 +6,14 @@ start() {
 	forwarding=$(cat "$PROCFS_ROOT/sys/net/ipv6/conf/$IFACE/forwarding")
 
 	if [ "$forwarding" = 1 ]; then
-		${MOCK} /bin/sh -c "echo 2 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra"
+		printf '%s\n' 2 > "$PROCFS_ROOT/sys/net/ipv6/conf/$IFACE/accept_ra"
 	else
-		${MOCK} /bin/sh -c "echo 1 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra"
+		printf '%s\n' 1 > "$PROCFS_ROOT/sys/net/ipv6/conf/$IFACE/accept_ra"
 	fi
 }
 
 stop() {
-	${MOCK} /bin/sh -c "echo 0 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra"
+	printf '%s\n' 0 > "$PROCFS_ROOT/sys/net/ipv6/conf/$IFACE/accept_ra"
 }
 
 [ -z "$VERBOSE" ] || set -x

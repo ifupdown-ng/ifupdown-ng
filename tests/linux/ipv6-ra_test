@@ -14,20 +14,21 @@ write_forwarding() {
 
 up_host_body() {
 	write_forwarding 0
-	export IFACE=lo PHASE=up MOCK=echo MOCK_ESC=\\
-	atf_check -s exit:0 -o match:'echo 1 > /proc/sys/net/ipv6/conf/lo/accept_ra' \
-		${EXECUTOR}
+	export IFACE=lo PHASE=up
+	atf_check -s exit:0 ${EXECUTOR}
+	atf_check -s exit:0 -o inline:'1\n' cat "$PROCFS_ROOT/sys/net/ipv6/conf/lo/accept_ra"
 }
 
 up_router_body() {
 	write_forwarding 1
-	export IFACE=lo PHASE=up MOCK=echo MOCK_ESC=\\
-	atf_check -s exit:0 -o match:'echo 2 > /proc/sys/net/ipv6/conf/lo/accept_ra' \
-		${EXECUTOR}
+	export IFACE=lo PHASE=up
+	atf_check -s exit:0 ${EXECUTOR}
+	atf_check -s exit:0 -o inline:'2\n' cat "$PROCFS_ROOT/sys/net/ipv6/conf/lo/accept_ra"
 }
 
 down_body() {
-	export IFACE=lo PHASE=down MOCK=echo MOCK_ESC=\\
-	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv6/conf/lo/accept_ra' \
-		${EXECUTOR}
+	write_forwarding 1
+	export IFACE=lo PHASE=down
+	atf_check -s exit:0 ${EXECUTOR}
+	atf_check -s exit:0 -o inline:'0\n' cat "$PROCFS_ROOT/sys/net/ipv6/conf/lo/accept_ra"
 }
