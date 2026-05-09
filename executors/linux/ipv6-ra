@@ -1,8 +1,11 @@
 #!/bin/sh
-start() {
-	forwarding=$(cat "/proc/sys/net/ipv6/conf/$IFACE/forwarding")
 
-	if [[ "$forwarding" == 1 ]]; then
+: "${PROCFS_ROOT:=/proc}"
+
+start() {
+	forwarding=$(cat "$PROCFS_ROOT/sys/net/ipv6/conf/$IFACE/forwarding")
+
+	if [ "$forwarding" = 1 ]; then
 		${MOCK} /bin/sh -c "echo 2 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra"
 	else
 		${MOCK} /bin/sh -c "echo 1 > /proc/sys/net/ipv6/conf/$IFACE/accept_ra"

@@ -3,11 +3,26 @@
 . $(atf_get_srcdir)/../test_env.sh
 EXECUTOR="$(atf_get_srcdir)/../../executors/linux/ipv6-ra"
 
-tests_init up down
+tests_init up_host up_router down
 
-up_body() {
+write_forwarding() {
+	PROCFS_ROOT="$(pwd)/proc"
+	mkdir -p "$PROCFS_ROOT/sys/net/ipv6/conf/lo"
+	printf '%s\n' "$1" > "$PROCFS_ROOT/sys/net/ipv6/conf/lo/forwarding"
+	export PROCFS_ROOT
+}
+
+up_host_body() {
+	write_forwarding 0
 	export IFACE=lo PHASE=up MOCK=echo MOCK_ESC=\\
 	atf_check -s exit:0 -o match:'echo 1 > /proc/sys/net/ipv6/conf/lo/accept_ra' \
+		${EXECUTOR}
+}
+
+up_router_body() {
+	write_forwarding 1
+	export IFACE=lo PHASE=up MOCK=echo MOCK_ESC=\\
+	atf_check -s exit:0 -o match:'echo 2 > /proc/sys/net/ipv6/conf/lo/accept_ra' \
 		${EXECUTOR}
 }
 
