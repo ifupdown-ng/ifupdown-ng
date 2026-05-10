@@ -33,6 +33,10 @@ the system will only respond to certain keywords by default:
 	The amount of Duplicate Address Detection probes to send.
 	Default: _1_
 
+*ipv6-optimistic-dad* _number_
+	Enable or disable optimistic Duplicate Address Detection.
+	Default: _0_
+
 # EXAMPLES
 
 ```
