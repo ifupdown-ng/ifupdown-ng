@@ -1,7 +1,7 @@
 #!/usr/bin/env atf-sh
 
 . $(atf_get_srcdir)/../test_env.sh
-EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/cake"
+EXECUTOR="$(atf_get_srcdir)/../../executors/linux/cake"
 
 tests_init \
 	min \

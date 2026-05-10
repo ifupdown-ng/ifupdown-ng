@@ -1,18 +1,27 @@
 #!/usr/bin/env atf-sh
 
 . $(atf_get_srcdir)/../test_env.sh
-EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/ipv6-tempaddr"
+EXECUTOR="$(atf_get_srcdir)/../../executors/linux/ipv6-tempaddr"
 
 tests_init pre_up pre_down
 
+setup_procfs() {
+	PROCFS_ROOT="$(pwd)/proc"
+	mkdir -p "$PROCFS_ROOT/sys/net/ipv6/conf/lo"
+	printf '%s\n' 9 > "$PROCFS_ROOT/sys/net/ipv6/conf/lo/use_tempaddr"
+	export PROCFS_ROOT
+}
+
 pre_up_body() {
-	export IFACE=lo PHASE=pre-up MOCK=echo MOCK_ESC=\\
-	atf_check -s exit:0 -o match:'echo 2 > /proc/sys/net/ipv6/conf/lo/use_tempaddr' \
-		${EXECUTOR}
+	setup_procfs
+	export IFACE=lo PHASE=pre-up
+	atf_check -s exit:0 ${EXECUTOR}
+	atf_check -s exit:0 -o inline:'2\n' cat "$PROCFS_ROOT/sys/net/ipv6/conf/lo/use_tempaddr"
 }
 
 pre_down_body() {
-	export IFACE=lo PHASE=pre-down MOCK=echo MOCK_ESC=\\
-	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv6/conf/lo/use_tempaddr' \
-		${EXECUTOR}
+	setup_procfs
+	export IFACE=lo PHASE=pre-down
+	atf_check -s exit:0 ${EXECUTOR}
+	atf_check -s exit:0 -o inline:'0\n' cat "$PROCFS_ROOT/sys/net/ipv6/conf/lo/use_tempaddr"
 }

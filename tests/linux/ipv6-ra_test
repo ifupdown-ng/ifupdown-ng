@@ -1,18 +1,34 @@
 #!/usr/bin/env atf-sh
 
 . $(atf_get_srcdir)/../test_env.sh
-EXECUTOR="$(atf_get_srcdir)/../../executor-scripts/linux/ipv6-ra"
+EXECUTOR="$(atf_get_srcdir)/../../executors/linux/ipv6-ra"
 
-tests_init up down
+tests_init up_host up_router down
 
-up_body() {
-	export IFACE=lo PHASE=up MOCK=echo MOCK_ESC=\\
-	atf_check -s exit:0 -o match:'echo 1 > /proc/sys/net/ipv6/conf/lo/accept_ra' \
-		${EXECUTOR}
+write_forwarding() {
+	PROCFS_ROOT="$(pwd)/proc"
+	mkdir -p "$PROCFS_ROOT/sys/net/ipv6/conf/lo"
+	printf '%s\n' "$1" > "$PROCFS_ROOT/sys/net/ipv6/conf/lo/forwarding"
+	export PROCFS_ROOT
+}
+
+up_host_body() {
+	write_forwarding 0
+	export IFACE=lo PHASE=up
+	atf_check -s exit:0 ${EXECUTOR}
+	atf_check -s exit:0 -o inline:'1\n' cat "$PROCFS_ROOT/sys/net/ipv6/conf/lo/accept_ra"
+}
+
+up_router_body() {
+	write_forwarding 1
+	export IFACE=lo PHASE=up
+	atf_check -s exit:0 ${EXECUTOR}
+	atf_check -s exit:0 -o inline:'2\n' cat "$PROCFS_ROOT/sys/net/ipv6/conf/lo/accept_ra"
 }
 
 down_body() {
-	export IFACE=lo PHASE=down MOCK=echo MOCK_ESC=\\
-	atf_check -s exit:0 -o match:'echo 0 > /proc/sys/net/ipv6/conf/lo/accept_ra' \
-		${EXECUTOR}
+	write_forwarding 1
+	export IFACE=lo PHASE=down
+	atf_check -s exit:0 ${EXECUTOR}
+	atf_check -s exit:0 -o inline:'0\n' cat "$PROCFS_ROOT/sys/net/ipv6/conf/lo/accept_ra"
 }

@@ -1,0 +1,98 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/../test_env.sh
+EXECUTOR="$(atf_get_srcdir)/../../executors/linux/ipv6"
+
+tests_init \
+	up_autoconf_yes \
+	up_autoconf_no \
+	up_accept_ra \
+	up_dad_transmits \
+	up_all \
+	up_missing_file \
+	non_up_noop
+
+setup_procfs() {
+	PROCFS_ROOT="$(pwd)/proc"
+	mkdir -p "$PROCFS_ROOT/sys/net/ipv6/conf/lo"
+	export PROCFS_ROOT
+}
+
+write_knob() {
+	printf '%s\n' "$2" > "$PROCFS_ROOT/sys/net/ipv6/conf/lo/$1"
+}
+
+assert_knob() {
+	atf_check -s exit:0 -o inline:"$2\n" cat "$PROCFS_ROOT/sys/net/ipv6/conf/lo/$1"
+}
+
+up_autoconf_yes_body() {
+	setup_procfs
+	write_knob autoconf 9
+	export IFACE=lo PHASE=up IF_IPV6_AUTOCONF=yes
+	atf_check -s exit:0 ${EXECUTOR}
+	assert_knob autoconf 1
+}
+
+up_autoconf_no_body() {
+	setup_procfs
+	write_knob autoconf 9
+	export IFACE=lo PHASE=up IF_IPV6_AUTOCONF=no
+	atf_check -s exit:0 ${EXECUTOR}
+	assert_knob autoconf 0
+}
+
+up_accept_ra_body() {
+	setup_procfs
+	write_knob accept_ra 9
+	export IFACE=lo PHASE=up IF_IPV6_ACCEPT_RA=2
+	atf_check -s exit:0 ${EXECUTOR}
+	assert_knob accept_ra 2
+}
+
+up_dad_transmits_body() {
+	setup_procfs
+	write_knob dad_transmits 9
+	export IFACE=lo PHASE=up IF_IPV6_DAD_TRANSMITS=3
+	atf_check -s exit:0 ${EXECUTOR}
+	assert_knob dad_transmits 3
+}
+
+up_all_body() {
+	setup_procfs
+	write_knob autoconf 9
+	write_knob accept_ra 9
+	write_knob dad_transmits 9
+	export IFACE=lo PHASE=up \
+		IF_IPV6_AUTOCONF=yes \
+		IF_IPV6_ACCEPT_RA=2 \
+		IF_IPV6_DAD_TRANSMITS=3
+	atf_check -s exit:0 ${EXECUTOR}
+	assert_knob autoconf 1
+	assert_knob accept_ra 2
+	assert_knob dad_transmits 3
+}
+
+up_missing_file_body() {
+	setup_procfs
+	write_knob autoconf 9
+	export IFACE=lo PHASE=up IF_IPV6_DAD_TRANSMITS=3
+	atf_check -s exit:0 ${EXECUTOR}
+	atf_check -s not-exit:0 test -e "$PROCFS_ROOT/sys/net/ipv6/conf/lo/dad_transmits"
+	assert_knob autoconf 9
+}
+
+non_up_noop_body() {
+	setup_procfs
+	write_knob autoconf 9
+	write_knob accept_ra 9
+	write_knob dad_transmits 9
+	export IFACE=lo PHASE=down \
+		IF_IPV6_AUTOCONF=yes \
+		IF_IPV6_ACCEPT_RA=2 \
+		IF_IPV6_DAD_TRANSMITS=3
+	atf_check -s exit:0 ${EXECUTOR}
+	assert_knob autoconf 9
+	assert_knob accept_ra 9
+	assert_knob dad_transmits 9
+}
