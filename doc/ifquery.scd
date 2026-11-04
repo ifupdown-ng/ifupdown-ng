@@ -51,8 +51,8 @@ configuration file to the current format.
 	List interfaces which exist in the configuration database.
 
 *-P, --pretty-print*
-	When listing interfaces, print their configuration in a format
-	that is compatible with *interfaces*(5) files.
+	Print configuration in a format that is compatible with
+	*interfaces*(5) files.
 
 *-U, --allow-undefined*
 	Create virtual interfaces for any interfaces not explicitly
