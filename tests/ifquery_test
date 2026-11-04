@@ -51,7 +51,7 @@ noargs_body() {
 
 loopback_always_configured_body() {
 	atf_check -s exit:0 -o match:"use loopback" \
-		ifquery -S/dev/null -i $FIXTURES/static-eth0.interfaces lo
+		ifquery -P -S/dev/null -i $FIXTURES/static-eth0.interfaces lo
 }
 
 static_dual_stack_body() {
@@ -59,39 +59,39 @@ static_dual_stack_body() {
 		  -o match:"address 2001:db8:1000:2::2/64" \
 		  -o match:"gateway 203.0.113.1" \
 		  -o match:"gateway 2001:db8:1000:2::1" \
-		  ifquery -S/dev/null -i $FIXTURES/static-eth0.interfaces eth0
+		  ifquery -P -S/dev/null -i $FIXTURES/static-eth0.interfaces eth0
 }
 
 static_ipv4_body() {
 	atf_check -s exit:0 -o match:"address 203.0.113.2/24" \
 		  -o match:"gateway 203.0.113.1" \
-		  ifquery -S/dev/null -i $FIXTURES/static-eth0-v4.interfaces eth0
+		  ifquery -P -S/dev/null -i $FIXTURES/static-eth0-v4.interfaces eth0
 }
 
 static_ipv6_body() {
 	atf_check -s exit:0 -o match:"address 2001:db8:1000:2::2/64" \
 		  -o match:"gateway 2001:db8:1000:2::1" \
-		  ifquery -S/dev/null -i $FIXTURES/static-eth0-v6.interfaces eth0
+		  ifquery -P -S/dev/null -i $FIXTURES/static-eth0-v6.interfaces eth0
 }
 
 dhcp_ipv4_body() {
 	atf_check -s exit:0 -o match:"use dhcp" \
-		  ifquery -S/dev/null -i $FIXTURES/dhcp-eth0.interfaces eth0
+		  ifquery -P -S/dev/null -i $FIXTURES/dhcp-eth0.interfaces eth0
 }
 
 use_dhcp_body() {
 	atf_check -s exit:0 -o match:"use dhcp" \
-		  ifquery -S/dev/null -i $FIXTURES/use-dhcp-eth0.interfaces eth0
+		  ifquery -P -S/dev/null -i $FIXTURES/use-dhcp-eth0.interfaces eth0
 }
 
 state_query_home_body() {
 	atf_check -s exit:0 -o match:"iface home" \
-		  ifquery -S $FIXTURES/alias-home.ifstate -i $FIXTURES/alias-home-work.interfaces wlan0
+		  ifquery -P -S $FIXTURES/alias-home.ifstate -i $FIXTURES/alias-home-work.interfaces wlan0
 }
 
 state_query_work_body() {
 	atf_check -s exit:0 -o match:"iface work" \
-		  ifquery -S $FIXTURES/alias-work.ifstate -i $FIXTURES/alias-home-work.interfaces wlan0
+		  ifquery -P -S $FIXTURES/alias-work.ifstate -i $FIXTURES/alias-home-work.interfaces wlan0
 }
 
 state_print_body() {
@@ -103,17 +103,17 @@ state_print_body() {
 
 learned_dependency_body() {
 	atf_check -s exit:0 -o match:"requires eth0 eth1 eth2 eth3 eth4" \
-		ifquery -E $EXECUTORS -i $FIXTURES/mock-dependency-generator.interfaces br0
+		ifquery -P -E $EXECUTORS -i $FIXTURES/mock-dependency-generator.interfaces br0
 }
 
 learned_dependency_2_body() {
 	atf_check -s exit:0 -o match:"requires bond0" \
-		ifquery -E $EXECUTORS -i $FIXTURES/mock-dependency-generator-2.interfaces br0
+		ifquery -P -E $EXECUTORS -i $FIXTURES/mock-dependency-generator-2.interfaces br0
 }
 
 learned_executor_body() {
 	atf_check -s exit:0 -o match:"use mock" \
-		ifquery -E $EXECUTORS -i $FIXTURES/mock-dependency-generator-2.interfaces br0
+		ifquery -P -E $EXECUTORS -i $FIXTURES/mock-dependency-generator-2.interfaces br0
 }
 
 inheritance_0_body() {
@@ -121,7 +121,7 @@ inheritance_0_body() {
 		-o match:"address 203.0.113.2/24" \
 		-o match:"address 203.0.113.3/24" \
 		-o match:"address 2001:db8:1000:2::2/64" \
-		ifquery -E $EXECUTORS -i $FIXTURES/inheritance.interfaces inherit0
+		ifquery -P -E $EXECUTORS -i $FIXTURES/inheritance.interfaces inherit0
 }
 
 inheritance_1_body() {
@@ -129,58 +129,58 @@ inheritance_1_body() {
 		-o match:"address 203.0.113.2/24" \
 		-o match:"address 203.0.113.4/24" \
 		-o match:"address 2001:db8:1000:2::2/64" \
-		ifquery -E $EXECUTORS -i $FIXTURES/inheritance.interfaces inherit1
+		ifquery -P -E $EXECUTORS -i $FIXTURES/inheritance.interfaces inherit1
 }
 
 implicit_vlan_body() {
 	atf_check -s exit:0 -o match:"requires eth0" \
 		-o match:"use vlan" \
-		ifquery -E $EXECUTORS -i $FIXTURES/vlan.interfaces eth0.8
+		ifquery -P -E $EXECUTORS -i $FIXTURES/vlan.interfaces eth0.8
 }
 
 vrf_dependency_body() {
 	atf_check -s exit:0 -o match:"requires vrf-red" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vrf.interfaces eth0
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/vrf.interfaces eth0
 }
 
 vrf_ifupdown2_rewrite_body() {
 	atf_check -s exit:0 -o match:"vrf-member vrf-red" \
-		ifquery -E $EXECUTORS -i $FIXTURES/vrf-ifupdown2.interfaces eth0
+		ifquery -P -E $EXECUTORS -i $FIXTURES/vrf-ifupdown2.interfaces eth0
 }
 
 vrf_ifupdown2_dependency_body() {
 	atf_check -s exit:0 -o match:"requires vrf-red" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vrf-ifupdown2.interfaces eth0
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/vrf-ifupdown2.interfaces eth0
 }
 
 vrf_implicit_static_gateway_body() {
 	atf_check -s exit:0 -o match:"use static" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vrf.interfaces vrf-red
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/vrf.interfaces vrf-red
 }
 
 ppp_dependency_body() {
 	atf_check -s exit:0 -o match:"requires eth0" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/ppp.interfaces ppp0
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/ppp.interfaces ppp0
 }
 
 ppp_legacy_rewrite_body() {
 	atf_check -s exit:0 -o match:"ppp-provider someisp" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/ppp-legacy.interfaces ppp0
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/ppp-legacy.interfaces ppp0
 }
 
 tunnel_dependency_body() {
 	atf_check -s exit:0 -o match:"requires eth0" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel.interfaces tun0
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/tunnel.interfaces tun0
 }
 
 tunnel_legacy_dependency_body() {
 	atf_check -s exit:0 -o match:"requires eth0" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-legacy.interfaces tun0
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-legacy.interfaces tun0
 }
 
 tunnel_ifupdown2_dependency_body() {
 	atf_check -s exit:0 -o match:"requires eth0" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-ifupdown2.interfaces tun0
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-ifupdown2.interfaces tun0
 }
 
 tunnel_legacy_rewrite_body() {
@@ -189,7 +189,7 @@ tunnel_legacy_rewrite_body() {
 		-o match:"tunnel-remote 203.0.113.1" \
 		-o match:"tunnel-mode gre" \
 		-o match:"tunnel-ttl 255" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-legacy.interfaces tun0
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-legacy.interfaces tun0
 }
 
 tunnel_ifupdown2_rewrite_body() {
@@ -198,24 +198,24 @@ tunnel_ifupdown2_rewrite_body() {
 		-o match:"tunnel-remote 203.0.113.1" \
 		-o match:"tunnel-mode gre" \
 		-o match:"tunnel-ttl 255" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-ifupdown2.interfaces tun0
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/tunnel-ifupdown2.interfaces tun0
 }
 
 gre_dependency_body() {
 	atf_check -s exit:0 -o match:"requires eth0" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/gre.interfaces tun0
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/gre.interfaces tun0
 }
 
 vlan_explicit_learned_dependency_body() {
 	atf_check -s exit:0 -o match:"requires eth0" \
 		-o match:"use vlan" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vlan-named.interfaces servers
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/vlan-named.interfaces servers
 }
 
 vlan_guessed_learned_dependency_body() {
 	atf_check -s exit:0 -o match:"requires eth0" \
 		-o match:"use vlan" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vlan.interfaces eth0.8
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/vlan.interfaces eth0.8
 }
 
 vlan_complex_learned_dependency_body() {
@@ -226,14 +226,14 @@ vlan_complex_learned_dependency_body() {
 		-o match:"address abcd:ef12:3456:10::4/64" \
 		-o match:"gateway abcd:ef12:3456:10::1" \
 		-o match:"vlan-raw-device eth0" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/vlan-complex.interfaces servers
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/vlan-complex.interfaces servers
 }
 
 wireguard_body() {
 	atf_check -s exit:0 \
 		-o match:"requires eth0" \
 		-o match:"use wireguard" \
-		ifquery -E $EXECUTORS_LINUX -i $FIXTURES/wireguard.interfaces wg0
+		ifquery -P -E $EXECUTORS_LINUX -i $FIXTURES/wireguard.interfaces wg0
 }
 
 allow_undefined_positive_body() {

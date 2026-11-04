@@ -112,7 +112,7 @@ list_interfaces(struct lif_dict *collection, struct match_options *opts)
 			continue;
 
 		if (opts->pretty_print)
-			prettyprint_interface_eni(iface);
+			prettyprint_interface_eni(iface, "  %s %s\n", true);
 		else if (opts->dot)
 			print_interface_dot(collection, iface, NULL);
 		else
@@ -294,8 +294,10 @@ ifquery_main(int argc, char *argv[])
 
 		if (match_opts.property != NULL)
 			print_interface_property(iface, match_opts.property);
+		else if (match_opts.pretty_print)
+			prettyprint_interface_eni(iface, "  %s %s\n", true);
 		else
-			prettyprint_interface_eni(iface);
+			prettyprint_interface_eni(iface, "%s: %s\n", false);
 	}
 
 	return EXIT_SUCCESS;

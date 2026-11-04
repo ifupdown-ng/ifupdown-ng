@@ -18,6 +18,6 @@
 
 #include "libifupdown/libifupdown.h"
 
-extern void prettyprint_interface_eni(struct lif_interface *iface);
+extern void prettyprint_interface_eni(struct lif_interface *iface, const char *attr_format, bool print_header);
 
 #endif
