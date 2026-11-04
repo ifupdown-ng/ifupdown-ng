@@ -20,20 +20,22 @@
 #include "cmd/pretty-print-iface.h"
 
 void
-prettyprint_interface_eni(struct lif_interface *iface)
+prettyprint_interface_eni(struct lif_interface *iface, const char *attr_format, bool print_header)
 {
 	if (!lif_lifecycle_query_dependents(&exec_opts, iface, iface->ifname))
 		return;
 
-	if (iface->is_auto)
-		printf("auto %s\n", iface->ifname);
+	if (print_header) {
+		if (iface->is_auto)
+			printf("auto %s\n", iface->ifname);
 
-	printf("%s %s", iface->is_template ? "template" : "iface", iface->ifname);
+		printf("%s %s", iface->is_template ? "template" : "iface", iface->ifname);
 
-	if (iface->no_defaults)
-		printf(" no-defaults");
+		if (iface->no_defaults)
+			printf(" no-defaults");
 
-	printf("\n");
+		printf("\n");
+	}
 
 	struct lif_node *iter;
 	LIF_DICT_FOREACH(iter, &iface->vars)
@@ -51,10 +53,10 @@ prettyprint_interface_eni(struct lif_interface *iface)
 				continue;
 			}
 
-			printf("  %s %s\n", entry->key, addr_buf);
+			printf(attr_format, entry->key, addr_buf);
 		}
 		else
-			printf("  %s %s\n", entry->key, (const char *) entry->data);
+			printf(attr_format, entry->key, (const char *) entry->data);
 	}
 
 	printf("\n");
